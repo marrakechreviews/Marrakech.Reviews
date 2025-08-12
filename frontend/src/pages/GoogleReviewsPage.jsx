@@ -90,7 +90,7 @@ export default function GoogleReviewsPage() {
         rating: 4.8,
         user_ratings_total: 247,
         formatted_phone_number: "+212 524-123456",
-        website: "https://marrakech-experience.com",
+        website: "https://marrakech.reviews",
         opening_hours: {
           open_now: true,
           weekday_text: [
