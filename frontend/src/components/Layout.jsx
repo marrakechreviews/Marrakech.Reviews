@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useCart } from '../contexts/CartContext';
 import { 
   Search, 
   ShoppingBag, 
@@ -30,6 +31,7 @@ export default function Layout({ children }) {
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const { itemsCount } = useCart();
 
   const { data: settings } = useQuery({
     queryKey: ['settings'],
@@ -64,7 +66,7 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar */}
+      {/* Top Bar
       <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white py-2 text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -100,7 +102,7 @@ export default function Layout({ children }) {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
@@ -155,12 +157,16 @@ export default function Layout({ children }) {
                 <Heart className="h-4 w-4 mr-2" />
                 Wishlist
               </Button>
-              <Button variant="ghost" size="sm" className="relative">
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Cart
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center text-xs">
-                  0
-                </Badge>
+              <Button variant="ghost" size="sm" asChild className="relative">
+                <Link to="/cart">
+                  <ShoppingBag className="h-4 w-4 mr-2" />
+                  Cart
+                  {itemsCount > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center text-xs">
+                      {itemsCount}
+                    </Badge>
+                  )}
+                </Link>
               </Button>
 
               {/* Mobile menu button */}

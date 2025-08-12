@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout/Layout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import EnhancedDashboardPage from './pages/EnhancedDashboardPage';
 import ArticlesPage from './pages/ArticlesPage';
 import TestQuillPage from './pages/TestQuillPage';
 import ProductsPage from './pages/ProductsPage';
@@ -17,6 +18,9 @@ import ActivitiesManagementPage from './pages/ActivitiesManagementPage';
 import ReservationsManagementPage from './pages/ReservationsManagementPage';
 import FlightReservationsManagementPage from './pages/FlightReservationsManagementPage';
 import HomepageSectionsManagementPage from './pages/HomepageSectionsManagementPage';
+import CustomersListPage from './pages/CustomersListPage';
+import EnhancedReviewsPage from './pages/EnhancedReviewsPage';
+import InstagramManagementPage from './pages/InstagramManagementPage';
 import SettingsPage from './pages/SettingsPage';
 import './App.css';
 
@@ -54,7 +58,8 @@ function App() {
                   <ProtectedRoute>
                     <Layout>
                       <Routes>
-                        <Route path="/" element={<DashboardPage />} />
+                        <Route path="/" element={<EnhancedDashboardPage />} />
+                        <Route path="/dashboard" element={<DashboardPage />} />
                         <Route path="/articles" element={<ArticlesPage />} />
                         <Route path="/products" element={<ProductsPage />} />
                         {/* <Route path="/products" element={<SimpleProductsPage />} /> */}
@@ -64,6 +69,9 @@ function App() {
                         <Route path="/activities" element={<ActivitiesManagementPage />} />
                         <Route path="/reservations" element={<ReservationsManagementPage />} />
                         <Route path="/flights" element={<FlightReservationsManagementPage />} />
+                        <Route path="/customers" element={<CustomersListPage />} />
+                        <Route path="/enhanced-reviews" element={<EnhancedReviewsPage />} />
+                        <Route path="/instagram" element={<InstagramManagementPage />} />
                         <Route path="/homepage-sections" element={<HomepageSectionsManagementPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                       </Routes>

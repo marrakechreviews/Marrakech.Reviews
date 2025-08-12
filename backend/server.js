@@ -17,6 +17,9 @@ const articleRoutes = require("./routes/articles");
 const settingsRoutes = require("./routes/settings");
 const activityRoutes = require("./routes/activities");
 const homepageSectionsRoutes = require("./routes/homepageSections");
+const analyticsRoutes = require("./routes/analytics");
+const enhancedReviewsRoutes = require("./routes/enhancedReviews");
+const instagramRoutes = require("./routes/instagram");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -31,7 +34,7 @@ app.use(helmet());
 // CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === "production" 
-    ? ["https://yourdomain.com", "https://admin.yourdomain.com"] 
+    ? ["https://marrakech.reviews", "https://admin.yourdomain.com"] 
     : true, // Allow all origins in development
   credentials: true
 }));
@@ -60,6 +63,9 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/reservations", activityRoutes); // Add reservations route
 app.use("/api/homepage-sections", homepageSectionsRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/enhanced-reviews", enhancedReviewsRoutes);
+app.use("/api/instagram", instagramRoutes);
 
 // Root route handler for token-based requests
 app.get("/", (req, res) => {

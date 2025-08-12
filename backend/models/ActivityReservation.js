@@ -3,8 +3,7 @@ const mongoose = require('mongoose');
 const activityReservationSchema = new mongoose.Schema({
   reservationId: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   activity: {
     type: mongoose.Schema.Types.ObjectId,
@@ -100,12 +99,13 @@ const activityReservationSchema = new mongoose.Schema({
 });
 
 // Indexes for better query performance
-activityReservationSchema.index({ reservationId: 1 });
+
 activityReservationSchema.index({ activity: 1 });
 activityReservationSchema.index({ 'customerInfo.email': 1 });
 activityReservationSchema.index({ reservationDate: 1 });
 activityReservationSchema.index({ status: 1 });
 activityReservationSchema.index({ createdAt: -1 });
+activityReservationSchema.index({ reservationId: 1 }, { unique: true });
 
 // Virtual for formatted reservation date
 activityReservationSchema.virtual('formattedReservationDate').get(function() {

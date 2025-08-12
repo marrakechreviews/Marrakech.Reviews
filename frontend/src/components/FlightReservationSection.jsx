@@ -89,7 +89,7 @@ const FlightReservationSection = () => {
   const totalPassengers = passengers.adults + passengers.children + passengers.infants;
 
   return (
-    <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
+    <section className="py-16 bg-gradient-to-br from-red-50 to-red-100">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">

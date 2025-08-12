@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
       'Please enter a valid email'
     ]
   },
+
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -58,9 +59,6 @@ const userSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
-
-// Index for email lookup
-userSchema.index({ email: 1 });
 
 // Encrypt password using bcrypt before saving
 userSchema.pre('save', async function(next) {

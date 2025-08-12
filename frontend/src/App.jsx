@@ -12,6 +12,8 @@ import GoogleReviewsPage from './pages/GoogleReviewsPage';
 import HostingReservationsPage from './pages/HostingReservationsPage';
 import ActivitiesPage from './pages/ActivitiesPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
 import ThankYouPage from './pages/ThankYouPage';
 import Layout from './components/Layout';
 import './App.css';
@@ -42,6 +44,8 @@ function App() {
                 <Route path="/hosting" element={<HostingReservationsPage />} />
                 <Route path="/activities" element={<ActivitiesPage />} />
                 <Route path="/activities/:slug" element={<ActivityDetailPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />
                 <Route path="/category/:category" element={<ProductsPage />} />
                 <Route path="/search" element={<ProductsPage />} />

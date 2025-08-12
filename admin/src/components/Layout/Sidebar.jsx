@@ -56,6 +56,11 @@ const navigation = [
     icon: Plane,
   },
   {
+    name: 'Customers',
+    href: '/customers',
+    icon: Users,
+  },
+  {
     name: 'Homepage Sections',
     href: '/homepage-sections',
     icon: Layout,
@@ -69,6 +74,16 @@ const navigation = [
     name: 'Reviews',
     href: '/reviews',
     icon: MessageSquare,
+  },
+  {
+    name: 'Enhanced Reviews',
+    href: '/enhanced-reviews',
+    icon: MessageSquare,
+  },
+  {
+    name: 'Instagram',
+    href: '/instagram',
+    icon: Layout,
   },
   {
     name: 'Settings',

@@ -6,12 +6,13 @@
 *.zip
 **/*.zip
 
-*.md
-**/*.md
-
 # Ignore node_modules in any directory
 **/node_modules/
 
 # Optional: Ignore other common files you don't want
 .DS_Store
 *.log
+
+# Exclude all .md files
+*.md
+**/*.md

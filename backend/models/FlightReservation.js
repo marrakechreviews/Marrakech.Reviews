@@ -212,8 +212,6 @@ const flightReservationSchema = new mongoose.Schema({
   // Booking Reference
   bookingReference: {
     type: String,
-    unique: true,
-    sparse: true,
     trim: true
   },
 
@@ -269,11 +267,12 @@ flightReservationSchema.pre('save', function(next) {
 
 // Indexes for better query performance
 flightReservationSchema.index({ 'customerInfo.email': 1 });
-flightReservationSchema.index({ bookingReference: 1 });
+
 flightReservationSchema.index({ status: 1 });
 flightReservationSchema.index({ createdAt: -1 });
 flightReservationSchema.index({ 'flightDetails.departure.date': 1 });
 flightReservationSchema.index({ 'referralInfo.supplier': 1 });
+flightReservationSchema.index({ bookingReference: 1 }, { unique: true });
 
 // Virtual for full customer name
 flightReservationSchema.virtual('customerInfo.fullName').get(function() {

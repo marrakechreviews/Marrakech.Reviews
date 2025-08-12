@@ -35,6 +35,8 @@ import { animateOnScroll, staggerAnimation, createFloatingAnimation } from '../l
 import HeroSlideshow from '../components/HeroSlideshow';
 import FlightReservationSection from '../components/FlightReservationSection';
 import RecommendedPlacesInstagramCarousel from '../components/RecommendedPlacesInstagramCarousel';
+import InstagramSection from '../components/InstagramSection';
+import PopularDestinations from '../components/PopularDestinations';
 import souksImage from '../assets/images/marrakech-souks.jpg';
 import foodImage from '../assets/images/marrakech-food.jpg';
 import desertImage from '../assets/images/marrakech-desert.jpg';
@@ -104,28 +106,28 @@ const HomePage = () => {
       name: 'Activities',
       icon: Compass,
       count: '150+',
-      color: 'bg-orange-100 text-red-600',
+      color: 'bg-red-100 text-red-600',
       href: '/products?category=Activities',
     },
     {
       name: 'restaurants',
       icon: Utensils,
       count: '280+',
-      color: 'bg-blue-100 text-red-600',
+      color: 'bg-red-100 text-red-600',
       href: '/products?category=fashion',
     },
     {
       name: 'hosting',
       icon: MapPin,
       count: '120+',
-      color: 'bg-green-100 text-red-600',
+      color: 'bg-red-100 text-red-600',
       href: '/products?category=home-garden',
     },
     {
       name: 'hidden gems',
       icon: Star,
       count: '90+',
-      color: 'bg-purple-100 text-red-600',
+      color: 'bg-red-100 text-red-600',
       href: '/products?category=sports',
     },
     {
@@ -139,7 +141,7 @@ const HomePage = () => {
       name: 'guide',
       icon: BookOpen,
       count: '45+',
-      color: 'bg-yellow-100 text-red-600',
+      color: 'bg-red-100 text-red-600',
       href: '/products?sale=true',
     },
   ];
@@ -176,6 +178,50 @@ const HomePage = () => {
   const renderSections = () => {
     const sections = [
       { name: 'hero', component: <HeroSlideshow key="hero" /> },
+      {
+        name: 'categories',
+        component: (
+          <section key="categories" className="py-16">
+            <div className="container mx-auto px-4">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                  Shop by Category
+                </h2>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                  Find exactly what you're looking for in our carefully curated categories
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                {categories.map((category, index) => {
+                  const Icon = category.icon;
+                  return (
+                    <Link key={index} to={category.href}>
+                      <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+                        <CardContent className="p-6 text-center">
+                          <div
+                            className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${category.color} group-hover:scale-110 transition-transform`}
+                          >
+                            <Icon className="h-6 w-6" />
+                          </div>
+                          <h3 className="font-semibold mb-2">{category.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {category.count} items
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )
+      },
+      {
+        name: 'recommended-places',
+        component: <PopularDestinations key="recommended-places" />
+      },
       { 
         name: 'google-reviews', 
         component: (
@@ -220,24 +266,63 @@ const HomePage = () => {
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
                 Discover unique accommodations and book your unforgettable experience in Marrakech.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <Card className="p-6">
-                  <h3 className="text-2xl font-bold mb-3">Luxury Riads</h3>
-                  <p className="text-gray-600 mb-4">Experience authentic Moroccan hospitality in our hand-picked luxury riads.</p>
-                  <Button asChild variant="outline">
-                    <Link to="/hosting">
-                      Explore Riads
-                    </Link>
-                  </Button>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src="/images/accommodations/luxury-hotel.jpg" 
+                      alt="Luxury Hotels" 
+                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-2xl font-bold mb-3">Luxury Hotels</h3>
+                    <p className="text-gray-600 mb-4">Experience world-class comfort and service in our premium hotel selections.</p>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/hosting">
+                        Explore Hotels
+                      </Link>
+                    </Button>
+                  </div>
                 </Card>
-                <Card className="p-6">
-                  <h3 className="text-2xl font-bold mb-3">Desert Camps</h3>
-                  <p className="text-gray-600 mb-4">Spend a magical night under the stars in the Sahara Desert.</p>
-                  <Button asChild variant="outline">
-                    <Link to="/hosting">
-                      Discover Camps
-                    </Link>
-                  </Button>
+                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src="/images/accommodations/traditional-riad.webp" 
+                      alt="Traditional Riads" 
+                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-2xl font-bold mb-3">Traditional Riads</h3>
+                    <p className="text-gray-600 mb-4">Experience authentic Moroccan hospitality in our hand-picked luxury riads.</p>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/hosting">
+                        Explore Riads
+                      </Link>
+                    </Button>
+                  </div>
+                </Card>
+                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className="relative overflow-hidden">
+                    <img 
+                      src="/images/accommodations/modern-apartment.jpg" 
+                      alt="Modern Apartments" 
+                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-2xl font-bold mb-3">Modern Apartments</h3>
+                    <p className="text-gray-600 mb-4">Enjoy the comfort of home with our stylish apartment rentals.</p>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/hosting">
+                        Discover Apartments
+                      </Link>
+                    </Button>
+                  </div>
                 </Card>
               </div>
               <Button asChild size="lg">
@@ -333,50 +418,6 @@ const HomePage = () => {
         component: <FlightReservationSection key="flights" />
       },
       {
-        name: 'categories',
-        component: (
-          <section key="categories" className="py-16">
-            <div className="container mx-auto px-4">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                  Shop by Category
-                </h2>
-                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Find exactly what you're looking for in our carefully curated categories
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                {categories.map((category, index) => {
-                  const Icon = category.icon;
-                  return (
-                    <Link key={index} to={category.href}>
-                      <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-                        <CardContent className="p-6 text-center">
-                          <div
-                            className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${category.color} group-hover:scale-110 transition-transform`}
-                          >
-                            <Icon className="h-6 w-6" />
-                          </div>
-                          <h3 className="font-semibold mb-2">{category.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {category.count} items
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )
-      },
-      {
-        name: 'recommended-places',
-        component: <RecommendedPlacesInstagramCarousel key="recommended-places" />
-      },
-      {
         name: 'features',
         component: (
           <section key="features" className="py-16 bg-gray-50">
@@ -392,7 +433,7 @@ const HomePage = () => {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-orange-100 rounded-full mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
                     <Truck className="h-8 w-8 text-red-600" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3 text-gray-900">Seamless Booking</h3>
@@ -401,7 +442,7 @@ const HomePage = () => {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-orange-100 rounded-full mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
                     <Shield className="h-8 w-8 text-red-600" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3 text-gray-900">Authentic Experiences</h3>
@@ -410,7 +451,7 @@ const HomePage = () => {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-orange-100 rounded-full mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
                     <Award className="h-8 w-8 text-red-600" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3 text-gray-900">Local Expertise</h3>
@@ -419,7 +460,7 @@ const HomePage = () => {
                   </p>
                 </div>
                 <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-orange-100 rounded-full mb-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
                     <Users className="h-8 w-8 text-red-600" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3 text-gray-900">Dedicated Support</h3>
@@ -431,6 +472,10 @@ const HomePage = () => {
             </div>
           </section>
         )
+      },
+      {
+        name: 'instagram',
+        component: <InstagramSection key="instagram" />
       },
       {
         name: 'cta',

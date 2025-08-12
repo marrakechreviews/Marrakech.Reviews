@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { cartUtils } from '../lib/api';
+import * as cartUtils from "../lib/cartUtils";
 
 const CartContext = createContext();
 
@@ -72,7 +72,7 @@ export function CartProvider({ children }) {
     });
   }, []);
 
-  const addToCart = (product, quantity = 1) => {
+  const addToCartHandler = (product, quantity = 1) => {
     const updatedItems = cartUtils.addToCart(product, quantity);
     const total = cartUtils.getCartTotal();
     const itemsCount = cartUtils.getCartItemsCount();
@@ -83,7 +83,7 @@ export function CartProvider({ children }) {
     });
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCartHandler = (productId) => {
     const updatedItems = cartUtils.removeFromCart(productId);
     const total = cartUtils.getCartTotal();
     const itemsCount = cartUtils.getCartItemsCount();
@@ -94,7 +94,7 @@ export function CartProvider({ children }) {
     });
   };
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantityHandler = (productId, quantity) => {
     const updatedItems = cartUtils.updateQuantity(productId, quantity);
     const total = cartUtils.getCartTotal();
     const itemsCount = cartUtils.getCartItemsCount();
@@ -105,7 +105,7 @@ export function CartProvider({ children }) {
     });
   };
 
-  const clearCart = () => {
+  const clearCartHandler = () => {
     cartUtils.clearCart();
     dispatch({ type: 'CLEAR_CART' });
   };
@@ -121,10 +121,10 @@ export function CartProvider({ children }) {
 
   const value = {
     ...state,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
+    addToCart: addToCartHandler,
+    removeFromCart: removeFromCartHandler,
+    updateQuantity: updateQuantityHandler,
+    clearCart: clearCartHandler,
     getItemQuantity,
     isInCart,
   };
