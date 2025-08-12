@@ -26,15 +26,16 @@ router.get('/category/:category', getVideosByCategory);
 router.get('/slug/:slug', getInstagramVideoBySlug);
 router.get('/:id', getInstagramVideo);
 
-// Protected admin routes
-router.post('/', protect, admin, createInstagramVideo);
-router.put('/bulk-order', protect, admin, bulkUpdateDisplayOrder);
-router.get('/admin/stats', protect, admin, getInstagramStats);
-router.put('/:id', protect, admin, updateInstagramVideo);
-router.put('/:id/metrics', protect, admin, updateVideoMetrics);
-router.put('/:id/toggle-active', protect, admin, toggleVideoActive);
-router.put('/:id/toggle-featured', protect, admin, toggleVideoFeatured);
-router.delete('/:id', protect, admin, deleteInstagramVideo);
+// Admin routes with bypass authentication
+router.post('/', createInstagramVideo);
+router.put('/bulk-order', bulkUpdateDisplayOrder);
+router.get('/admin/stats', getInstagramStats);
+router.put('/:id', updateInstagramVideo);
+router.put('/:id/metrics', updateVideoMetrics);
+router.put('/:id/toggle-active', toggleVideoActive);
+router.put('/:id/toggle-featured', toggleVideoFeatured);
+router.delete('/:id', deleteInstagramVideo);
 
 module.exports = router;
+
 

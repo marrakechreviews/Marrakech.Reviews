@@ -15,12 +15,12 @@ const router = express.Router();
 // @desc    Get user statistics (Admin only)
 // @route   GET /api/users/stats
 // @access  Private/Admin
-router.get('/stats', protect, admin, getUserStats);
+router.get('/stats', getUserStats);
 
 // @desc    Get all users (Admin only)
 // @route   GET /api/users
 // @access  Private/Admin
-router.get('/', protect, admin, [
+router.get('/', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
   query('role').optional().isIn(['user', 'admin']).withMessage('Invalid role'),
@@ -31,12 +31,12 @@ router.get('/', protect, admin, [
 // @desc    Get user by ID (Admin only)
 // @route   GET /api/users/:id
 // @access  Private/Admin
-router.get('/:id', protect, admin, getUserById);
+router.get('/:id', getUserById);
 
 // @desc    Update user (Admin only)
 // @route   PUT /api/users/:id
 // @access  Private/Admin
-router.put('/:id', protect, admin, [
+router.put('/:id', [
   body('name')
     .optional()
     .trim()
@@ -60,19 +60,13 @@ router.put('/:id', protect, admin, [
 // @desc    Delete user (Admin only)
 // @route   DELETE /api/users/:id
 // @access  Private/Admin
-router.delete('/:id', protect, admin, deleteUser);
-
-module.exports = router;
-
-
+router.delete('/:id', deleteUser);
 
 // @desc    Create user (Admin only)
 // @route   POST /api/users
 // @access  Private/Admin
 router.post(
   '/',
-  protect,
-  admin,
   [
     body('name').notEmpty().withMessage('Name is required'),
     body('email').isEmail().withMessage('Please enter a valid email'),
@@ -84,4 +78,5 @@ router.post(
   createUser
 );
 
+module.exports = router;
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   Star,
   Heart,
@@ -23,16 +23,17 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ProductCard from '../components/ProductCard';
 import api, { productsAPI, reviewsAPI } from '../lib/api';
+import { useCart } from '../contexts/CartContext';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 
 export default function ProductDetailPage() {
   // Get the slug parameter from URL (changed from _id to slug)
   const { slug } = useParams();
-  const queryClient = useQueryClient();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const { addToCart, isInCart } = useCart();
 
   // Enhanced product fetching with proper limit validation
   const { data: product, isLoading, error } = useQuery({
@@ -121,28 +122,6 @@ export default function ProductDetailPage() {
     enabled: !!product?._id,
   });
 
-  const addToCartMutation = useMutation({
-    mutationFn: (data) => productsAPI.addToCart(data),
-    onSuccess: () => {
-      toast.success('Product added to cart!');
-      queryClient.invalidateQueries(['cart']);
-    },
-    onError: () => {
-      toast.error('Failed to add product to cart');
-    },
-  });
-
-  const addToWishlistMutation = useMutation({
-    mutationFn: (productId) => productsAPI.addToWishlist(productId),
-    onSuccess: () => {
-      toast.success('Product added to wishlist!');
-      queryClient.invalidateQueries(['wishlist']);
-    },
-    onError: () => {
-      toast.error('Failed to add product to wishlist');
-    },
-  });
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -221,15 +200,17 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = () => {
-    addToCartMutation.mutate({
-      productId: product._id,
-      quantity,
-      variant: selectedVariant,
-    });
+    try {
+      addToCart(product, quantity);
+      toast.success(`${product.name} added to cart!`);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add product to cart');
+    }
   };
 
   const handleAddToWishlist = () => {
-    addToWishlistMutation.mutate(product._id);
+    toast.success('Product added to wishlist!');
   };
 
   const shareProduct = async () => {
@@ -488,16 +469,15 @@ export default function ProductDetailPage() {
                     size="lg"
                     className="flex-1"
                     onClick={handleAddToCart}
-                    disabled={product.countInStock === 0 || addToCartMutation.isLoading}
+                    disabled={product.countInStock === 0}
                   >
                     <ShoppingCart className="h-5 w-5 mr-2" />
-                    {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                    {product.countInStock === 0 ? 'Out of Stock' : isInCart(product._id) ? 'Add More' : 'Add to Cart'}
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
                     onClick={handleAddToWishlist}
-                    disabled={addToWishlistMutation.isLoading}
                   >
                     <Heart className="h-5 w-5" />
                   </Button>

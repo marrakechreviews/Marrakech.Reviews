@@ -66,7 +66,8 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar */}
+      {/* Top Bar - DISABLED */}
+      {/* 
       <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white py-2 text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -103,6 +104,7 @@ export default function Layout({ children }) {
           </div>
         </div>
       </div>
+      */}
 
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">

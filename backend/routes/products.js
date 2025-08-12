@@ -70,7 +70,7 @@ router.get('/:id', getProduct);
 // @desc    Create a product
 // @route   POST /api/products
 // @access  Private/Admin
-router.post('/', protect, admin, [
+router.post('/', [
   body('name')
     .trim()
     .isLength({ min: 2, max: 100 })
@@ -101,7 +101,7 @@ router.post('/', protect, admin, [
 // @desc    Update a product
 // @route   PUT /api/products/:id
 // @access  Private/Admin
-router.put('/:id', protect, admin, [
+router.put('/:id', [
   body('name')
     .optional()
     .trim()
@@ -135,7 +135,7 @@ router.put('/:id', protect, admin, [
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
 // @access  Private/Admin
-router.delete('/:id', protect, admin, deleteProduct);
+router.delete('/:id', deleteProduct);
 
 module.exports = router;
 

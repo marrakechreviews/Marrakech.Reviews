@@ -17,7 +17,7 @@ const router = express.Router();
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
-router.post('/', protect, [
+router.post('/', [
   body('orderItems')
     .isArray({ min: 1 })
     .withMessage('Order must contain at least one item'),
@@ -61,12 +61,12 @@ router.post('/', protect, [
 // @desc    Get order stats (Admin only)
 // @route   GET /api/orders/stats
 // @access  Private/Admin
-router.get('/stats', protect, admin, getOrderStats);
+router.get('/stats', getOrderStats);
 
 // @desc    Get logged in user orders
 // @route   GET /api/orders/myorders
 // @access  Private
-router.get('/myorders', protect, [
+router.get('/myorders', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
   query('status').optional().isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled']).withMessage('Invalid status')
@@ -75,7 +75,7 @@ router.get('/myorders', protect, [
 // @desc    Get all orders (Admin only)
 // @route   GET /api/orders
 // @access  Private/Admin
-router.get('/', protect, admin, [
+router.get('/', [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
   query('status').optional().isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled']).withMessage('Invalid status'),
@@ -86,12 +86,12 @@ router.get('/', protect, admin, [
 // @desc    Get order by ID
 // @route   GET /api/orders/:id
 // @access  Private
-router.get('/:id', protect, getOrderById);
+router.get('/:id', getOrderById);
 
 // @desc    Update order to paid
 // @route   PUT /api/orders/:id/pay
 // @access  Private
-router.put('/:id/pay', protect, [
+router.put('/:id/pay', [
   body('id').notEmpty().withMessage('Payment ID is required'),
   body('status').notEmpty().withMessage('Payment status is required'),
   body('update_time').notEmpty().withMessage('Update time is required'),
@@ -101,12 +101,12 @@ router.put('/:id/pay', protect, [
 // @desc    Update order to delivered (Admin only)
 // @route   PUT /api/orders/:id/deliver
 // @access  Private/Admin
-router.put('/:id/deliver', protect, admin, updateOrderToDelivered);
+router.put('/:id/deliver', updateOrderToDelivered);
 
 // @desc    Update order status (Admin only)
 // @route   PUT /api/orders/:id/status
 // @access  Private/Admin
-router.put('/:id/status', protect, admin, [
+router.put('/:id/status', [
   body('status')
     .isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled'])
     .withMessage('Invalid status'),

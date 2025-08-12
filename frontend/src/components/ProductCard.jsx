@@ -4,6 +4,8 @@ import { Star, Heart, ShoppingCart, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useCart } from '../contexts/CartContext';
+import { toast } from 'sonner';
 
 export default function ProductCard({ product }) {
   const {
@@ -27,6 +29,8 @@ export default function ProductCard({ product }) {
     isFeatured
   } = product;
 
+  const { addToCart, isInCart } = useCart();
+
   // Use slug if available, otherwise fall back to _id
   const productUrl = `/products/${slug || _id}`;
   
@@ -40,6 +44,24 @@ export default function ProductCard({ product }) {
 
   // Handle product image - use images array or single image
   const productImage = images && images.length > 0 ? images[0] : image;
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (finalStock === 0) {
+      toast.error('Product is out of stock');
+      return;
+    }
+
+    try {
+      addToCart(product, 1);
+      toast.success(`${name} added to cart!`);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add product to cart');
+    }
+  };
 
   return (
     <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-white rounded-2xl">
@@ -114,9 +136,10 @@ export default function ProductCard({ product }) {
           <Button 
             className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white rounded-full"
             disabled={finalStock === 0}
+            onClick={handleAddToCart}
           >
             <ShoppingCart className="h-4 w-4 mr-2" />
-            {finalStock === 0 ? 'Out of Stock' : 'Add to Cart'}
+            {finalStock === 0 ? 'Out of Stock' : isInCart(_id) ? 'Add More' : 'Add to Cart'}
           </Button>
         </div>
       </div>
@@ -184,6 +207,7 @@ export default function ProductCard({ product }) {
             size="sm"
             className="md:hidden bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white rounded-full px-3"
             disabled={finalStock === 0}
+            onClick={handleAddToCart}
           >
             <ShoppingCart className="h-3 w-3" />
           </Button>

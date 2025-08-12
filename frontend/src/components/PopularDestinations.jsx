@@ -47,6 +47,12 @@ const PopularDestinations = () => {
       description: 'A modern city on the Atlantic coast, known for its beaches and golf courses.',
       link: '/destinations/agadir',
     },
+    {
+      name: 'Ouarzazate',
+      image: '/images/destinations/ouarzazate.png',
+      description: 'The gateway to the Sahara Desert, famous for its film studios and kasbahs.',
+      link: '/destinations/ouarzazate',
+    },
   ];
 
   return (
@@ -90,3 +96,4 @@ const PopularDestinations = () => {
 };
 
 export default PopularDestinations;
+
