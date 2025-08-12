@@ -273,6 +273,7 @@ const HomePage = () => {
                       src="/images/accommodations/luxury-hotel.jpg" 
                       alt="Luxury Hotels" 
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
                   </div>
@@ -292,6 +293,7 @@ const HomePage = () => {
                       src="/images/accommodations/traditional-riad.webp" 
                       alt="Traditional Riads" 
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
                   </div>
@@ -311,6 +313,7 @@ const HomePage = () => {
                       src="/images/accommodations/modern-apartment.jpg" 
                       alt="Modern Apartments" 
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
                   </div>
@@ -348,7 +351,7 @@ const HomePage = () => {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 <Card className="p-6">
-                  <img src="/src/assets/images/desert-tour.jpg" alt="Desert Tour" className="w-full h-48 object-cover rounded-lg mb-4" />
+                  <img src="/src/assets/images/desert-tour.jpg" alt="Desert Tour" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
                   <h3 className="text-xl font-bold mb-2">Desert Adventures</h3>
                   <p className="text-gray-600 mb-4">Camel treks, quad biking, and overnight stays under the stars.</p>
                   <Button asChild variant="outline">
@@ -358,7 +361,7 @@ const HomePage = () => {
                   </Button>
                 </Card>
                 <Card className="p-6">
-                  <img src="/src/assets/images/traditional-food.jpg" alt="Cooking Class" className="w-full h-48 object-cover rounded-lg mb-4" />
+                  <img src="/src/assets/images/traditional-food.jpg" alt="Cooking Class" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
                   <h3 className="text-xl font-bold mb-2">Cooking Classes</h3>
                   <p className="text-gray-600 mb-4">Learn to prepare authentic Moroccan dishes with local chefs.</p>
                   <Button asChild variant="outline">
@@ -368,7 +371,7 @@ const HomePage = () => {
                   </Button>
                 </Card>
                 <Card className="p-6">
-                  <img src="/src/assets/images/souks-shopping.jpg" alt="Souks Shopping" className="w-full h-48 object-cover rounded-lg mb-4" />
+                  <img src="/src/assets/images/souks-shopping.jpg" alt="Souks Shopping" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
                   <h3 className="text-xl font-bold mb-2">Cultural Immersion</h3>
                   <p className="text-gray-600 mb-4">Discover the bustling souks, historic sites, and vibrant culture.</p>
                   <Button asChild variant="outline">
