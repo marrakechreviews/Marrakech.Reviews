@@ -49,7 +49,7 @@ const OrganizedTravelPage = () => {
   useEffect(() => {
     const fetchTravelProgram = async () => {
       try {
-        const response = await api.get(`/organized-travel/${destination}`);
+        const response = await api.get(`organized-travel/${destination}`);
         setTravelProgram(response.data);
       } catch (error) {
         console.error('Error fetching travel program:', error);
@@ -85,7 +85,7 @@ const OrganizedTravelPage = () => {
         totalPrice: travelProgram?.price * formData.numberOfTravelers
       };
 
-      await api.post('/organized-travel/reservations', reservationData);
+      await api.post("organized-travel/reservations", reservationData);
       setSubmitted(true);
     } catch (error) {
       console.error('Error submitting reservation:', error);
