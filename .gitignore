@@ -1,0 +1,14 @@
+# Ignore .env files in any directory
+**/.env
+**/.env*
+
+# Ignore all zip files
+*.zip
+**/*.zip
+
+# Ignore node_modules in any directory
+**/node_modules/
+
+# Optional: Ignore other common files you don't want
+.DS_Store
+*.log
