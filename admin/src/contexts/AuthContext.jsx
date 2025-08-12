@@ -57,8 +57,8 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const initAuth = async () => {
       // Check for bypass mode
-      const bypassMode = localStorage.getItem("bypassLogin");
-      if (bypassMode === 'true') {
+      // const bypassMode = localStorage.getItem("bypassLogin");
+      // if (bypassMode === 'true') {
         // Create a mock admin user for bypass mode
         const mockUser = {
           _id: 'bypass-admin',
@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
           },
         });
         return;
-      }
+      // }
 
       const token = localStorage.getItem('adminToken');
       const user = localStorage.getItem('adminUser');

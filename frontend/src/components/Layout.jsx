@@ -66,7 +66,7 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar
+      {/* Top Bar */}
       <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white py-2 text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -102,7 +102,7 @@ export default function Layout({ children }) {
             </div>
           </div>
         </div>
-      </div> */}
+      </div>
 
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
@@ -238,7 +238,7 @@ export default function Layout({ children }) {
       <main>{children}</main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white">
+      <footer className="bg-black text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Features */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
@@ -278,22 +278,22 @@ export default function Layout({ children }) {
               </p>
               <div className="flex space-x-4">
                 {settings?.social?.facebook && (
-                  <a href={settings.social.facebook} className="text-gray-400 hover:text-white">
+                  <a href={settings.social.facebook} className="text-orange-500 hover:text-white">
                     <Facebook className="h-5 w-5" />
                   </a>
                 )}
                 {settings?.social?.twitter && (
-                  <a href={settings.social.twitter} className="text-gray-400 hover:text-white">
+                  <a href={settings.social.twitter} className="text-orange-500 hover:text-white">
                     <Twitter className="h-5 w-5" />
                   </a>
                 )}
                 {settings?.social?.instagram && (
-                  <a href={settings.social.instagram} className="text-gray-400 hover:text-white">
+                  <a href={settings.social.instagram} className="text-orange-500 hover:text-white">
                     <Instagram className="h-5 w-5" />
                   </a>
                 )}
                 {settings?.social?.youtube && (
-                  <a href={settings.social.youtube} className="text-gray-400 hover:text-white">
+                  <a href={settings.social.youtube} className="text-orange-500 hover:text-white">
                     <Youtube className="h-5 w-5" />
                   </a>
                 )}
@@ -302,7 +302,7 @@ export default function Layout({ children }) {
 
             <div>
               <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-orange-500">
                 <li><Link to="/about" className="hover:text-white">About Us</Link></li>
                 <li><Link to="/contact" className="hover:text-white">Contact</Link></li>
                 <li><Link to="/faq" className="hover:text-white">FAQ</Link></li>
@@ -314,7 +314,7 @@ export default function Layout({ children }) {
 
             <div>
               <h4 className="font-semibold mb-4">Categories</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-orange-500">
                 {categories.slice(0, 6).map((category) => (
                   <li key={category.name}>
                     <Link to={category.href} className="hover:text-white">
@@ -327,7 +327,7 @@ export default function Layout({ children }) {
 
             <div>
               <h4 className="font-semibold mb-4">Contact Info</h4>
-              <div className="space-y-3 text-gray-400">
+              <div className="space-y-3 text-orange-500">
                 <div className="flex items-center space-x-2">
                   <Phone className="h-4 w-4" />
                   <span>{settings?.general?.contactPhone || '+1 (555) 123-4567'}</span>
@@ -353,7 +353,7 @@ export default function Layout({ children }) {
           <div className="border-t border-gray-800 pt-8 mb-8">
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">Stay Updated</h3>
-              <p className="text-gray-400 mb-4">Subscribe to our newsletter for the latest deals and updates</p>
+              <p className="text-orange-500 mb-4">Subscribe to our newsletter for the latest deals and updates</p>
               <form className="max-w-md mx-auto flex gap-2">
                 <Input
                   type="email"
@@ -368,7 +368,7 @@ export default function Layout({ children }) {
           </div>
 
           {/* Copyright */}
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+          <div className="border-t border-gray-800 pt-8 text-center text-orange-500">
             <p>&copy; 2024 {settings?.general?.siteName || 'Your Store'}. All rights reserved.</p>
           </div>
         </div>

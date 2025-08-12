@@ -7,27 +7,45 @@ const PopularDestinations = () => {
   const destinations = [
     {
       name: 'Marrakech',
-      image: '/images/destinations/marrakech.jpg',
+      image: '/images/destinations/marrakech.png',
       description: 'The Red City, a vibrant hub of culture and history.',
       link: '/destinations/marrakech',
     },
     {
       name: 'Fes',
-      image: '/images/destinations/fes.jpg',
+      image: '/images/destinations/fes.png',
       description: 'Morocco\'s cultural capital, known for its ancient medina.',
       link: '/destinations/fes',
     },
     {
       name: 'Chefchaouen',
-      image: '/images/destinations/chefchaouen.jpg',
+      image: '/images/destinations/chefchaouen.png',
       description: 'The blue pearl of Morocco, nestled in the Rif Mountains.',
       link: '/destinations/chefchaouen',
     },
     {
       name: 'Essaouira',
-      image: '/images/destinations/essaouira.jpg',
+      image: '/images/destinations/essaouira.png',
       description: 'A charming coastal town with a relaxed atmosphere.',
       link: '/destinations/essaouira',
+    },
+    {
+      name: 'Casablanca',
+      image: '/images/destinations/casablanca.png',
+      description: 'Morocco\'s largest city, a bustling economic and cultural hub.',
+      link: '/destinations/casablanca',
+    },
+    {
+      name: 'Tangier',
+      image: '/images/destinations/tangier.png',
+      description: 'The gateway to Africa, with a rich history and vibrant atmosphere.',
+      link: '/destinations/tangier',
+    },
+    {
+      name: 'Agadir',
+      image: '/images/destinations/agadir.png',
+      description: 'A modern city on the Atlantic coast, known for its beaches and golf courses.',
+      link: '/destinations/agadir',
     },
   ];
 

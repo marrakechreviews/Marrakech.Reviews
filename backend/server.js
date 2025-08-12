@@ -20,6 +20,7 @@ const homepageSectionsRoutes = require("./routes/homepageSections");
 const analyticsRoutes = require("./routes/analytics");
 const enhancedReviewsRoutes = require("./routes/enhancedReviews");
 const instagramRoutes = require("./routes/instagram");
+const organizedTravelRoutes = require("./routes/organizedTravel");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -31,12 +32,14 @@ app.use(helmet());
 
 // Rate limiting disabled for development
 
-// CORS configuration
+// CORS configuration - More permissive for development
 app.use(cors({
-  origin: process.env.NODE_ENV === "production" 
-    ? ["https://marrakech.reviews", "https://admin.yourdomain.com"] 
-    : true, // Allow all origins in development
-  credentials: true
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 }));
 
 // Body parsing middleware
@@ -66,6 +69,7 @@ app.use("/api/homepage-sections", homepageSectionsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/enhanced-reviews", enhancedReviewsRoutes);
 app.use("/api/instagram", instagramRoutes);
+app.use("/api/organized-travel", organizedTravelRoutes);
 
 // Root route handler for token-based requests
 app.get("/", (req, res) => {

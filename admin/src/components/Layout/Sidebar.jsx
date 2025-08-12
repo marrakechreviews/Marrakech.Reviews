@@ -56,6 +56,11 @@ const navigation = [
     icon: Plane,
   },
   {
+    name: 'Organized Travel',
+    href: '/organized-travel',
+    icon: MapPin,
+  },
+  {
     name: 'Customers',
     href: '/customers',
     icon: Users,
