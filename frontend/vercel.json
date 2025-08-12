@@ -1,23 +1,23 @@
 {
-    "version": 2,
-    "framework": "vite",
-    "builds": [
-      {
-        "src": "package.json",
-        "use": "@vercel/static-build",
-        "config": { "outputDirectory": "dist" }
-      }
-    ],
-    "routes": [
-      {
-        "src": "^/[^.]+\.(js|css|png|jpg|jpeg|gif|svg|ico)$",
-        "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/index.html"
-      }
-    ],
-    "installCommand": "pnpm install"
-  }
-  
+  "version": 2,
+  "framework": "vite",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "outputDirectory": "dist" }
+    }
+  ],
+  "routes": [
+    {
+      "src": "^/[^.]+\.(js|css|png|jpg|jpeg|gif|svg|ico)$",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "installCommand": "npm install"
+}
+
