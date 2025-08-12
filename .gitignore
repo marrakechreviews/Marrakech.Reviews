@@ -6,6 +6,9 @@
 *.zip
 **/*.zip
 
+*.md
+**/*.md
+
 # Ignore node_modules in any directory
 **/node_modules/
 
