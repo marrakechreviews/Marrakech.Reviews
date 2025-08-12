@@ -290,7 +290,7 @@ const HomePage = () => {
                 <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
                   <div className="relative overflow-hidden">
                     <img 
-                      src="/images/accommodations/traditional-riad.webp" 
+                      src="/images/accommodations/traditional-riad.jpg" 
                       alt="Traditional Riads" 
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
                       loading="lazy"
