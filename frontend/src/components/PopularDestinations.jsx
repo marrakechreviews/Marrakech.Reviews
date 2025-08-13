@@ -49,7 +49,7 @@ const PopularDestinations = () => {
     },
     {
       name: 'Ouarzazate',
-      image: '/images/destinations/ouarzazate.jpg',
+      image: '/images/destinations/ouarzazate.png',
       description: 'The gateway to the Sahara Desert, famous for its film studios and kasbahs.',
       link: '/destinations/ouarzazate',
     },

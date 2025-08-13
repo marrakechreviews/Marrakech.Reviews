@@ -34,7 +34,7 @@ app.use(helmet());
 
 // CORS configuration - More permissive for development
 app.use(cors({
-  origin: ["https://marrakech.reviews", "http://localhost:5000", "http://localhost:3000"],
+  origin: ["https://www.marrakech.reviews", "http://localhost:5000", "http://localhost:3000", "http://localhost:5173", "https://marrakech-reviews-sigma.vercel.app"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -57,10 +57,12 @@ app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.options("/api/products", cors());
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/upload", uploadRoutes);
+app.options("/api/articles", cors());
 app.use("/api/articles", articleRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/activities", activityRoutes);
@@ -138,5 +140,7 @@ module.exports = app;
 
 // Handle favicon.ico requests to prevent 404 errors
 app.get("/favicon.ico", (req, res) => res.status(204).send());
+
+
 
 

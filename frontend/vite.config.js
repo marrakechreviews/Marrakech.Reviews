@@ -16,12 +16,12 @@ export default defineConfig({
     proxy: {
       // Proxy WebSocket requests
       '/socket.io': {
-        target: 'ws://marrakech-reviews-backend.vercel.app',
+        target: 'ws://localhost:5000',
         ws: true,
       },
       // Proxy API requests if needed
       '/api': {
-        target: 'https://marrakech-reviews-backend.vercel.app',
+        target: 'http://localhost:5000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
