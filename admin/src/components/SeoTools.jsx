@@ -706,7 +706,7 @@ const SeoTools = ({
                       {metaTitle || title || 'Article Title'}
                     </div>
                     <div className="text-green-700 text-sm">
-                      https://yoursite.com/articles/{slug || 'article-slug'}
+                      https://Marrakech.Reviews/articles/{slug || 'article-slug'}
                     </div>
                     <div className="text-gray-600 text-sm mt-1">
                       {metaDescription || 'Meta description will appear here...'}
@@ -726,7 +726,7 @@ const SeoTools = ({
                       {(metaTitle || title || '').length > 50 && '...'}
                     </div>
                     <div className="text-green-700 text-xs mt-1">
-                      yoursite.com › articles › {slug || 'article-slug'}
+                    Marrakech.Reviews › articles › {slug || 'article-slug'}
                     </div>
                     <div className="text-gray-600 text-sm mt-1 leading-tight">
                       {(metaDescription || 'Meta description will appear here...').substring(0, 120)}
@@ -759,7 +759,7 @@ const SeoTools = ({
                     {metaDescription || 'Meta description will appear here...'}
                   </div>
                   <div className="text-gray-500 text-xs uppercase">
-                    yoursite.com
+                  Marrakech.Reviews
                   </div>
                 </div>
               </div>

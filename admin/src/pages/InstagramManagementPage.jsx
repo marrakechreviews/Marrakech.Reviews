@@ -488,11 +488,17 @@ export default function InstagramManagementPage() {
                 <TableRow key={video._id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
-                      <img
-                        src={video.thumbnailUrl}
-                        alt={video.title}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
+                      {video.thumbnailUrl ? (
+                        <img
+                          src={video.thumbnailUrl}
+                          alt={video.title}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+                          <Play className="h-8 w-8" />
+                        </div>
+                      )}
                       <div>
                         <p className="font-medium line-clamp-2">{video.title}</p>
                         <p className="text-sm text-muted-foreground line-clamp-1">
@@ -718,13 +724,12 @@ const InstagramVideoForm = ({ formData, handleInputChange, handleSubmit, categor
       </div>
 
       <div>
-        <Label htmlFor="thumbnailUrl">Thumbnail URL *</Label>
+        <Label htmlFor="thumbnailUrl">Thumbnail URL (optional - will be auto-extracted if empty)</Label>
         <Input
           id="thumbnailUrl"
           value={formData.thumbnailUrl}
           onChange={(e) => handleInputChange('thumbnailUrl', e.target.value)}
-          placeholder="https://..."
-          required
+          placeholder="Leave empty to auto-extract from Instagram URL"
         />
       </div>
 

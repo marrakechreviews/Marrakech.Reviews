@@ -105,7 +105,7 @@ const FlightReservationSection = () => {
 
         {/* Flight Search Form */}
         <Card className="max-w-4xl mx-auto mb-12 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-600 text-white rounded-t-lg">
             <CardTitle className="text-2xl font-bold text-center">
               Search Flights
             </CardTitle>
@@ -344,7 +344,7 @@ const FlightReservationSection = () => {
             {popularDestinations.map((dest, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer group">
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl mb-2">🏙️</div>
+                  <div className="text-2xl mb-2"></div>
                   <h4 className="font-semibold text-sm">{dest.city}</h4>
                   <p className="text-xs text-gray-500 mb-2">{dest.country}</p>
                   <Badge variant="secondary" className="text-xs">

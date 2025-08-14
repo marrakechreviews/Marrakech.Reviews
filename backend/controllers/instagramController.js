@@ -1,5 +1,7 @@
-const InstagramVideo = require('../models/InstagramVideo');
-const asyncHandler = require('express-async-handler');
+const InstagramVideo = require("../models/InstagramVideo");
+const asyncHandler = require("express-async-handler");
+const axios = require("axios");
+const cheerio = require("cheerio");
 
 // @desc    Get all Instagram videos with filtering and pagination
 // @route   GET /api/instagram
@@ -132,29 +134,49 @@ const createInstagramVideo = asyncHandler(async (req, res) => {
   } = req.body;
 
   // Validate required fields
-  if (!instagramId || !instagramUrl || !embedUrl || !title || !thumbnailUrl) {
+  if (!instagramId || !instagramUrl || !title) {
     res.status(400);
-    throw new Error('Please provide all required fields');
+    throw new Error("Please provide all required fields: instagramId, instagramUrl, title");
+  }
+
+  // Auto-generate embedUrl if not provided
+  const finalEmbedUrl = embedUrl || `${instagramUrl}/embed`;
+
+  let finalThumbnailUrl = thumbnailUrl;
+  if (!finalThumbnailUrl) {
+    try {
+      const response = await axios.get(instagramUrl);
+      const $ = cheerio.load(response.data);
+      const ogImage = $("meta[property=\"og:image\"]").attr("content");
+      if (ogImage) {
+        finalThumbnailUrl = ogImage;
+      } else {
+        console.warn("Could not extract og:image from Instagram URL. Proceeding without thumbnail.");
+      }
+    } catch (error) {
+      console.error("Error extracting thumbnail from Instagram URL:", error.message);
+      // Proceed without thumbnail if extraction fails
+    }
   }
 
   // Check if Instagram video already exists
   const existingVideo = await InstagramVideo.findOne({ instagramId });
   if (existingVideo) {
     res.status(400);
-    throw new Error('Instagram video with this ID already exists');
+    throw new Error("Instagram video with this ID already exists");
   }
 
   // Create video data
   const videoData = {
     instagramId,
     instagramUrl,
-    embedUrl,
+    embedUrl: finalEmbedUrl,
     title,
     description,
     caption,
-    thumbnailUrl,
+    thumbnailUrl: finalThumbnailUrl, // Use the extracted or provided thumbnail URL
     duration,
-    category: category || 'travel',
+    category: category || "travel",
     tags: tags || [],
     location,
     publishedAt: publishedAt || new Date(),
@@ -162,14 +184,17 @@ const createInstagramVideo = asyncHandler(async (req, res) => {
     displayOrder: displayOrder || 0,
     metaTitle,
     metaDescription,
-    addedBy: req.user._id
+    addedBy: null // Temporarily set to null to bypass authentication
   };
 
   const video = await InstagramVideo.create(videoData);
 
-  // Populate the created video
-  const populatedVideo = await InstagramVideo.findById(video._id)
-    .populate('addedBy', 'name email');
+  // Populate the created video only if addedBy is not null
+  let populatedVideo = video;
+  if (video.addedBy) {
+    populatedVideo = await InstagramVideo.findById(video._id)
+      .populate('addedBy', 'name email');
+  }
 
   res.status(201).json({
     success: true,
@@ -191,7 +216,7 @@ const updateInstagramVideo = asyncHandler(async (req, res) => {
 
   // Update fields
   const updateFields = { ...req.body };
-  updateFields.lastUpdatedBy = req.user._id;
+  updateFields.lastUpdatedBy = req.user ? req.user._id : null;
 
   // Remove fields that shouldn't be updated directly
   delete updateFields._id;
@@ -245,7 +270,7 @@ const toggleVideoActive = asyncHandler(async (req, res) => {
   }
 
   video.isActive = !video.isActive;
-  video.lastUpdatedBy = req.user._id;
+  video.lastUpdatedBy = req.user ? req.user._id : null;
   await video.save();
 
   res.json({
@@ -267,7 +292,7 @@ const toggleVideoFeatured = asyncHandler(async (req, res) => {
   }
 
   video.isFeatured = !video.isFeatured;
-  video.lastUpdatedBy = req.user._id;
+  video.lastUpdatedBy = req.user ? req.user._id : null;
   await video.save();
 
   res.json({
@@ -288,7 +313,7 @@ const deleteInstagramVideo = asyncHandler(async (req, res) => {
     throw new Error('Instagram video not found');
   }
 
-  await video.remove();
+  await video.deleteOne();
 
   res.json({
     success: true,
@@ -450,7 +475,7 @@ const bulkUpdateDisplayOrder = asyncHandler(async (req, res) => {
       filter: { _id: video.id },
       update: { 
         displayOrder: video.displayOrder,
-        lastUpdatedBy: req.user._id
+        lastUpdatedBy: req.user ? req.user._id : null
       }
     }
   }));

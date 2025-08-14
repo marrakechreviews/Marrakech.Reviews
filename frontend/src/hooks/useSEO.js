@@ -85,7 +85,7 @@ export const generateProductStructuredData = (product, settings) => {
     "sku": product._id,
     "brand": {
       "@type": "Brand",
-      "name": settings?.general?.siteName || "E-commerce Store"
+      "name": settings?.general?.siteName || "Marrakech.Reviews"
     },
     "offers": {
       "@type": "Offer",
@@ -94,7 +94,7 @@ export const generateProductStructuredData = (product, settings) => {
       "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       "seller": {
         "@type": "Organization",
-        "name": settings?.general?.siteName || "E-commerce Store"
+        "name": settings?.general?.siteName || "Marrakech.Reviews"
       }
     },
     "aggregateRating": product.rating && product.numReviews ? {

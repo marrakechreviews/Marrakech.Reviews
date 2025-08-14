@@ -149,10 +149,10 @@ const HomePage = () => {
   const featuredProducts = products.slice(0, 3);
 
   const stats = [
-    { label: 'Products', value: '2,500+', icon: Package },
-    { label: 'Happy Customers', value: '10,000+', icon: Users },
-    { label: 'Orders Delivered', value: '25,000+', icon: Truck },
-    { label: 'Years of Trust', value: '5+', icon: Award },
+    { label: 'Activities', value: '52 +', icon: Package },
+    { label: 'Happy Customers', value: '7,000+', icon: Users },
+    { label: 'Reservervation', value: '5,000+', icon: Truck },
+    { label: 'Years of Trust', value: '2+', icon: Award },
   ];
 
   const handleSearch = (e) => {
@@ -178,6 +178,7 @@ const HomePage = () => {
   const renderSections = () => {
     const sections = [
       { name: 'hero', component: <HeroSlideshow key="hero" /> },
+      { name: 'instagram', component: <InstagramSection key="instagram" /> },
       {
         name: 'categories',
         component: (
@@ -217,10 +218,6 @@ const HomePage = () => {
             </div>
           </section>
         )
-      },
-      {
-        name: 'recommended-places',
-        component: <PopularDestinations key="recommended-places" />
       },
       { 
         name: 'google-reviews', 
@@ -290,7 +287,7 @@ const HomePage = () => {
                 <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
                   <div className="relative overflow-hidden">
                     <img 
-                      src="/images/accommodations/traditional-riad.webp" 
+                      src="/images/accommodations/traditional-riad.jpg" 
                       alt="Traditional Riads" 
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
                       loading="lazy"
@@ -476,35 +473,35 @@ const HomePage = () => {
           </section>
         )
       },
-      {
-        name: 'instagram',
-        component: <InstagramSection key="instagram" />
-      },
+      // {
+      //   name: 'instagram',
+      //   component: <InstagramSection key="instagram" />
+      // },
       {
         name: 'cta',
         component: (
           <section key="cta" className="py-16 bg-gradient-to-r from-red-500 to-orange-500 text-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Ready to Start Shopping?
+                Ready to Start an activity?
               </h2>
               <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-                Join thousands of satisfied customers and discover amazing products at unbeatable prices
+                Join thousands of satisfied customers and discover amazing activities at unbeatable prices
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button asChild size="lg" variant="secondary" className="btn-hover-lift">
-                  <Link to="/products">
+                  <Link to="/activities">
                     <ShoppingBag className="mr-2 h-5 w-5 text-red-600" />
-                    Browse Products
+                    Browse activities
                   </Link>
                 </Button>
                 <Button
                   asChild
                   size="lg"
                   variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-red-600 btn-hover-lift"
+                  className="border-white text-black hover:bg-white hover:text-red-600 btn-hover-lift"
                 >
-                  <Link to="/products?sale=true">
+                  <Link to="/activities">
                     <Sparkles className="mr-2 h-5 w-5" />
                     View Special Offers
                   </Link>

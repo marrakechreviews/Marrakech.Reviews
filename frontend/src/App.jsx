@@ -13,6 +13,7 @@ import HostingReservationsPage from './pages/HostingReservationsPage';
 import ActivitiesPage from './pages/ActivitiesPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
 import OrganizedTravelPage from './pages/OrganizedTravelPage';
+import InstagramPage from './pages/InstagramPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import ThankYouPage from './pages/ThankYouPage';
@@ -46,6 +47,7 @@ function App() {
                 <Route path="/activities" element={<ActivitiesPage />} />
                 <Route path="/activities/:slug" element={<ActivityDetailPage />} />
                 <Route path="/destinations/:destination" element={<OrganizedTravelPage />} />
+                <Route path="/instagram" element={<InstagramPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />

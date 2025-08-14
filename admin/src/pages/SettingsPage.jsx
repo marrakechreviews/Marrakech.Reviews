@@ -59,7 +59,7 @@ const SettingsPage = () => {
   const [settings, setSettings] = useState({
     // Default settings structure (will be overridden by API data)
     general: {
-      siteName: 'E-commerce Store',
+      siteName: 'Marrakech.Reviews',
       siteDescription: 'Your premier online shopping destination',
       contactEmail: 'contact@example.com',
       contactPhone: '+1 (555) 123-4567',
@@ -77,7 +77,7 @@ const SettingsPage = () => {
       language: 'en'
     },
     seo: {
-      metaTitle: 'E-commerce Store - Shop Online',
+      metaTitle: 'Marrakech.Reviews - Shop Online',
       metaDescription: 'Discover amazing products at great prices. Fast shipping and excellent customer service.',
       metaKeywords: 'ecommerce, online shopping, products, deals',
       googleAnalyticsId: '',
@@ -91,10 +91,10 @@ Disallow: /admin/
 Disallow: /api/
 Allow: /
 
-Sitemap: https://yoursite.com/sitemap.xml`,
+Sitemap: https://Marrakech.Reviews/sitemap.xml`,
       sitemapEnabled: true,
       schemaMarkup: {
-        organizationName: 'E-commerce Store',
+        organizationName: 'Marrakech.Reviews',
         organizationType: 'Organization',
         logo: '',
         contactPoint: {
@@ -154,6 +154,7 @@ Sitemap: https://yoursite.com/sitemap.xml`,
       facebook: '',
       twitter: '',
       instagram: '',
+      instagramLogoUrl: '',
       youtube: '',
       linkedin: '',
       pinterest: ''

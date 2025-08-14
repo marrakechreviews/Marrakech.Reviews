@@ -3,16 +3,16 @@ const mongoose = require('mongoose');
 const settingsSchema = new mongoose.Schema({
   // General Settings
   general: {
-    siteName: { type: String, default: 'E-commerce Store' },
-    siteDescription: { type: String, default: 'Your premier online shopping destination' },
-    contactEmail: { type: String, default: 'contact@example.com' },
-    contactPhone: { type: String, default: '+1 (555) 123-4567' },
+    siteName: { type: String, default: 'Marrakech.Reviews' },
+    siteDescription: { type: String, default: 'Your premier online guide for travelers to Marrakech and all Moroccan destination' },
+    contactEmail: { type: String, default: 'Hello@marrakech.reviews' },
+    contactPhone: { type: String, default: '+212 (708) 040-530' },
     address: {
-      street: { type: String, default: '123 Main Street' },
-      city: { type: String, default: 'New York' },
-      state: { type: String, default: 'NY' },
-      postalCode: { type: String, default: '10001' },
-      country: { type: String, default: 'United States' }
+      street: { type: String, default: 'Gueliz' },
+      city: { type: String, default: 'Marrakech' },
+      state: { type: String, default: 'MA' },
+      postalCode: { type: String, default: '40 000' },
+      country: { type: String, default: 'Morocco' }
     },
     logo: { type: String, default: '' },
     favicon: { type: String, default: '' },
@@ -23,9 +23,9 @@ const settingsSchema = new mongoose.Schema({
 
   // SEO Settings
   seo: {
-    metaTitle: { type: String, default: 'E-commerce Store - Shop Online' },
-    metaDescription: { type: String, default: 'Discover amazing products at great prices. Fast shipping and excellent customer service.' },
-    metaKeywords: { type: String, default: 'ecommerce, online shopping, products, deals' },
+    metaTitle: { type: String, default: 'Marrakech.Reviews - Reserve Online' },
+    metaDescription: { type: String, default: 'Discover amazing reviews plateform at great prices. Fast reservation and excellent customer service.' },
+    metaKeywords: { type: String, default: 'marrakech, reviews, restaurant in marrakech, Marrakech rooftop, Morocco, marrakech activities, activities in marrakech, Marrakech Ballon, guad activity, marrakech airbnb, marrakech hosting, marrakech hebergement, marrakech flights, flight to marrakech, sejour marrakech tout compris, météo marrakech, taxi marrakech, restaurant marrakech, activities marrakech, quad marrakech, riad marrakech, ryad marrakech, vol marrakech, marrakech airplain, marrakech uber, uber marrakech' },
     googleAnalyticsId: { type: String, default: '' },
     googleTagManagerId: { type: String, default: '' },
     facebookPixelId: { type: String, default: '' },
@@ -39,11 +39,11 @@ Disallow: /admin/
 Disallow: /api/
 Allow: /
 
-Sitemap: https://yoursite.com/sitemap.xml`
+Sitemap: https://Marrakech.Reviews/sitemap.xml`
     },
     sitemapEnabled: { type: Boolean, default: true },
     schemaMarkup: {
-      organizationName: { type: String, default: 'E-commerce Store' },
+      organizationName: { type: String, default: 'Marrakech.Reviews' },
       organizationType: { type: String, default: 'Organization' },
       logo: { type: String, default: '' },
       contactPoint: {

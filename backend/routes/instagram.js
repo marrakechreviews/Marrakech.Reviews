@@ -27,7 +27,7 @@ router.get('/slug/:slug', getInstagramVideoBySlug);
 router.get('/:id', getInstagramVideo);
 
 // Admin routes with bypass authentication
-router.post('/', createInstagramVideo);
+router.post("/", createInstagramVideo);
 router.put('/bulk-order', bulkUpdateDisplayOrder);
 router.get('/admin/stats', getInstagramStats);
 router.put('/:id', updateInstagramVideo);

@@ -33,8 +33,7 @@ const instagramVideoSchema = new mongoose.Schema({
   
   // Media Information
   thumbnailUrl: {
-    type: String,
-    required: [true, 'Thumbnail URL is required']
+    type: String
   },
   duration: {
     type: Number, // Duration in seconds
@@ -99,7 +98,7 @@ const instagramVideoSchema = new mongoose.Schema({
   addedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   lastUpdatedBy: {
     type: mongoose.Schema.Types.ObjectId,
