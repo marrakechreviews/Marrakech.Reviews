@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import InstagramVideoGrid from '@/components/InstagramVideoGrid';
-import InstagramReelGrid from '@/components/InstagramReelGrid';
 import { Instagram, Heart, MessageCircle, Eye } from 'lucide-react';
 
 const InstagramPage = () => {
@@ -82,10 +81,12 @@ const InstagramPage = () => {
         {/* Featured Videos Section */}
         <div className="container mx-auto px-4 py-16">
           <div className="mb-16">
-            <InstagramReelGrid
-              title="Featured Reels"
+            <InstagramVideoGrid
+              title="Featured Videos"
               featured={true}
               limit={8}
+              showFilters={false}
+              showSearch={false}
               className="mb-16"
             />
           </div>

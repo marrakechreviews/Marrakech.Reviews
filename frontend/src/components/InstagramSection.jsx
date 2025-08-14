@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
-import InstagramReelGrid from './InstagramReelGrid';
+import InstagramVideoGrid from './InstagramVideoGrid';
 import { Instagram, ExternalLink } from 'lucide-react';
 
 const InstagramSection = () => {
@@ -74,10 +74,12 @@ const InstagramSection = () => {
         </div>
 
         {/* Featured Videos Grid */}
-        <InstagramReelGrid
+        <InstagramVideoGrid
           title=""
           featured={true}
           limit={6}
+          showFilters={false}
+          showSearch={false}
           className="mb-8"
         />
 
