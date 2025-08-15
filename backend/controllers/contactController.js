@@ -5,7 +5,7 @@ const Contact = require('../models/Contact');
 // Email transporter configuration
 const createTransporter = () => {
   try {
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       host: process.env.EMAIL_HOST || process.env.SMTP_SERVER || 'smtp.gmail.com',
       port: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '587'),
       secure: false, // true for 465, false for other ports
