@@ -424,7 +424,7 @@ const createTransporter = () => {
     port: 587,
     secure: false,
     auth: {
-      user: process.env.SMTP_EMAIL,
+      user: process.env.SMTP_USERNAME,
       pass: process.env.SMTP_PASSWORD
     },
     tls: {
@@ -463,7 +463,7 @@ const sendReservationConfirmation = async (reservationData) => {
     const mailOptions = {
       from: {
         name: 'E-Store Morocco',
-        address: process.env.SMTP_EMAIL
+        address: process.env.SUPPORT_EMAIL
       },
       to: reservationData.customerInfo.email,
       subject: `Reservation Confirmation - ${reservationData.reservationId}`,
@@ -509,7 +509,7 @@ const sendAdminNotification = async (reservationData) => {
     const mailOptions = {
       from: {
         name: 'E-Store Reservation System',
-        address: process.env.SMTP_EMAIL
+        address: process.env.SUPPORT_EMAIL
       },
       to: adminEmails,
       subject: `🚨 New Reservation Alert - ${reservationData.reservationId}`,
@@ -698,7 +698,8 @@ module.exports = {
   sendReservationConfirmation,
   sendAdminNotification,
   sendFlightReservationConfirmation,
+  sendOrderConfirmation,
+  sendOrderNotification,
   testEmailConfiguration,
   getEmailTemplate
 };
-

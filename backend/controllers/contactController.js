@@ -302,7 +302,7 @@ const sendEmailNotification = async (contact) => {
   const adminEmail = process.env.SUPPORT_EMAIL || process.env.EMAIL_USER || process.env.SMTP_USERNAME || 'admin@marrakechreviews.com';
 
   const mailOptions = {
-    from: `"Marrakech Reviews" <${process.env.EMAIL_USER || process.env.SMTP_USERNAME}>`,
+    from: `"Marrakech Reviews" <${process.env.SUPPORT_EMAIL}>`,
     to: adminEmail,
     subject: `New Contact Form Submission: ${contact.subject}`,
     html: `
@@ -351,7 +351,7 @@ const sendConfirmationEmail = async (contact) => {
   }
 
   const mailOptions = {
-    from: `"Marrakech Reviews" <${process.env.EMAIL_USER || process.env.SMTP_USERNAME}>`,
+    from: `"Marrakech Reviews" <${process.env.SUPPORT_EMAIL}>`,
     to: contact.email,
     subject: 'Thank you for contacting Marrakech Reviews',
     html: `

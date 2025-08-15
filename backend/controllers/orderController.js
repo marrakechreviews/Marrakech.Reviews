@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const { sendOrderConfirmation, sendOrderNotification } = require('../utils/emailService');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -96,6 +97,21 @@ const createOrder = async (req, res) => {
 
     // Populate user information
     await createdOrder.populate('user', 'name email');
+
+    // Send email notifications
+    try {
+      // Send confirmation email to customer
+      const confirmationResult = await sendOrderConfirmation(createdOrder);
+      if (confirmationResult.success) {
+        console.log('Order confirmation email sent successfully');
+      }
+
+      // Send notification email to admin
+      await sendOrderNotification(createdOrder);
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      // Don't fail the order if email fails
+    }
 
     res.status(201).json({
       success: true,
