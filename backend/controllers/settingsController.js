@@ -163,7 +163,90 @@ const getSettingsSection = async (req, res) => {
 // @access  Public
 const getPublicSettings = async (req, res) => {
   try {
-    const settings = await Settings.getSettings();
+    let settings;
+    
+    try {
+      settings = await Settings.getSettings();
+    } catch (dbError) {
+      console.error('Database error in getPublicSettings:', dbError.message);
+      
+      // Return default settings if database is unavailable
+      const defaultSettings = {
+        general: {
+          siteName: 'Marrakech.Reviews',
+          siteDescription: 'Your premier online guide for travelers to Marrakech and all Moroccan destination',
+          contactEmail: 'Hello@marrakech.reviews',
+          contactPhone: '+212 (708) 040-530',
+          address: {
+            street: 'Gueliz',
+            city: 'Marrakech',
+            state: 'MA',
+            postalCode: '40 000',
+            country: 'Morocco'
+          },
+          logo: '',
+          favicon: '',
+          currency: 'USD',
+          language: 'en'
+        },
+        seo: {
+          metaTitle: 'Marrakech.Reviews - Reserve Online',
+          metaDescription: 'Discover amazing reviews plateform at great prices. Fast reservation and excellent customer service.',
+          metaKeywords: 'marrakech, reviews, restaurant in marrakech, Marrakech rooftop, Morocco, marrakech activities',
+          googleAnalyticsId: '',
+          googleTagManagerId: '',
+          facebookPixelId: '',
+          schemaMarkup: {
+            organizationName: 'Marrakech.Reviews',
+            organizationType: 'Organization',
+            logo: '',
+            contactPoint: {
+              telephone: '+212 (708) 040-530',
+              contactType: 'customer service'
+            }
+          }
+        },
+        social: {
+          facebook: '',
+          twitter: '',
+          instagram: '',
+          youtube: '',
+          linkedin: '',
+          pinterest: ''
+        },
+        gallery: {
+          carousels: [],
+          allowedFileTypes: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+          maxFileSize: 5
+        },
+        scripts: {
+          headerScripts: '',
+          footerScripts: '',
+          customCSS: ''
+        },
+        payment: {
+          paymentMethods: {
+            paypal: true,
+            stripe: true,
+            creditCard: true,
+            cash: false
+          },
+          currency: 'USD',
+          taxRate: 10,
+          shippingRates: {
+            domestic: 10,
+            international: 25,
+            freeShippingThreshold: 100
+          }
+        }
+      };
+      
+      return res.json({
+        success: true,
+        data: defaultSettings,
+        fallback: true
+      });
+    }
     
     // Return only public settings that frontend needs
     const publicSettings = {
@@ -207,10 +290,11 @@ const getPublicSettings = async (req, res) => {
       data: publicSettings
     });
   } catch (error) {
-    console.error('Get public settings error:', error);
+    console.error("Error fetching public settings:", error.message);
     res.status(500).json({
       success: false,
-      message: 'Server error while fetching public settings'
+      message: "Failed to retrieve public settings. Please check server logs.",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
