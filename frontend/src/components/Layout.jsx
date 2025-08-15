@@ -56,9 +56,9 @@ export default function Layout({ children }) {
   ];
 
   const categories = [
-    { name: 'Activities', href: '/category/Activities' },
+    { name: 'Activities', href: '/Activities' },
     { name: 'restaurants', href: '/category/restaurants' },
-    { name: 'hosting', href: '/category/hosting' },
+    { name: 'hosting', href: '/hosting' },
     { name: 'hidden gems', href: '/category/hidden-gems' },
     { name: 'fast food', href: '/category/fast-food' },
     { name: 'guide', href: '/category/guide' },

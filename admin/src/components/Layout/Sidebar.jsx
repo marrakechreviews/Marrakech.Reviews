@@ -15,6 +15,7 @@ import {
   MapPin,
   Plane,
   Layout,
+  Mail,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -89,6 +90,11 @@ const navigation = [
     name: 'Instagram',
     href: '/instagram',
     icon: Layout,
+  },
+  {
+    name: 'Contact Management',
+    href: '/contacts',
+    icon: Mail,
   },
   {
     name: 'Settings',

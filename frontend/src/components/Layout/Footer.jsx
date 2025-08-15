@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Store, Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import { MapPin, Facebook, Twitter, Instagram, Mail, Phone, Globe } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,15 +12,15 @@ export default function Footer() {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <Store className="h-8 w-8 text-primary" />
+              <MapPin className="h-8 w-8 text-primary" />
               <div>
-                <h3 className="text-xl font-bold">E-Store</h3>
-                <p className="text-sm text-gray-400">Enhanced Commerce</p>
+                <h3 className="text-xl font-bold">Marrakech Reviews</h3>
+                <p className="text-sm text-gray-400">Authentic Travel Experiences</p>
               </div>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
-              Your trusted online shopping destination. We offer quality products 
-              with exceptional customer service and fast delivery.
+              Your trusted guide to authentic Marrakech experiences. We offer honest reviews, 
+              local insights, and curated travel recommendations for unforgettable adventures.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -29,7 +29,7 @@ export default function Footer() {
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+              <a href="https://www.instagram.com/marrakechreviews" className="text-gray-400 hover:text-white transition-colors">
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
@@ -37,21 +37,26 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Quick Links</h3>
+            <h3 className="text-lg font-semibold">Explore</h3>
             <ul className="space-y-2">
               <li>
+                <Link to="/articles" className="text-gray-400 hover:text-white transition-colors text-sm">
+                  Reviews & Articles
+                </Link>
+              </li>
+              <li>
+                <Link to="/activities" className="text-gray-400 hover:text-white transition-colors text-sm">
+                  Activities
+                </Link>
+              </li>
+              <li>
                 <Link to="/products" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  All Products
+                  Local Products
                 </Link>
               </li>
               <li>
-                <Link to="/categories" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  Categories
-                </Link>
-              </li>
-              <li>
-                <Link to="/deals" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  Special Deals
+                <Link to="/instagram" className="text-gray-400 hover:text-white transition-colors text-sm">
+                  Instagram Videos
                 </Link>
               </li>
               <li>
@@ -59,21 +64,21 @@ export default function Footer() {
                   About Us
                 </Link>
               </li>
-              <li>
-                <Link to="/contact" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  Contact
-                </Link>
-              </li>
             </ul>
           </div>
 
           {/* Customer Service */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Customer Service</h3>
+            <h3 className="text-lg font-semibold">Support</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/help" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  Help Center
+                <Link to="/faq" className="text-gray-400 hover:text-white transition-colors text-sm">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-gray-400 hover:text-white transition-colors text-sm">
+                  Contact Us
                 </Link>
               </li>
               <li>
@@ -91,11 +96,6 @@ export default function Footer() {
                   Privacy Policy
                 </Link>
               </li>
-              <li>
-                <Link to="/terms" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  Terms of Service
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -106,17 +106,17 @@ export default function Footer() {
               <div className="flex items-center gap-3">
                 <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
                 <span className="text-gray-400 text-sm">
-                  123 Commerce Street<br />
-                  Business District, City 12345
+                  Marrakech, Morocco<br />
+                  Local expertise, global reach
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="text-gray-400 text-sm">+1 (555) 123-4567</span>
+                <span className="text-gray-400 text-sm">+212 708 040 530</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="text-gray-400 text-sm">support@e-store.com</span>
+                <span className="text-gray-400 text-sm">Hello@marrakechreviews.com</span>
               </div>
             </div>
           </div>
@@ -126,17 +126,17 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © {currentYear} E-Store. All rights reserved.
+              © {currentYear} Marrakech Reviews. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">
                 Privacy
               </Link>
-              <Link to="/terms" className="text-gray-400 hover:text-white transition-colors text-sm">
-                Terms
+              <Link to="/returns" className="text-gray-400 hover:text-white transition-colors text-sm">
+                Returns
               </Link>
-              <Link to="/cookies" className="text-gray-400 hover:text-white transition-colors text-sm">
-                Cookies
+              <Link to="/shipping" className="text-gray-400 hover:text-white transition-colors text-sm">
+                Shipping
               </Link>
             </div>
           </div>

@@ -17,7 +17,14 @@ import InstagramPage from './pages/InstagramPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import ThankYouPage from './pages/ThankYouPage';
+import AboutUsPage from './pages/AboutUsPage';
+import ContactUsPage from './pages/ContactUsPage';
+import FAQPage from './pages/FAQPage';
+import ShippingInfoPage from './pages/ShippingInfoPage';
+import ReturnsPage from './pages/ReturnsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import Layout from './components/Layout';
+import ScrollToTop from './components/ScrollToTop';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -34,6 +41,7 @@ function App() {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <Router>
+          <ScrollToTop />
           <div className="min-h-screen bg-background">
             <Layout>
               <Routes>
@@ -51,6 +59,12 @@ function App() {
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />
+                <Route path="/about" element={<AboutUsPage />} />
+                <Route path="/contact" element={<ContactUsPage />} />
+                <Route path="/faq" element={<FAQPage />} />
+                <Route path="/shipping" element={<ShippingInfoPage />} />
+                <Route path="/returns" element={<ReturnsPage />} />
+                <Route path="/privacy" element={<PrivacyPolicyPage />} />
                 <Route path="/category/:category" element={<ProductsPage />} />
                 <Route path="/search" element={<ProductsPage />} />
               </Routes>

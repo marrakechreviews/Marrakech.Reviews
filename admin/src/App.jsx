@@ -22,6 +22,7 @@ import HomepageSectionsManagementPage from './pages/HomepageSectionsManagementPa
 import CustomersListPage from './pages/CustomersListPage';
 import EnhancedReviewsPage from './pages/EnhancedReviewsPage';
 import InstagramManagementPage from './pages/InstagramManagementPage';
+import ContactManagementPage from './pages/ContactManagementPage';
 import SettingsPage from './pages/SettingsPage';
 import './App.css';
 
@@ -74,6 +75,7 @@ function App() {
                         <Route path="/customers" element={<CustomersListPage />} />
                         <Route path="/enhanced-reviews" element={<EnhancedReviewsPage />} />
                         <Route path="/instagram" element={<InstagramManagementPage />} />
+                        <Route path="/contacts" element={<ContactManagementPage />} />
                         <Route path="/homepage-sections" element={<HomepageSectionsManagementPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                       </Routes>

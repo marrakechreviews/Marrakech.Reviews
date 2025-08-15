@@ -67,7 +67,7 @@ export default function ContactPage() {
     {
       icon: Phone,
       title: 'Call Us',
-      details: ['+212 524 123 456', '+212 661 234 567'],
+      details: ['212 708 040 530', '+212 708 040 530'],
       color: 'text-orange-600'
     },
     {
