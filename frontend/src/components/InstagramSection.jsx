@@ -15,7 +15,7 @@ const InstagramSection = () => {
     // Fetch settings from API
     const fetchSettings = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/settings`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/settings/public`);
         if (response.ok) {
           const data = await response.json();
           setSettings(data.data);

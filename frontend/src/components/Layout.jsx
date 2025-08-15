@@ -49,7 +49,7 @@ export default function Layout({ children }) {
 
   const navigation = [
     { name: 'Home', href: '/' },
-    { name: 'Products', href: '/products' },
+    // { name: 'Products', href: '/products' },
     { name: 'Articles', href: '/articles' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
@@ -57,11 +57,11 @@ export default function Layout({ children }) {
 
   const categories = [
     { name: 'Activities', href: '/Activities' },
-    { name: 'restaurants', href: '/category/restaurants' },
+    // { name: 'restaurants', href: '/category/restaurants' },
     { name: 'hosting', href: '/hosting' },
-    { name: 'hidden gems', href: '/category/hidden-gems' },
-    { name: 'fast food', href: '/category/fast-food' },
-    { name: 'guide', href: '/category/guide' },
+    // { name: 'hidden gems', href: '/category/hidden-gems' },
+    // { name: 'fast food', href: '/category/fast-food' },
+    // { name: 'guide', href: '/category/guide' },
   ];
 
   return (

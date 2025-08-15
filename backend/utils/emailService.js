@@ -410,6 +410,378 @@ const getEmailTemplate = (templateName, data) => {
     </div>
 </body>
 </html>
+    `,
+
+    orderConfirmation: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #28a745;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #28a745;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .order-id {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .details-section {
+            margin: 25px 0;
+        }
+        .section-title {
+            color: #28a745;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 5px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        .item-details {
+            flex: 1;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .item-qty {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .item-price {
+            font-weight: 600;
+            color: #28a745;
+        }
+        .price-summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .price-total {
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #ffc107;
+            color: #212529;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .shipping-info {
+            background-color: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .contact-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 25px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .order-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .item-price {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">E-Store Morocco</div>
+            <h1 class="title">Order Confirmation</h1>
+            <p>Thank you for your order!</p>
+        </div>
+
+        <div class="order-id">
+            Order ID: ${data.orderId}
+        </div>
+
+        <div class="details-section">
+            <h2 class="section-title">Order Items</h2>
+            ${data.orderItems.map(item => `
+            <div class="order-item">
+                <div class="item-details">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-qty">Quantity: ${item.qty}</div>
+                </div>
+                <div class="item-price">$${(item.price * item.qty).toFixed(2)}</div>
+            </div>
+            `).join('')}
+        </div>
+
+        <div class="price-summary">
+            <div class="price-row">
+                <span>Subtotal:</span>
+                <span>$${data.itemsPrice.toFixed(2)}</span>
+            </div>
+            <div class="price-row">
+                <span>Shipping:</span>
+                <span>$${data.shippingPrice.toFixed(2)}</span>
+            </div>
+            <div class="price-row">
+                <span>Tax:</span>
+                <span>$${data.taxPrice.toFixed(2)}</span>
+            </div>
+        </div>
+
+        <div class="price-total">
+            Total: $${data.totalPrice.toFixed(2)}
+        </div>
+
+        <div class="details-section">
+            <h2 class="section-title">Order Status</h2>
+            <p>Status: <span class="status-badge">${data.status}</span></p>
+            <p>Payment Status: ${data.isPaid ? 'Paid' : 'Pending Payment'}</p>
+            <p>Order Date: ${data.orderDate}</p>
+        </div>
+
+        <div class="shipping-info">
+            <h3 style="color: #007bff; margin-top: 0;">Shipping Address</h3>
+            <p><strong>${data.shippingAddress.fullName}</strong></p>
+            <p>${data.shippingAddress.address}</p>
+            <p>${data.shippingAddress.city}, ${data.shippingAddress.postalCode}</p>
+            <p>${data.shippingAddress.country}</p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="${data.trackingUrl}" class="button">Track Your Order</a>
+        </div>
+
+        <div class="contact-info">
+            <h3 style="color: #28a745; margin-top: 0;">Need Help?</h3>
+            <p><strong>Phone:</strong> ${data.contactPhone}</p>
+            <p><strong>Email:</strong> ${data.supportEmail}</p>
+            <p><strong>WhatsApp:</strong> ${data.whatsappNumber}</p>
+        </div>
+
+        <div class="footer">
+            <p>We'll send you shipping confirmation when your items are on the way!</p>
+            <hr style="margin: 20px 0;">
+            <p>&copy; 2024 E-Store Morocco. All rights reserved.</p>
+            <p>This is an automated email. Please do not reply directly to this message.</p>
+        </div>
+    </div>
+</body>
+</html>
+    `,
+
+    orderNotification: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order Alert</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            border-left: 5px solid #28a745;
+        }
+        .header {
+            color: #28a745;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .alert-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .detail-table th,
+        .detail-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-table th {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+        }
+        .order-items {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="alert-badge">NEW ORDER</div>
+        <h1 class="header">🛒 New Order Alert</h1>
+        
+        <p><strong>A new order has been placed and requires processing!</strong></p>
+        
+        <table class="detail-table">
+            <tr>
+                <th>Order ID</th>
+                <td>${data.orderId}</td>
+            </tr>
+            <tr>
+                <th>Customer</th>
+                <td>${data.customerName}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>${data.customerEmail}</td>
+            </tr>
+            <tr>
+                <th>Total Amount</th>
+                <td><strong>$${data.totalPrice.toFixed(2)}</strong></td>
+            </tr>
+            <tr>
+                <th>Payment Method</th>
+                <td>${data.paymentMethod}</td>
+            </tr>
+            <tr>
+                <th>Order Date</th>
+                <td>${data.orderDate}</td>
+            </tr>
+        </table>
+
+        <div class="order-items">
+            <h4>Order Items:</h4>
+            ${data.orderItems.map(item => `
+            <div class="item">
+                <strong>${item.name}</strong> - Qty: ${item.qty} - $${(item.price * item.qty).toFixed(2)}
+            </div>
+            `).join('')}
+        </div>
+
+        <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h4>Shipping Address:</h4>
+            <p><strong>${data.shippingAddress.fullName}</strong></p>
+            <p>${data.shippingAddress.address}</p>
+            <p>${data.shippingAddress.city}, ${data.shippingAddress.postalCode}</p>
+            <p>${data.shippingAddress.country}</p>
+        </div>
+
+        <hr>
+        <p style="font-size: 12px; color: #6c757d;">
+            This is an automated notification from the E-Store order system.
+            Please process this order promptly.
+        </p>
+    </div>
+</body>
+</html>
     `
   };
 
@@ -504,17 +876,14 @@ const sendAdminNotification = async (reservationData) => {
       totalPrice: reservationData.totalPrice
     };
 
-    const adminEmails = (process.env.ADMIN_EMAILS || 'admin@example.com').split(',');
-
     const mailOptions = {
       from: {
-        name: 'E-Store Reservation System',
+        name: 'E-Store System',
         address: process.env.SUPPORT_EMAIL
       },
-      to: adminEmails,
+      to: process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL,
       subject: `🚨 New Reservation Alert - ${reservationData.reservationId}`,
-      html: getEmailTemplate('adminNotification', emailData),
-      priority: 'high'
+      html: getEmailTemplate('adminNotification', emailData)
     };
 
     const result = await transporter.sendMail(mailOptions);
@@ -523,19 +892,6 @@ const sendAdminNotification = async (reservationData) => {
 
   } catch (error) {
     console.error('Error sending admin notification:', error);
-    return { success: false, error: error.message };
-  }
-};
-
-// Test email configuration
-const testEmailConfiguration = async () => {
-  try {
-    const transporter = createTransporter();
-    await transporter.verify();
-    console.log('SMTP configuration is valid');
-    return { success: true, message: 'SMTP configuration is valid' };
-  } catch (error) {
-    console.error('SMTP configuration error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -694,6 +1050,122 @@ const sendFlightReservationConfirmation = async (reservation) => {
   }
 };
 
+// Send order confirmation email to customer
+const sendOrderConfirmation = async (orderData) => {
+  try {
+    const transporter = createTransporter();
+    
+    const emailData = {
+      orderId: orderData._id.toString(),
+      customerName: orderData.user.name,
+      customerEmail: orderData.user.email,
+      orderItems: orderData.orderItems,
+      itemsPrice: orderData.itemsPrice,
+      shippingPrice: orderData.shippingPrice,
+      taxPrice: orderData.taxPrice,
+      totalPrice: orderData.totalPrice,
+      status: orderData.status,
+      isPaid: orderData.isPaid,
+      orderDate: new Date(orderData.createdAt).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      shippingAddress: orderData.shippingAddress,
+      trackingUrl: `${process.env.FRONTEND_URL || 'https://example.com'}/orders/${orderData._id}`,
+      contactPhone: process.env.BUSINESS_PHONE || '+212 524-123456',
+      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
+      supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com'
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'E-Store Morocco',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: orderData.user.email,
+      subject: `Order Confirmation - ${orderData._id}`,
+      html: getEmailTemplate('orderConfirmation', emailData)
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Order confirmation email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending order confirmation email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Send order notification email to admin
+const sendOrderNotification = async (orderData) => {
+  try {
+    const transporter = createTransporter();
+    
+    const emailData = {
+      orderId: orderData._id.toString(),
+      customerName: orderData.user.name,
+      customerEmail: orderData.user.email,
+      orderItems: orderData.orderItems,
+      totalPrice: orderData.totalPrice,
+      paymentMethod: orderData.paymentMethod,
+      orderDate: new Date(orderData.createdAt).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      shippingAddress: orderData.shippingAddress
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'E-Store System',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL,
+      subject: `🛒 New Order Alert - ${orderData._id}`,
+      html: getEmailTemplate('orderNotification', emailData)
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Order notification sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending order notification:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Test email configuration
+const testEmailConfiguration = async () => {
+  try {
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: process.env.SUPPORT_EMAIL,
+      to: process.env.SUPPORT_EMAIL,
+      subject: 'Email Configuration Test',
+      html: `
+        <h2>Email Configuration Test</h2>
+        <p>This is a test email to verify that the email configuration is working correctly.</p>
+        <p>Timestamp: ${new Date().toISOString()}</p>
+      `
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Test email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending test email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendReservationConfirmation,
   sendAdminNotification,
@@ -703,3 +1175,4 @@ module.exports = {
   testEmailConfiguration,
   getEmailTemplate
 };
+

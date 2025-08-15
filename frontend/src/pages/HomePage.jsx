@@ -107,7 +107,7 @@ const HomePage = () => {
       icon: Compass,
       count: '150+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?category=Activities',
+      href: '/Activities',
     },
     {
       name: 'restaurants',
