@@ -16,3 +16,5 @@
 # Exclude all .md files
 *.md
 **/*.md
+
+**/dump/

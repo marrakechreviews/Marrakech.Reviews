@@ -31,12 +31,12 @@ const InstagramVideoEmbed = ({ video, showThumbnail = true, autoPlay = false }) 
               src={video.thumbnailUrl}
               alt={video.title}
               className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-              style={{ aspectRatio: '1/1' }}
+              style={{ aspectRatio: '9/16' }}
             />
           ) : (
             <div 
               className="w-full bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center"
-              style={{ aspectRatio: '1/1' }}
+              style={{ aspectRatio: '9/16' }}
             >
               <div className="text-white text-center">
                 <Play className="w-16 h-16 mx-auto mb-2" />
@@ -90,7 +90,7 @@ const InstagramVideoEmbed = ({ video, showThumbnail = true, autoPlay = false }) 
         </div>
       )}
       
-      <div className="relative overflow-hidden rounded-lg bg-black" style={{ aspectRatio: '1/1' }}>
+      <div className="relative overflow-hidden rounded-lg bg-black" style={{ aspectRatio: '9/16' }}>
         <iframe
           src={video.embedUrl}
           className="w-full h-full border-0"

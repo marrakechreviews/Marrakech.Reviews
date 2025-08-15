@@ -205,7 +205,7 @@ const InstagramVideoGrid = ({
       {/* Videos Grid/List */}
       <div className={
         viewMode === 'grid' 
-          ? "grid grid-cols-3 gap-0"
+          ? "grid grid-cols-3 gap-0 justify-center mx-auto max-w-fit"
           : "space-y-6"
       }>
         {videos.map((video) => (

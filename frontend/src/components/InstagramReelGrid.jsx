@@ -58,7 +58,7 @@ const InstagramReelGrid = ({
       <div className={`space-y-6 ${className}`}>
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">{title}</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-0 justify-center mx-auto max-w-fit">
             {[...Array(6)].map((_, index) => (
               <div key={index} className="aspect-[9/16] bg-gray-200 rounded-lg animate-pulse"></div>
             ))}
@@ -114,7 +114,7 @@ const InstagramReelGrid = ({
       )}
 
       {/* Reels Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 gap-0 justify-center mx-auto max-w-fit">
         {videos.map((video) => (
           <div 
             key={video._id} 
