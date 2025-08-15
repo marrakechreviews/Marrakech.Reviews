@@ -36,7 +36,7 @@ app.use(helmet());
 // CORS configuration - More permissive for development
 const corsOrigins = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ["https://www.marrakech.reviews", "http://localhost:5000", "http://localhost:3000", "http://localhost:5173", "https://marrakech-reviews-sigma.vercel.app"];
+  : ["https://www.marrakech.reviews", "http://localhost:5000", "http://localhost:3000", "http://localhost:5173", "https://marrakech-reviews-sigma.vercel.app, https://marrakech-reviews-backend.vercel.app/"];
 
 app.use(cors({
   origin: corsOrigins,
