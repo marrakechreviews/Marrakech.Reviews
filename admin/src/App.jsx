@@ -24,6 +24,7 @@ import EnhancedReviewsPage from './pages/EnhancedReviewsPage';
 import InstagramManagementPage from './pages/InstagramManagementPage';
 import ContactManagementPage from './pages/ContactManagementPage';
 import SettingsPage from './pages/SettingsPage';
+import EditorTestPage from './pages/EditorTestPage';
 import './App.css';
 
 import { Toaster } from './components/ui/sonner';
@@ -52,6 +53,7 @@ function App() {
               
               {/* Test route - no authentication required */}
               <Route path="/test-quill" element={<TestQuillPage />} />
+              <Route path="/test-editor" element={<EditorTestPage />} />
               
               {/* Protected routes */}
               <Route

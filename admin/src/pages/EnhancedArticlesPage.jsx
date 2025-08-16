@@ -39,6 +39,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Switch } from '../components/ui/switch';
 import { Progress } from '../components/ui/progress';
 import HtmlEditor from '../components/HtmlEditor';
+import TinyMCEEditor from '../components/TinyMCEEditor';
 import SeoTools from '../components/SeoTools';
 
 const EnhancedArticlesPage = () => {
@@ -60,6 +61,7 @@ const EnhancedArticlesPage = () => {
     metaDescription: '',
     keywords: [],
     slug: '',
+    editorType: 'tinymce',
     isPublished: false
   });
 
@@ -237,6 +239,7 @@ const EnhancedArticlesPage = () => {
       metaDescription: '',
       keywords: [],
       slug: '',
+      editorType: 'tinymce',
       isPublished: false
     });
     setSelectedArticle(null);
@@ -355,6 +358,7 @@ const EnhancedArticlesPage = () => {
       metaDescription: article.metaDescription || '',
       keywords: Array.isArray(article.keywords) ? article.keywords : [],
       slug: article.slug || '',
+      editorType: article.editorType || 'tinymce',
       isPublished: Boolean(article.isPublished)
     });
     setIsEditDialogOpen(true);
@@ -480,12 +484,35 @@ const EnhancedArticlesPage = () => {
 
               {/* Content Editor */}
               <div>
-                <Label>Article Content *</Label>
-                <HtmlEditor
-                  value={formData.content}
-                  onChange={handleInputChange('content')}
-                  placeholder="Start writing your article content..."
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Article Content *</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="editor-type" className="text-sm">Editor Type:</Label>
+                    <Select value={formData.editorType || 'tinymce'} onValueChange={(value) => handleInputChange('editorType')(value)}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="tinymce">TinyMCE</SelectItem>
+                        <SelectItem value="html">HTML Editor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {(formData.editorType || 'tinymce') === 'tinymce' ? (
+                  <TinyMCEEditor
+                    value={formData.content}
+                    onChange={handleInputChange('content')}
+                    placeholder="Start writing your article content..."
+                    height={400}
+                  />
+                ) : (
+                  <HtmlEditor
+                    value={formData.content}
+                    onChange={handleInputChange('content')}
+                    placeholder="Start writing your article content..."
+                  />
+                )}
               </div>
 
               {/* Featured Image */}

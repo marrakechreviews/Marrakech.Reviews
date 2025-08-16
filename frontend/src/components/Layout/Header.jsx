@@ -39,6 +39,7 @@ export default function Header() {
     { name: 'Products', href: '/products' },
     { name: 'Activities', href: '/activities' },
     { name: 'Articles', href: '/articles' },
+    { name: 'AI Generator', href: '/article-generator' },
     { name: 'Instagram', href: '/instagram' },
     { name: 'Reviews', href: '/reviews' },
     { name: 'Hosting', href: '/hosting' },

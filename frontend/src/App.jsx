@@ -8,6 +8,7 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ArticlesPage from './pages/ArticlesPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
+import ArticleGeneratorPage from './pages/ArticleGeneratorPage';
 import GoogleReviewsPage from './pages/GoogleReviewsPage';
 import HostingReservationsPage from './pages/HostingReservationsPage';
 import ActivitiesPage from './pages/ActivitiesPage';
@@ -50,6 +51,7 @@ function App() {
                 <Route path="/products/:slug" element={<ProductDetailPage />} />
                 <Route path="/articles" element={<ArticlesPage />} />
                 <Route path="/articles/:slug" element={<ArticleDetailPage />} />
+                <Route path="/article-generator" element={<ArticleGeneratorPage />} />
                 <Route path="/reviews" element={<GoogleReviewsPage />} />
                 <Route path="/hosting" element={<HostingReservationsPage />} />
                 <Route path="/activities" element={<ActivitiesPage />} />

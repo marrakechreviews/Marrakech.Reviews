@@ -13,6 +13,7 @@ const protect = async (req, res, next) => {
     "/api/instagram",
     "/api/products",
     "/api/orders",
+    "/api/articles",
   ];
 
   if (bypassRoutes.includes(req.path)) {

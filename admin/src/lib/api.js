@@ -187,6 +187,7 @@ export const articlesAPI = {
   createArticle: (data) => api.post('/articles', data),
   updateArticle: (id, data) => api.put(`/articles/${id}`, data),
   deleteArticle: (id) => api.delete(`/articles/${id}`),
+  generateAIArticles: (data) => api.post('/articles/generate-ai', data),
 };
 
 // Settings API

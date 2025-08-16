@@ -18,19 +18,42 @@ import {
   User,
   Tag,
   Globe,
-  Settings
+  Settings,
+  Code,
+  Save,
+  ArrowLeft,
+  Sparkles,
+  Link,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { articlesAPI } from '../lib/api';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Switch } from '../components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Textarea } from '../components/ui/textarea';
+import TinyMCEEditor from '../components/TinyMCEEditor';
+import QuillEditor from '../components/QuillEditor';
 
-const EnhancedArticlesPage = () => {
+const ArticlesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('-createdAt');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAIDialogOpen, setIsAIDialogOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [editorType, setEditorType] = useState('tinymce');
+  const [previewMode, setPreviewMode] = useState(false);
+  const [aiUrls, setAiUrls] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -128,8 +151,9 @@ const EnhancedArticlesPage = () => {
       queryClient.invalidateQueries(['articles']);
       refetch();
       setIsCreateDialogOpen(false);
+      setShowEditor(false);
       resetForm();
-      toast.success('Article created successfully');
+      toast.success('Article created successfully and published to website');
     },
     onError: (error) => {
       console.error('❌ Create article error:', error);
@@ -164,6 +188,7 @@ const EnhancedArticlesPage = () => {
       queryClient.invalidateQueries(['articles']);
       refetch();
       setIsEditDialogOpen(false);
+      setShowEditor(false);
       resetForm();
       toast.success('Article updated successfully');
     },
@@ -192,6 +217,27 @@ const EnhancedArticlesPage = () => {
     },
   });
 
+  // AI article generation mutation
+  const generateAIMutation = useMutation({
+    mutationFn: (urls) => {
+      console.log('🤖 Generating AI articles for URLs:', urls);
+      return articlesAPI.generateAIArticles({ baseUrls: urls });
+    },
+    onSuccess: (response) => {
+      console.log('✅ AI articles generated successfully:', response);
+      queryClient.invalidateQueries(['articles']);
+      refetch();
+      setIsAIDialogOpen(false);
+      setAiUrls('');
+      toast.success(`Successfully generated ${response.data.articles.length} AI articles`);
+    },
+    onError: (error) => {
+      console.error('❌ AI article generation error:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to generate AI articles';
+      toast.error(errorMessage);
+    },
+  });
+
   // Reset form data
   const resetForm = useCallback(() => {
     setFormData({
@@ -206,6 +252,7 @@ const EnhancedArticlesPage = () => {
       isPublished: false
     });
     setSelectedArticle(null);
+    setPreviewMode(false);
   }, []);
 
   // Fixed input change handler to prevent focus issues
@@ -332,6 +379,7 @@ const EnhancedArticlesPage = () => {
       keywords: Array.isArray(article.keywords) ? article.keywords.join(', ') : '',
       isPublished: Boolean(article.isPublished)
     });
+    setShowEditor(true);
     setIsEditDialogOpen(true);
   }, []);
 
@@ -340,6 +388,58 @@ const EnhancedArticlesPage = () => {
       deleteMutation.mutate(id);
     }
   }, [deleteMutation]);
+
+  const handleCreateArticle = useCallback(() => {
+    resetForm();
+    setShowEditor(true);
+    setIsCreateDialogOpen(true);
+  }, [resetForm]);
+
+  const handleCreateAIArticle = useCallback(() => {
+    setAiUrls('');
+    setIsAIDialogOpen(true);
+  }, []);
+
+  const handleGenerateAIArticles = useCallback(() => {
+    if (!aiUrls.trim()) {
+      toast.error('Please enter at least one URL');
+      return;
+    }
+
+    const urls = aiUrls
+      .split('\n')
+      .map(url => url.trim())
+      .filter(url => url.length > 0);
+
+    if (urls.length === 0) {
+      toast.error('Please enter valid URLs');
+      return;
+    }
+
+    // Validate URLs
+    const invalidUrls = urls.filter(url => {
+      try {
+        new URL(url);
+        return false;
+      } catch {
+        return true;
+      }
+    });
+
+    if (invalidUrls.length > 0) {
+      toast.error(`Invalid URLs: ${invalidUrls.join(', ')}`);
+      return;
+    }
+
+    generateAIMutation.mutate(urls);
+  }, [aiUrls, generateAIMutation]);
+
+  const handleBackToList = useCallback(() => {
+    setShowEditor(false);
+    setIsCreateDialogOpen(false);
+    setIsEditDialogOpen(false);
+    resetForm();
+  }, [resetForm]);
 
   // Memoized filtered articles to prevent unnecessary re-renders
   const filteredArticles = useMemo(() => {
@@ -389,12 +489,304 @@ const EnhancedArticlesPage = () => {
     );
   }
 
+  // Show editor view when creating or editing
+  if (showEditor && (isCreateDialogOpen || isEditDialogOpen)) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              onClick={handleBackToList}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Articles
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {selectedArticle ? 'Edit Article' : 'Create New Article'}
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {selectedArticle ? 'Update your existing article' : 'Write and publish a new article to your website'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setPreviewMode(!previewMode)}
+              className="flex items-center gap-2"
+            >
+              {previewMode ? <Code className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {previewMode ? 'Edit Mode' : 'Preview Mode'}
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={createMutation.isLoading || updateMutation.isLoading}
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              {createMutation.isLoading || updateMutation.isLoading ? 'Saving...' : 'Save & Publish'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Editor Type</p>
+                  <p className="text-lg font-bold">{editorType === 'tinymce' ? 'TinyMCE' : editorType === 'quill' ? 'Quill' : 'HTML'}</p>
+                </div>
+                <FileText className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Content Length</p>
+                  <p className="text-lg font-bold">{formData.content.length} chars</p>
+                </div>
+                <Badge variant="outline">{formData.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(w => w.length > 0).length} words</Badge>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Status</p>
+                  <p className="text-lg font-bold">{formData.isPublished ? 'Published' : 'Draft'}</p>
+                </div>
+                <Badge variant={formData.isPublished ? 'default' : 'secondary'}>
+                  {formData.isPublished ? 'Live' : 'Draft'}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Category</p>
+                  <p className="text-lg font-bold">{formData.category || 'None'}</p>
+                </div>
+                <Badge variant="outline">{formData.category || 'Uncategorized'}</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {previewMode ? (
+          /* Preview Mode */
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                Article Preview
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-lg max-w-none">
+                <h1>{formData.title}</h1>
+                <div className="flex items-center gap-4 text-sm text-gray-600 mb-6">
+                  <Badge variant="outline">{formData.category || 'Uncategorized'}</Badge>
+                  <span>•</span>
+                  <span>{new Date().toLocaleDateString()}</span>
+                  <span>•</span>
+                  <Badge variant={formData.isPublished ? 'default' : 'secondary'}>
+                    {formData.isPublished ? 'Published' : 'Draft'}
+                  </Badge>
+                </div>
+                <div dangerouslySetInnerHTML={{ __html: formData.content }} />
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          /* Edit Mode */
+          <div className="space-y-6">
+            {/* Article Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Article Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="title">Article Title *</Label>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={handleInputChange('title')}
+                      placeholder="Enter article title..."
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Input
+                      id="category"
+                      value={formData.category}
+                      onChange={handleInputChange('category')}
+                      placeholder="Enter category..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="tags">Tags (comma-separated)</Label>
+                    <Input
+                      id="tags"
+                      value={formData.tags}
+                      onChange={handleInputChange('tags')}
+                      placeholder="tag1, tag2, tag3..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="image">Featured Image URL</Label>
+                    <Input
+                      id="image"
+                      value={formData.image}
+                      onChange={handleInputChange('image')}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="published"
+                    checked={formData.isPublished}
+                    onCheckedChange={handleInputChange('isPublished')}
+                  />
+                  <Label htmlFor="published">Publish immediately</Label>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* SEO Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle>SEO Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="metaTitle">Meta Title</Label>
+                  <Input
+                    id="metaTitle"
+                    value={formData.metaTitle}
+                    onChange={handleInputChange('metaTitle')}
+                    placeholder="SEO title for search engines..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="metaDescription">Meta Description</Label>
+                  <Input
+                    id="metaDescription"
+                    value={formData.metaDescription}
+                    onChange={handleInputChange('metaDescription')}
+                    placeholder="Brief description for search results..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="keywords">Keywords (comma-separated)</Label>
+                  <Input
+                    id="keywords"
+                    value={formData.keywords}
+                    onChange={handleInputChange('keywords')}
+                    placeholder="keyword1, keyword2, keyword3..."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Editor Selection and Content */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Content Editor
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="editor-type" className="text-sm">Editor Type:</Label>
+                    <Select value={editorType} onValueChange={setEditorType}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="tinymce">TinyMCE</SelectItem>
+                        <SelectItem value="quill">Quill</SelectItem>
+                        <SelectItem value="html">HTML</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {editorType === 'tinymce' ? (
+                  <TinyMCEEditor
+                    value={formData.content}
+                    onChange={handleInputChange('content')}
+                    placeholder="Start writing your article content..."
+                    height={500}
+                    showWordCount={true}
+                    showToolbar={true}
+                  />
+                ) : editorType === 'quill' ? (
+                  <QuillEditor
+                    value={formData.content}
+                    onChange={handleInputChange('content')}
+                    placeholder="Start writing your article content..."
+                  />
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="html-content" className="text-sm font-medium">
+                        HTML Content
+                      </Label>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <span>Direct HTML editing</span>
+                        <Code className="h-3 w-3" />
+                      </div>
+                    </div>
+                    <textarea
+                      id="html-content"
+                      value={formData.content}
+                      onChange={handleInputChange('content')}
+                      placeholder="Enter your HTML content here..."
+                      className="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                      style={{ fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace' }}
+                    />
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>
+                        Characters: {formData.content.length} | 
+                        Words: {formData.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(w => w.length > 0).length}
+                      </span>
+                      <span>HTML tags will be preserved</span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Articles Management</h1>
           <p className="text-gray-600">Manage your blog posts and articles</p>
           <div className="text-xs text-gray-500 mt-1">
             Bypass mode: {localStorage.getItem('bypassLogin') === 'true' ? '✅ Enabled' : '❌ Disabled'}
@@ -408,7 +800,19 @@ const EnhancedArticlesPage = () => {
             🔄 Refresh
           </button>
           <button
-            onClick={() => setIsCreateDialogOpen(true)}
+            onClick={handleCreateAIArticle}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            disabled={generateAIMutation.isLoading}
+          >
+            {generateAIMutation.isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            Create Article with AI
+          </button>
+          <button
+            onClick={handleCreateArticle}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <Plus className="h-4 w-4" />
@@ -466,7 +870,7 @@ const EnhancedArticlesPage = () => {
 
       {/* Filters and Search */}
       <div className="bg-white p-6 rounded-lg border">
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -480,7 +884,7 @@ const EnhancedArticlesPage = () => {
             </div>
           </div>
           
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
@@ -516,21 +920,26 @@ const EnhancedArticlesPage = () => {
         </div>
       </div>
 
-      {/* Articles Table */}
-      <div className="bg-white rounded-lg border overflow-hidden">
+      {/* Articles List */}
+      <div className="bg-white rounded-lg border">
         {isLoading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-600 mt-2">Loading articles...</p>
+            <p className="mt-2 text-gray-600">Loading articles...</p>
           </div>
         ) : filteredArticles.length === 0 ? (
           <div className="p-8 text-center">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No articles found</h3>
-            <p className="text-gray-600 mb-4">Get started by creating your first article.</p>
+            <p className="text-gray-600 mb-4">
+              {searchTerm || categoryFilter !== 'all' || statusFilter !== 'all'
+                ? 'Try adjusting your search or filters'
+                : 'Get started by creating your first article'
+              }
+            </p>
             <button
-              onClick={() => setIsCreateDialogOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2"
+              onClick={handleCreateArticle}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 mx-auto transition-colors"
             >
               <Plus className="h-4 w-4" />
               Create Article
@@ -539,7 +948,7 @@ const EnhancedArticlesPage = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Article
@@ -561,75 +970,93 @@ const EnhancedArticlesPage = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredArticles.map((article) => (
                   <tr key={article._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0">
-                          {article.image ? (
-                            <img
-                              className="h-10 w-10 rounded-lg object-cover"
-                              src={article.image}
-                              alt={article.title}
-                            />
-                          ) : (
-                            <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                              <FileText className="h-5 w-5 text-gray-400" />
+                    <td className="px-6 py-4">
+                      <div className="flex items-start space-x-3">
+                        {article.image && (
+                          <img
+                            src={article.image}
+                            alt={article.title}
+                            className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {article.title}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {truncateContent(article.content)}
+                          </p>
+                          {article.tags && article.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {article.tags.slice(0, 3).map((tag, index) => (
+                                <span
+                                  key={index}
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                              {article.tags.length > 3 && (
+                                <span className="text-xs text-gray-500">
+                                  +{article.tags.length - 3} more
+                                </span>
+                              )}
                             </div>
                           )}
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {article.title}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {truncateContent(article.content, 50)}
-                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {article.category ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                           {article.category}
                         </span>
                       ) : (
-                        <span className="text-gray-400">No category</span>
+                        <span className="text-sm text-gray-500">Uncategorized</span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        article.isPublished 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          article.isPublished
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
                         {article.isPublished ? (
                           <>
-                            <Eye className="h-3 w-3 mr-1" />
+                            <Eye className="w-3 h-3 mr-1" />
                             Published
                           </>
                         ) : (
                           <>
-                            <EyeOff className="h-3 w-3 mr-1" />
+                            <EyeOff className="w-3 h-3 mr-1" />
                             Draft
                           </>
                         )}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(article.createdAt)}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {formatDate(article.createdAt)}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleEdit(article)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                          title="Edit article"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(article._id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 p-1 rounded"
+                          title="Delete article"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -641,179 +1068,83 @@ const EnhancedArticlesPage = () => {
         )}
       </div>
 
-      {/* Create/Edit Article Dialog */}
-      {(isCreateDialogOpen || isEditDialogOpen) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
-              <h2 className="text-xl font-semibold">
-                {selectedArticle ? 'Edit Article' : 'Create New Article'}
-              </h2>
+      {/* AI Article Generation Dialog */}
+      <Dialog open={isAIDialogOpen} onOpenChange={setIsAIDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              Create Articles with AI
+            </DialogTitle>
+            <DialogDescription>
+              Enter base URLs to generate SEO-optimized articles automatically. Each URL will create a separate article with unique content, proper HTML structure, and optimized meta tags.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="ai-urls" className="text-sm font-medium">
+                Base URLs (one per line)
+              </Label>
+              <Textarea
+                id="ai-urls"
+                value={aiUrls}
+                onChange={(e) => setAiUrls(e.target.value)}
+                placeholder="https://example.com&#10;https://another-site.com&#10;https://business-website.com"
+                className="min-h-32 mt-2"
+                disabled={generateAIMutation.isLoading}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter valid URLs starting with http:// or https://. Each URL will generate a unique article.
+              </p>
             </div>
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Article Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={handleInputChange('title')}
-                  placeholder="Enter article title"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Content *
-                </label>
-                <textarea
-                  value={formData.content}
-                  onChange={handleInputChange('content')}
-                  placeholder="Write your article content here... (minimum 50 characters)"
-                  rows={8}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {formData.content.length}/50 characters minimum
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.category}
-                    onChange={handleInputChange('category')}
-                    placeholder="e.g., Technology, Business"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Featured Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.image}
-                    onChange={handleInputChange('image')}
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tags
-                </label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={handleInputChange('tags')}
-                  placeholder="tag1, tag2, tag3"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Meta Title
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.metaTitle}
-                    onChange={handleInputChange('metaTitle')}
-                    placeholder="SEO optimized title (max 60 characters)"
-                    maxLength={60}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formData.metaTitle.length}/60 characters
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Keywords
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.keywords}
-                    onChange={handleInputChange('keywords')}
-                    placeholder="keyword1, keyword2, keyword3"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Meta Description
-                </label>
-                <textarea
-                  value={formData.metaDescription}
-                  onChange={handleInputChange('metaDescription')}
-                  placeholder="Brief description for search engines (max 160 characters)"
-                  maxLength={160}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {formData.metaDescription.length}/160 characters
-                </p>
-              </div>
-
-              <div className="flex items-center">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.isPublished}
-                    onChange={(e) => handleInputChange('isPublished')(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Publish Article</span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsCreateDialogOpen(false);
-                    setIsEditDialogOpen(false);
-                    resetForm();
-                  }}
-                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {createMutation.isPending || updateMutation.isPending 
-                    ? 'Saving...' 
-                    : selectedArticle ? 'Update Article' : 'Create Article'
-                  }
-                </button>
-              </div>
-            </form>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">Generated Articles Will Include:</h4>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• SEO-optimized HTML structure with proper meta tags</li>
+                <li>• Unique selling points and competitive advantages</li>
+                <li>• Location-specific content and local SEO elements</li>
+                <li>• Customer experience highlights and testimonials</li>
+                <li>• Mobile-responsive design with clean styling</li>
+                <li>• Professional typography and layout</li>
+              </ul>
+            </div>
           </div>
-        </div>
-      )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAIDialogOpen(false)}
+              disabled={generateAIMutation.isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleGenerateAIArticles}
+              disabled={generateAIMutation.isLoading || !aiUrls.trim()}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {generateAIMutation.isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Generating Articles...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Generate AI Articles
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
-export default EnhancedArticlesPage;
+export default ArticlesPage;
+
+
 
