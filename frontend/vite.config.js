@@ -12,6 +12,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    // Fix process is not defined error
+    global: 'globalThis',
+  },
   build: {
     // Optimize chunk splitting for better caching
     rollupOptions: {
@@ -76,3 +80,4 @@ export default defineConfig({
     ],
   },
 })
+

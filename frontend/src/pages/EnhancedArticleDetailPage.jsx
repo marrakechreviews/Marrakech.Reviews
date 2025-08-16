@@ -193,31 +193,31 @@ const EnhancedArticleDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="animate-pulse space-y-8">
             {/* Header skeleton */}
-            <div className="space-y-4">
-              <div className="h-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded w-24"></div>
-              <div className="h-12 bg-gradient-to-r from-blue-200 to-purple-200 rounded w-3/4"></div>
-              <div className="h-6 bg-gradient-to-r from-blue-200 to-purple-200 rounded w-1/2"></div>
+            <div className="space-y-6">
+              <div className="h-6 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full w-32"></div>
+              <div className="h-16 bg-gradient-to-r from-gray-200 to-gray-300 rounded-2xl w-4/5"></div>
+              <div className="h-8 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl w-3/5"></div>
               <div className="flex space-x-4">
-                <div className="h-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded w-20"></div>
-                <div className="h-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded w-20"></div>
-                <div className="h-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded w-20"></div>
+                <div className="h-10 bg-gradient-to-r from-blue-200 to-blue-300 rounded-full w-28"></div>
+                <div className="h-10 bg-gradient-to-r from-green-200 to-green-300 rounded-full w-24"></div>
+                <div className="h-10 bg-gradient-to-r from-orange-200 to-orange-300 rounded-full w-20"></div>
               </div>
             </div>
             
             {/* Image skeleton */}
-            <div className="h-64 bg-gradient-to-r from-blue-200 to-purple-200 rounded-xl"></div>
+            <div className="h-80 bg-gradient-to-r from-gray-200 to-gray-300 rounded-3xl shadow-2xl"></div>
             
             {/* Content skeleton */}
-            <div className="space-y-4">
-              <div className="h-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded"></div>
-              <div className="h-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded w-5/6"></div>
-              <div className="h-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded w-4/6"></div>
-              <div className="h-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded"></div>
-              <div className="h-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded w-3/4"></div>
+            <div className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
+              <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl"></div>
+              <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl w-5/6"></div>
+              <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl w-4/6"></div>
+              <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl"></div>
+              <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl w-3/4"></div>
             </div>
           </div>
         </div>
@@ -227,18 +227,23 @@ const EnhancedArticleDetailPage = () => {
 
   if (error || !article) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center px-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-            <div className="w-16 h-16 bg-gradient-to-r from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="h-8 w-8 text-red-600" />
+          <div className="bg-white rounded-3xl shadow-2xl p-10 border border-gray-100">
+            <div className="w-20 h-20 bg-gradient-to-r from-red-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <BookOpen className="h-10 w-10 text-red-500" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Article Not Found</h1>
-            <p className="text-gray-600 mb-8">
-              {error || 'The article you are looking for does not exist.'}
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-4">
+              Article Not Found
+            </h1>
+            <p className="text-gray-600 mb-8 leading-relaxed">
+              {error || 'The article you are looking for does not exist or has been moved.'}
             </p>
-            <Button onClick={() => navigate('/articles')} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={() => navigate('/articles')} 
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
               Back to Articles
             </Button>
           </div>
@@ -248,19 +253,22 @@ const EnhancedArticleDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <Progress value={readingProgress} className="h-1 rounded-none bg-gradient-to-r from-blue-500 to-purple-500" />
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transform origin-left transition-transform duration-300" 
+             style={{ transform: `scaleX(${readingProgress / 100})` }}>
+        </div>
       </div>
 
       {/* Floating Action Buttons */}
-      <div className="fixed right-6 bottom-6 z-40 flex flex-col gap-3">
+      <div className="fixed right-6 bottom-6 z-40 flex flex-col gap-4">
         {showScrollTop && (
           <Button
             onClick={scrollToTop}
             size="icon"
-            className="rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0"
+            className="rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white border border-gray-200 hover:scale-110"
+            variant="outline"
           >
             <ChevronUp className="h-5 w-5" />
           </Button>
@@ -268,10 +276,10 @@ const EnhancedArticleDetailPage = () => {
         <Button
           onClick={handleLike}
           size="icon"
-          className={`rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 border-0 ${
+          className={`rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 ${
             isLiked 
-              ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white' 
-              : 'bg-white text-gray-700 hover:bg-gray-50'
+              ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600' 
+              : 'bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white border border-gray-200'
           }`}
           variant={isLiked ? "default" : "outline"}
         >
@@ -280,10 +288,10 @@ const EnhancedArticleDetailPage = () => {
         <Button
           onClick={handleBookmark}
           size="icon"
-          className={`rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 border-0 ${
+          className={`rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 ${
             isBookmarked 
-              ? 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white' 
-              : 'bg-white text-gray-700 hover:bg-gray-50'
+              ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600' 
+              : 'bg-white/90 backdrop-blur-sm text-gray-700 hover:bg-white border border-gray-200'
           }`}
           variant={isBookmarked ? "default" : "outline"}
         >
@@ -291,12 +299,12 @@ const EnhancedArticleDetailPage = () => {
         </Button>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <Button
           variant="ghost"
           onClick={() => navigate('/articles')}
-          className="mb-8 hover:bg-white hover:shadow-lg transition-all duration-300 border border-gray-200"
+          className="mb-8 hover:bg-white/80 hover:shadow-lg transition-all duration-300 rounded-xl backdrop-blur-sm"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Articles
