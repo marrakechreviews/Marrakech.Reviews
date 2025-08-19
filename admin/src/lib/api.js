@@ -140,6 +140,11 @@ export const productsAPI = {
   getFeaturedProducts: (limit) => api.get(`/products/featured?limit=${limit}`),
 };
 
+export const productGeneratorAPI = {
+  generateProduct: (product_url) => api.post('/generate-product', { product_url }),
+  getProductGenerationStatus: (taskId) => api.get(`/product-status/${taskId}`),
+};
+
 // Orders API
 export const ordersAPI = {
   getOrders: (params) => api.get('/orders', { params }),

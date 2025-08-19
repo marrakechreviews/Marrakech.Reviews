@@ -15,10 +15,11 @@ import {
   Download,
   Upload,
   Star,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { productsAPI } from '../lib/api';
+import { productsAPI, productGeneratorAPI } from '../lib/api';
 
 const EnhancedSimpleProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,6 +28,9 @@ const EnhancedSimpleProductsPage = () => {
   const [sortBy, setSortBy] = useState('-createdAt');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
+  const [aiProductUrl, setAiProductUrl] = useState('');
+  const [aiTaskId, setAiTaskId] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -76,6 +80,73 @@ const EnhancedSimpleProductsPage = () => {
       console.log('✅ Bypass mode enabled!');
     }
   }, []);
+
+  const aiTaskStatusQuery = useQuery({
+    queryKey: ['aiProductTaskStatus', aiTaskId],
+    queryFn: () => productGeneratorAPI.getProductGenerationStatus(aiTaskId),
+    enabled: !!aiTaskId,
+    refetchInterval: (data) => {
+      if (!data) return false;
+      const status = data.data.status;
+      return status === 'pending' || status === 'in_progress' ? 2000 : false;
+    },
+    onSuccess: (data) => {
+      const task = data.data;
+      if (task.status === 'completed') {
+        toast.success('Product data generated successfully!');
+        setAiTaskId(null);
+        const productData = task.product_data;
+        setFormData({
+          ...formData,
+          name: productData.name || '',
+          description: productData.description || '',
+          price: productData.price?.toString() || '',
+          comparePrice: productData.comparePrice?.toString() || '',
+          category: productData.category || '',
+          subcategory: productData.subcategory || '',
+          brand: productData.brand || '',
+          image: productData.image || '',
+          images: productData.images || [],
+          countInStock: productData.countInStock?.toString() || '10',
+          sku: productData.sku || '',
+          tags: Array.isArray(productData.tags) ? productData.tags.join(', ') : '',
+          seoTitle: productData.seoTitle || '',
+          seoDescription: productData.seoDescription || '',
+        });
+        setIsAiDialogOpen(false);
+        setIsCreateDialogOpen(true);
+      } else if (task.status === 'failed') {
+        toast.error(`AI generation failed: ${task.error}`);
+        setAiTaskId(null);
+      }
+    },
+    onError: (error) => {
+      toast.error('Failed to get AI task status.');
+      setAiTaskId(null);
+    }
+  });
+
+  const generateProductMutation = useMutation({
+    mutationFn: productGeneratorAPI.generateProduct,
+    onSuccess: (response) => {
+      const taskId = response.data.task_id;
+      setAiTaskId(taskId);
+      toast.info('Started AI product generation...');
+    },
+    onError: (error) => {
+      const errorMessage = error?.response?.data?.message || 'Failed to start AI generation.';
+      toast.error(errorMessage);
+    }
+  });
+
+  const handleGenerateProduct = () => {
+    if (!aiProductUrl) {
+      toast.error('Please enter a product URL.');
+      return;
+    }
+    generateProductMutation.mutate(aiProductUrl);
+  };
+
 
   // Fetch products with enhanced error handling
   const { data: productsResponse, isLoading, error, refetch } = useQuery({
@@ -514,6 +585,13 @@ const EnhancedSimpleProductsPage = () => {
           >
             <Plus className="h-4 w-4" />
             Create Product
+          </button>
+          <button
+            onClick={() => setIsAiDialogOpen(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <Sparkles className="h-4 w-4" />
+            Add with AI
           </button>
         </div>
       </div>
@@ -962,6 +1040,58 @@ const EnhancedSimpleProductsPage = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* AI Product Generation Dialog */}
+      {isAiDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-lg w-full">
+            <div className="p-6 border-b">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-600" />
+                Add Product with AI
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product URL
+                </label>
+                <input
+                  type="url"
+                  value={aiProductUrl}
+                  onChange={(e) => setAiProductUrl(e.target.value)}
+                  placeholder="https://example.com/product-page"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              {aiTaskStatusQuery.isLoading || generateProductMutation.isPending && (
+                <div className="flex items-center gap-2 text-purple-600">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                  <span>Generating product data... This may take a moment.</span>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end gap-3 p-4 bg-gray-50">
+              <button
+                type="button"
+                onClick={() => setIsAiDialogOpen(false)}
+                disabled={aiTaskStatusQuery.isLoading || generateProductMutation.isPending}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleGenerateProduct}
+                disabled={aiTaskStatusQuery.isLoading || generateProductMutation.isPending}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              >
+                {aiTaskStatusQuery.isLoading || generateProductMutation.isPending ? 'Generating...' : 'Generate'}
+              </button>
+            </div>
           </div>
         </div>
       )}
