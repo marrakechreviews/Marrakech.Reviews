@@ -23,6 +23,7 @@ const instagramRoutes = require("./routes/instagram");
 const organizedTravelRoutes = require("./routes/organizedTravel");
 const contactRoutes = require("./routes/contact");
 const articleGeneratorRoutes = require("./routes/articleGenerator");
+const productGeneratorRoutes = require("./routes/productGenerator");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -80,6 +81,7 @@ app.use("/api/instagram", instagramRoutes);
 app.use("/api/organized-travel", organizedTravelRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api", articleGeneratorRoutes);
+app.use("/api", productGeneratorRoutes);
 
 // Root route handler for token-based requests
 app.get("/", (req, res) => {
