@@ -85,13 +85,19 @@ const EnhancedSimpleProductsPage = () => {
     queryKey: ['aiProductTaskStatus', aiTaskId],
     queryFn: () => productGeneratorAPI.getProductGenerationStatus(aiTaskId),
     enabled: !!aiTaskId,
-    refetchInterval: (data) => {
-      if (!data) return false;
+    refetchInterval: (query) => {
+      // In v5, the argument is the query object. Data is in query.state.data
+      const data = query.state.data;
+      if (!data || !data.data) {
+        return false;
+      }
       const status = data.data.status;
       return status === 'pending' || status === 'in_progress' ? 2000 : false;
     },
     onSuccess: (data) => {
-      const task = data.data;
+      const task = data?.data;
+      if (!task) return; // Guard against undefined task object
+
       if (task.status === 'completed') {
         toast.success('Product data generated successfully!');
         setAiTaskId(null);
@@ -116,7 +122,13 @@ const EnhancedSimpleProductsPage = () => {
         setIsAiDialogOpen(false);
         setIsCreateDialogOpen(true);
       } else if (task.status === 'failed') {
-        toast.error(`AI generation failed: ${task.error}`);
+        let errorMessage = `AI generation failed: ${task.error}`;
+        if (task.error?.includes('403 Forbidden')) {
+          errorMessage = "Could not get product data. The website is blocking automated requests.";
+        } else if (task.error?.includes('only supports Etsy.com')) {
+          errorMessage = "This scraper currently only supports Etsy.com URLs.";
+        }
+        toast.error(errorMessage);
         setAiTaskId(null);
       }
     },
@@ -1067,7 +1079,7 @@ const EnhancedSimpleProductsPage = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
-              {aiTaskStatusQuery.isLoading || generateProductMutation.isPending && (
+              {(generateProductMutation.isPending || aiTaskStatusQuery.isFetching) && (
                 <div className="flex items-center gap-2 text-purple-600">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
                   <span>Generating product data... This may take a moment.</span>
@@ -1078,7 +1090,7 @@ const EnhancedSimpleProductsPage = () => {
               <button
                 type="button"
                 onClick={() => setIsAiDialogOpen(false)}
-                disabled={aiTaskStatusQuery.isLoading || generateProductMutation.isPending}
+                disabled={generateProductMutation.isPending || aiTaskStatusQuery.isFetching}
                 className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
               >
                 Cancel
@@ -1086,10 +1098,10 @@ const EnhancedSimpleProductsPage = () => {
               <button
                 type="button"
                 onClick={handleGenerateProduct}
-                disabled={aiTaskStatusQuery.isLoading || generateProductMutation.isPending}
+                disabled={generateProductMutation.isPending || aiTaskStatusQuery.isFetching}
                 className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
               >
-                {aiTaskStatusQuery.isLoading || generateProductMutation.isPending ? 'Generating...' : 'Generate'}
+                {generateProductMutation.isPending || aiTaskStatusQuery.isFetching ? 'Generating...' : 'Generate'}
               </button>
             </div>
           </div>
