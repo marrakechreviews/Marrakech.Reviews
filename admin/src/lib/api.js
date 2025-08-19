@@ -145,6 +145,7 @@ export const productGeneratorAPI = {
   getProductGenerationStatus: (taskId) => api.get(`/product-status/${taskId}`),
 };
 
+
 // Orders API
 export const ordersAPI = {
   getOrders: (params) => api.get('/orders', { params }),
