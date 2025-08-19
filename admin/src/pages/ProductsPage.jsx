@@ -123,10 +123,10 @@ const EnhancedSimpleProductsPage = () => {
         setIsCreateDialogOpen(true);
       } else if (task.status === 'failed') {
         let errorMessage = `AI generation failed: ${task.error}`;
-        if (task.error?.includes('403 Forbidden')) {
-          errorMessage = "Could not get product data. The website is blocking automated requests.";
-        } else if (task.error?.includes('only supports Etsy.com')) {
-          errorMessage = "This scraper currently only supports Etsy.com URLs.";
+        if (task.error?.includes('eBay is blocking the request')) {
+          errorMessage = "Could not get product data. eBay is blocking automated requests.";
+        } else if (task.error?.includes('only supports eBay.com')) {
+          errorMessage = "This scraper currently only supports eBay.com URLs.";
         }
         toast.error(errorMessage);
         setAiTaskId(null);
