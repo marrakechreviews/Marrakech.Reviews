@@ -7,20 +7,26 @@ async function scrapeProduct(url) {
     let driver;
     try {
         const options = new chrome.Options();
-        // Required arguments for serverless environments
-        options.addArguments(...chromium.args);
-        options.addArguments('--headless'); // Ensure headless mode
-        // Set the path to the Chrome executable provided by @sparticuz/chromium
-        options.setChromeBinaryPath(await chromium.executablePath());
+        options.addArguments('--headless');
+        options.addArguments('--disable-gpu');
+        options.addArguments('--no-sandbox');
+        options.addArguments('--window-size=1920,1080');
 
-        // Set the path to the chromedriver executable
-        const service = new chrome.ServiceBuilder(chromium.driver);
+        let builder = new Builder().forBrowser('chrome');
 
-        driver = await new Builder()
-            .forBrowser('chrome')
-            .setChromeService(service)
-            .setChromeOptions(options)
-            .build();
+        // Production environment (e.g., Vercel)
+        if (process.env.NODE_ENV === 'production') {
+            console.log('Running in production mode, using @sparticuz/chromium');
+            options.addArguments(...chromium.args);
+            options.setChromeBinaryPath(await chromium.executablePath());
+            const service = new chrome.ServiceBuilder(chromium.driver);
+            builder.setChromeService(service);
+        } else {
+            console.log('Running in development mode, using local Chrome');
+        }
+
+        builder.setChromeOptions(options);
+        driver = await builder.build();
 
         await driver.get(url);
 
