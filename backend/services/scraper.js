@@ -46,6 +46,8 @@ async function scrapeProduct(url) {
 }
 
 async function scrapeEbay(driver) {
+    await driver.wait(until.elementLocated(By.css('#mainContent')), 10000); // Wait for main content
+
     const data = {};
 
     try {
@@ -65,18 +67,13 @@ async function scrapeEbay(driver) {
     }
 
     try {
-        const iframe = await driver.findElement(By.css('iframe#desc_ifr'));
-        await driver.switchTo().frame(iframe);
-        data.description = await driver.findElement(By.css('div#ds_div')).getText();
-        await driver.switchTo().defaultContent();
+        // Wait for the description section to be visible
+        await driver.wait(until.elementLocated(By.css('div.product-description-features')), 10000);
+        const descriptionElement = await driver.findElement(By.css('div.product-description-features'));
+        data.description = await descriptionElement.getText();
     } catch (e) {
-        console.log('Description not found, trying alternative.');
-        try {
-            data.description = await driver.findElement(By.css('#viTabs_0_is')).getText();
-        } catch (e2) {
-            console.log('Alternative description not found');
-            data.description = '';
-        }
+        console.log('Description not found.');
+        data.description = '';
     }
 
     try {
@@ -93,7 +90,7 @@ async function scrapeEbay(driver) {
     data.image = data.images[0] || '';
 
     try {
-        data.brand = await driver.findElement(By.css('.x-sellercard-atf__info__about-seller .ux-textspans--BOLD')).getText();
+        data.brand = await driver.findElement(By.css('a[data-testid="x-sellercard-atf__seller-info__link"]')).getText();
     } catch (e) {
         console.log('Seller not found');
         data.brand = '';
