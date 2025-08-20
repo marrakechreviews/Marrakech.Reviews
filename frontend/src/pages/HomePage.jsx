@@ -177,7 +177,14 @@ const HomePage = () => {
   // Function to render sections in order
   const renderSections = () => {
     const sections = [
-      { name: 'hero', component: <HeroSlideshow key="hero" /> },
+      { name: 'hero', component: (
+        <section key="hero" className="w-full">
+          {/* Travelpayouts Hero Flight Widget */}
+          <div className="w-full" style={{ width: '100%' }}>
+            <script async src="https://tpwdgt.com/content?currency=eur&trs=451574&shmarker=666986&show_hotels=false&powered_by=true&locale=en&searchUrl=www.aviasales.com%2Fsearch&primary_override=%23EB5B1EFF&color_button=%23EB5B1EFF&color_icons=%23EB5B1EFF&dark=%23262626&light=%23FFFFFF&secondary=%23FFFFFF00&special=%23C4C4C4&color_focused=%23EB5B1Eff&border_radius=0&no_labels=true&plain=true&destination=RAK&promo_id=7879&campaign_id=100" charset="utf-8"></script>
+          </div>
+        </section>
+      ) },
       { name: 'instagram', component: <InstagramSection key="instagram" /> },
       {
         name: 'categories',
