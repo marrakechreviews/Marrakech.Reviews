@@ -46,20 +46,19 @@ async function scrapeProduct(url) {
 }
 
 async function scrapeEbay(driver) {
-    await driver.wait(until.elementLocated(By.css('#mainContent')), 10000); // Wait for main content
+    await driver.wait(until.elementLocated(By.css('#mainContent')), 10000);
 
     const data = {};
 
     try {
-        await driver.wait(until.elementLocated(By.css('h1.x-item-title__mainTitle')), 30000);
-        data.name = await driver.findElement(By.css('h1.x-item-title__mainTitle .ux-textspans')).getText();
+        data.name = await driver.findElement(By.css('.x-item-title__mainTitle')).getText();
     } catch (e) {
         console.log('Name not found');
         data.name = '';
     }
 
     try {
-        const priceString = await driver.findElement(By.css('.x-price-primary .ux-textspans')).getText();
+        const priceString = await driver.findElement(By.css('.x-price-primary')).getText();
         data.price = parseFloat(priceString.replace(/[^0-9.]/g, ''));
     } catch (e) {
         console.log('Price not found');
@@ -67,27 +66,22 @@ async function scrapeEbay(driver) {
     }
 
     try {
-        // Wait for the description section to be visible
-        await driver.wait(until.elementLocated(By.css('div.product-description-features')), 10000);
         const descriptionElement = await driver.findElement(By.css('div.product-description-features'));
         data.description = await descriptionElement.getText();
     } catch (e) {
-        console.log('Description not found.');
-        data.description = '';
+        console.log('Description not found, using title as fallback.');
+        data.description = data.name; // Fallback to title
     }
 
     try {
-        const imageElements = await driver.findElements(By.css('.ux-image-carousel-item img'));
-        data.images = await Promise.all(imageElements.map(async (el) => {
-            const src = await el.getAttribute('data-src');
-            return src || el.getAttribute('src');
-        }));
+        const imageElement = await driver.findElement(By.xpath('/html/body/div[2]/main/div[1]/div[1]/div[4]/div/div/div[1]/div[1]/div/div[1]/div[1]/div[2]/div[4]/div[3]/img'));
+        data.image = await imageElement.getAttribute('src');
+        data.images = [data.image];
     } catch (e) {
-        console.log('Images not found');
+        console.log('Image not found');
+        data.image = '';
         data.images = [];
     }
-
-    data.image = data.images[0] || '';
 
     try {
         data.brand = await driver.findElement(By.css('a[data-testid="x-sellercard-atf__seller-info__link"]')).getText();
