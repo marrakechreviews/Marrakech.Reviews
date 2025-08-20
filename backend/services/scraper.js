@@ -11,10 +11,10 @@ async function scrapeProduct(url) {
         options.addArguments(...chromium.args);
         options.addArguments('--headless'); // Ensure headless mode
         // Set the path to the Chrome executable provided by @sparticuz/chromium
-        options.setChromeBinaryPath(chromium.executablePath);
+        options.setChromeBinaryPath(await chromium.executablePath());
 
         // Set the path to the chromedriver executable
-        const service = new chrome.ServiceBuilder(chromium.driver).build();
+        const service = new chrome.ServiceBuilder(chromium.driver);
 
         driver = await new Builder()
             .forBrowser('chrome')
