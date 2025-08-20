@@ -1,19 +1,24 @@
 const { Builder, By, until } = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
 const fs = require('fs');
+const chromium = require('@sparticuz/chromium');
 
 async function scrapeProduct(url) {
     let driver;
     try {
         const options = new chrome.Options();
-        options.addArguments('--headless');
-        options.addArguments('--disable-gpu');
-        options.addArguments('--no-sandbox');
-        options.addArguments('--disable-dev-shm-usage');
-        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36");
+        // Required arguments for serverless environments
+        options.addArguments(...chromium.args);
+        options.addArguments('--headless'); // Ensure headless mode
+        // Set the path to the Chrome executable provided by @sparticuz/chromium
+        options.setChromeBinaryPath(chromium.executablePath);
+
+        // Set the path to the chromedriver executable
+        const service = new chrome.ServiceBuilder(chromium.driver).build();
 
         driver = await new Builder()
             .forBrowser('chrome')
+            .setChromeService(service)
             .setChromeOptions(options)
             .build();
 
