@@ -30,6 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
+import { allActivities } from '../data/allActivities';
 
 export default function ActivityDetailPage() {
   const { slug } = useParams();
@@ -49,71 +50,12 @@ export default function ActivityDetailPage() {
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Sample activity data (in production, this would come from API)
-  const sampleActivity = {
-    id: 1,
-    name: "Sahara Desert Camel Trek",
-    slug: "sahara-desert-camel-trek",
-    description: "Embark on an unforgettable journey into the heart of the Sahara Desert with our authentic camel trek experience. This two-day adventure takes you deep into the golden dunes of Merzouga, where you'll witness breathtaking sunsets and sunrises, sleep under a canopy of stars, and experience the timeless traditions of Berber nomadic life.\n\nYour adventure begins with a warm welcome at our desert camp, where you'll meet your experienced Berber guides and your gentle camel companions. As you traverse the ever-changing landscape of sand dunes, you'll discover the profound silence and beauty of the desert, broken only by the soft footsteps of your camel and the whisper of wind across the sand.\n\nThe highlight of your journey is spending the night in a traditional Berber camp, complete with comfortable tents, authentic Moroccan cuisine, and traditional music around the campfire. Wake up early to witness one of nature's most spectacular displays - a Sahara sunrise that paints the dunes in brilliant shades of gold and orange.",
-    shortDescription: "Experience the magic of the Sahara with an authentic camel trek and overnight camping under the stars.",
-    price: 120,
-    marketPrice: 180,
-    currency: "USD",
-    category: "Desert Tours",
-    location: "Merzouga, Sahara Desert",
-    duration: "2 Days, 1 Night",
-    maxParticipants: 12,
-    minParticipants: 2,
-    rating: 4.9,
-    numReviews: 156,
-    images: [
-      "https://picsum.photos/800/600?random=1",
-      "https://picsum.photos/800/600?random=2",
-      "https://picsum.photos/800/600?random=3",
-      "https://picsum.photos/800/600?random=4"
-    ],
-    tags: ["Adventure", "Camping", "Photography", "Cultural"],
-    difficulty: "Moderate",
-    included: [
-      "Professional Berber guide",
-      "Camel trek experience",
-      "Desert camp accommodation",
-      "All meals (dinner, breakfast)",
-      "Traditional music entertainment",
-      "Sandboarding equipment",
-      "Blankets and sleeping bags",
-      "Transportation to/from camp"
-    ],
-    excluded: [
-      "Personal expenses",
-      "Tips for guides",
-      "Alcoholic beverages",
-      "Travel insurance"
-    ],
-    requirements: [
-      "Moderate physical fitness required",
-      "Comfortable walking shoes",
-      "Sun protection (hat, sunscreen)",
-      "Warm clothing for evening",
-      "Camera for memories"
-    ],
-    cancellationPolicy: "Free cancellation up to 24 hours before the activity starts",
-    languages: ["English", "French", "Arabic", "Spanish"],
-    meetingPoint: "Desert camp entrance, Merzouga village",
-    contactInfo: {
-      phone: "+212 524-123456",
-      whatsapp: "+212 6XX-XXXXXX",
-      email: "info@saharaexperience.com"
-    },
-    isFeatured: true,
-    isActive: true
-  };
-
   useEffect(() => {
     // Simulate API call
     setLoading(true);
     setTimeout(() => {
-      setActivity(sampleActivity);
+      const foundActivity = allActivities.find(act => act.slug === slug);
+      setActivity(foundActivity);
       setLoading(false);
     }, 1000);
   }, [slug]);
