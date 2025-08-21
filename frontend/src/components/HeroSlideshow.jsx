@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Search, Star, TrendingUp, Activity, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, TrendingUp, Activity, MapPin } from 'lucide-react';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { Link } from 'react-router-dom';
+import TravelpayoutsHeroWidget from './TravelpayoutsHeroWidget';
 import heroImage from '../assets/images/marrakech-architecture-hero.jpg';
 import desertImage from '../assets/images/marrakech-desert.jpg';
 import souksImage from '../assets/images/marrakech-souks.jpg';
 
 const HeroSlideshow = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const slides = [
     {
@@ -100,12 +99,6 @@ const HeroSlideshow = () => {
     setCurrentSlide(index);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`;
-    }
-  };
 
   const currentSlideData = slides[currentSlide];
 
@@ -170,21 +163,9 @@ const HeroSlideshow = () => {
           {currentSlideData.subtitle}
         </p>
 
-        {/* Search Bar */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <form onSubmit={handleSearch} className="flex bg-white rounded-lg p-2 shadow-lg">
-            <Input
-              type="text"
-              placeholder={currentSlideData.searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 border-0 focus-visible:ring-0 text-foreground"
-            />
-            <Button type="submit" size="sm" className="ml-2">
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
-          </form>
+        {/* Travelpayouts Widget */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <TravelpayoutsHeroWidget />
         </div>
 
         {/* Action Buttons */}

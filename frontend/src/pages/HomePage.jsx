@@ -33,7 +33,8 @@ import {
 import api from '../lib/api';
 import { animateOnScroll, staggerAnimation, createFloatingAnimation } from '../lib/animations';
 import HeroSlideshow from '../components/HeroSlideshow';
-import FlightReservationSection from '../components/FlightReservationSection';
+import TravelpayoutsFlightsWidget from '../components/TravelpayoutsFlightsWidget';
+import TravelpayoutsFourPartWidget from '../components/TravelpayoutsFourPartWidget';
 import RecommendedPlacesInstagramCarousel from '../components/RecommendedPlacesInstagramCarousel';
 import InstagramSection from '../components/InstagramSection';
 import PopularDestinations from '../components/PopularDestinations';
@@ -417,12 +418,22 @@ const HomePage = () => {
         name: 'flights',
         component: (
           <section key="flights" className="py-16 flex justify-center">
-            <div className="text-center space-y-8">
+            <div className="text-center space-y-8 w-full">
               <h2 className="text-3xl md:text-4xl font-bold">Find Your Flight</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Search and compare the best flight deals for your trip.
               </p>
-              <script async src="https://tpwdgt.com/content?currency=eur&trs=451574&shmarker=666986&show_hotels=false&powered_by=true&locale=en&searchUrl=www.aviasales.com%2Fsearch&primary_override=%23EB5B1EFF&color_button=%23EB5B1EFF&color_icons=%23EB5B1EFF&dark=%23262626&light=%23FFFFFF&secondary=%23FFFFFF&special=%23C4C4C4&color_focused=%23EB5B1Eff&border_radius=0&no_labels=true&plain=true&destination=RAK&promo_id=7879&campaign_id=100" charset="utf-8"></script>
+              <TravelpayoutsFlightsWidget />
+            </div>
+          </section>
+        )
+      },
+      {
+        name: 'four-part-widget',
+        component: (
+          <section key="four-part-widget" className="py-16">
+            <div className="container mx-auto px-4">
+              <TravelpayoutsFourPartWidget />
             </div>
           </section>
         )

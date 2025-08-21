@@ -3,12 +3,14 @@ import React, { useEffect } from 'react';
 const TravelpayoutsFlightsWidget = () => {
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = "https://tpwdgt.com/content?currency=eur&trs=451574&shmarker=666986&color_button=%23DD9232FF&target_host=www.aviasales.com%2Fsearch&locale=en&powered_by=true&origin=PAR&destination=RAK&with_fallback=true&non_direct_flights=true&min_lines=5&border_radius=5&color_background=%23FFFFFF&color_text=%23000000&color_border=%23FFFFFF&promo_id=2811&campaign_id=100";
+    script.src = "https://tpwdgt.com/content?currency=eur&trs=451574&shmarker=666986&show_hotels=false&powered_by=true&locale=en&searchUrl=www.aviasales.com%2Fsearch&primary_override=%23EB5B1EFF&color_button=%23EB5B1EFF&color_icons=%23EB5B1EFF&dark=%23262626&light=%23FFFFFF&secondary=%23FFFFFF&special=%23C4C4C4&color_focused=%23EB5B1Eff&border_radius=0&no_labels=true&plain=true&destination=RAK&promo_id=7879&campaign_id=100";
     script.async = true;
     script.charset = "utf-8";
 
     const widgetContainer = document.getElementById('travelpayouts-flights-widget');
     if (widgetContainer) {
+      // Clear the container before appending the new script
+      widgetContainer.innerHTML = '';
       widgetContainer.appendChild(script);
     }
 
@@ -19,7 +21,7 @@ const TravelpayoutsFlightsWidget = () => {
     };
   }, []);
 
-  return <div id="travelpayouts-flights-widget" className="flex justify-center"></div>;
+  return <div id="travelpayouts-flights-widget" className="w-full"></div>;
 };
 
 export default TravelpayoutsFlightsWidget;
