@@ -264,16 +264,18 @@ export default function ActivityDetailPage() {
               </div>
 
               {/* Thumbnail Images */}
-              <div className="grid grid-cols-4 gap-2 mb-6">
-                {activity.images.slice(1).map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`${activity.name} ${index + 2}`}
-                    className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                  />
-                ))}
-              </div>
+              {activity.images && activity.images.length > 1 && (
+                <div className="grid grid-cols-4 gap-2 mb-6">
+                  {activity.images.slice(1).map((image, index) => (
+                    <img
+                      key={index}
+                      src={image}
+                      alt={`${activity.name} ${index + 2}`}
+                      className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                    />
+                  ))}
+                </div>
+              )}
 
               {/* Activity Details */}
               <Card className="mb-6">
@@ -303,29 +305,33 @@ export default function ActivityDetailPage() {
                   
                   <Separator />
                   
-                  <div>
-                    <h4 className="font-semibold mb-2">What's Included</h4>
-                    <ul className="space-y-1">
-                      {activity.included.map((item, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm">
-                          <Check className="h-4 w-4 text-green-500" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {activity.included && activity.included.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-2">What's Included</h4>
+                      <ul className="space-y-1">
+                        {activity.included.map((item, index) => (
+                          <li key={index} className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-green-500" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   
-                  <div>
-                    <h4 className="font-semibold mb-2">Not Included</h4>
-                    <ul className="space-y-1">
-                      {activity.excluded.map((item, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm">
-                          <X className="h-4 w-4 text-red-500" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {activity.excluded && activity.excluded.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Not Included</h4>
+                      <ul className="space-y-1">
+                        {activity.excluded.map((item, index) => (
+                          <li key={index} className="flex items-center gap-2 text-sm">
+                            <X className="h-4 w-4 text-red-500" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -588,25 +594,29 @@ export default function ActivityDetailPage() {
               <CardTitle>About This Activity</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none">
-                {activity.description.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="mb-4 text-gray-700 leading-relaxed">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-              
-              <div className="mt-6">
-                <h4 className="font-semibold mb-2">Requirements</h4>
-                <ul className="space-y-1">
-                  {activity.requirements.map((requirement, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm">
-                      <Info className="h-4 w-4 text-blue-500" />
-                      {requirement}
-                    </li>
+              {activity.description && (
+                <div className="prose max-w-none">
+                  {activity.description.split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="mb-4 text-gray-700 leading-relaxed">
+                      {paragraph}
+                    </p>
                   ))}
-                </ul>
-              </div>
+                </div>
+              )}
+
+              {activity.requirements && activity.requirements.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="font-semibold mb-2">Requirements</h4>
+                  <ul className="space-y-1">
+                    {activity.requirements.map((requirement, index) => (
+                      <li key={index} className="flex items-center gap-2 text-sm">
+                        <Info className="h-4 w-4 text-blue-500" />
+                        {requirement}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

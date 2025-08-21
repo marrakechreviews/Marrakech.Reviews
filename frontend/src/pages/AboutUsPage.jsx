@@ -57,7 +57,7 @@ const AboutUsPage = () => {
                   Our Story
                 </CardTitle>
                 <CardDescription className="text-lg max-w-3xl mx-auto">
-                  Born from passion for Morocco's rich culture and vibrant spirit
+                  Born from a passion for Marrakech's rich culture and vibrant spirit
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
