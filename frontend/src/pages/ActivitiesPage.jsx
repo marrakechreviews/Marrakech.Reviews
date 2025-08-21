@@ -291,7 +291,7 @@ export default function ActivitiesPage() {
                     >
                       <div className="relative">
                         <img
-                          src={activity.image}
+                          src={activity.images[0]}
                           alt={activity.name}
                           className="w-full h-48 object-cover rounded-t-lg"
                         />
