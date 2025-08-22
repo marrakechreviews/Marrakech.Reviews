@@ -279,7 +279,7 @@ const HomePage = () => {
                     <h3 className="text-2xl font-bold mb-3">Luxury Hotels</h3>
                     <p className="text-gray-600 mb-4">Experience world-class comfort and service in our premium hotel selections.</p>
                     <Button asChild variant="outline" className="w-full">
-                      <a href="https://www.booking.com/affiliate-program/v2/index.html" target="_blank" rel="noopener noreferrer">
+                      <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
                         Explore Hotels
                       </a>
                     </Button>
@@ -299,7 +299,7 @@ const HomePage = () => {
                     <h3 className="text-2xl font-bold mb-3">Traditional Riads</h3>
                     <p className="text-gray-600 mb-4">Experience authentic Moroccan hospitality in our hand-picked luxury riads.</p>
                     <Button asChild variant="outline" className="w-full">
-                      <a href="https://www.booking.com/affiliate-program/v2/index.html" target="_blank" rel="noopener noreferrer">
+                      <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
                         Explore Riads
                       </a>
                     </Button>
@@ -319,7 +319,7 @@ const HomePage = () => {
                     <h3 className="text-2xl font-bold mb-3">Modern Apartments</h3>
                     <p className="text-gray-600 mb-4">Enjoy the comfort of home with our stylish apartment rentals.</p>
                     <Button asChild variant="outline" className="w-full">
-                      <a href="https://www.booking.com/affiliate-program/v2/index.html" target="_blank" rel="noopener noreferrer">
+                      <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
                         Discover Apartments
                       </a>
                     </Button>
@@ -327,7 +327,7 @@ const HomePage = () => {
                 </Card>
               </div>
               <Button asChild size="lg">
-                <a href="https://www.booking.com/affiliate-program/v2/index.html" target="_blank" rel="noopener noreferrer">
+                <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
                   <MapPin className="mr-2 h-5 w-5 text-red-600" />
                   View All Hosting Options
                 </a>
