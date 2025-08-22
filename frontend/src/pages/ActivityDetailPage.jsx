@@ -603,7 +603,7 @@ export default function ActivityDetailPage() {
                   ))}
                 </div>
               )}
-              
+
               {activity.requirements && activity.requirements.length > 0 && (
                 <div className="mt-6">
                   <h4 className="font-semibold mb-2">Requirements</h4>
