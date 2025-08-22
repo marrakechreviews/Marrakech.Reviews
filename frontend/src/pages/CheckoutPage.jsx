@@ -197,7 +197,7 @@ const CheckoutPage = () => {
   return (
     <>
       <Helmet>
-        <title>Checkout | Marrakech Reviews</title>
+        <title>Checkout | Your Store</title>
         <meta name="description" content="Complete your purchase securely with our checkout process." />
       </Helmet>
 
