@@ -115,7 +115,7 @@ export default function Layout({ children }) {
               <Link to="/" className="flex items-center space-x-2">
                 <ShoppingBag className="h-8 w-8 text-red-500" />
                 <span className="text-xl font-bold text-gray-900">
-                  {settings?.general?.siteName || 'Your Store'}
+                  {settings?.general?.siteName || 'Marrakech Reviews'}
                 </span>
               </Link>
             </div>
@@ -272,7 +272,7 @@ export default function Layout({ children }) {
               <div className="flex items-center space-x-2 mb-4">
                 <ShoppingBag className="h-6 w-6 text-red-500" />
                 <h3 className="text-lg font-semibold">
-                  {settings?.general?.siteName || 'Your Store'}
+                  {settings?.general?.siteName || 'Marrakech Reviews'}
                 </h3>
               </div>
               <p className="text-gray-400 mb-4">
@@ -371,7 +371,7 @@ export default function Layout({ children }) {
 
           {/* Copyright */}
           <div className="border-t border-gray-800 pt-8 text-center text-white-500">
-            <p>&copy; 2024 {settings?.general?.siteName || 'Your Store'}. All rights reserved.</p>
+            <p>&copy; 2024 {settings?.general?.siteName || 'Marrakech Reviews'}. All rights reserved.</p>
           </div>
         </div>
       </footer>

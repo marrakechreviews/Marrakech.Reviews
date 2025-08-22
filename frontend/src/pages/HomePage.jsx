@@ -544,7 +544,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Your Store - Premium Online Shopping Experience</title>
+        <title>Marrakech Reviews - Premium Online Shopping Experience</title>
         <meta name="description" content="Discover amazing products with unbeatable prices. Shop Activities, fashion, home goods and more with fast shipping and excellent customer service." />
         <meta name="keywords" content="online shopping, ecommerce, products, deals, fashion, Activities, home" />
       </Helmet>
