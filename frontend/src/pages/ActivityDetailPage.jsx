@@ -603,11 +603,7 @@ export default function ActivityDetailPage() {
                   ))}
                 </div>
               )}
-<<<<<<< HEAD
               
-=======
-
->>>>>>> e5c1512478568229116db3527486da50367e6cfc
               {activity.requirements && activity.requirements.length > 0 && (
                 <div className="mt-6">
                   <h4 className="font-semibold mb-2">Requirements</h4>
