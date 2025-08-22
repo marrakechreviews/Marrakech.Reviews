@@ -53,11 +53,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 gap-8">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <Store className="h-8 w-8 text-red-600" />
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">E-Store</h1>
-              <p className="text-xs text-gray-500 hidden sm:block">Enhanced Commerce</p>
-            </div>
+            <img src="/logo.jpg" alt="E-Store Logo" className="h-10" />
           </Link>
 
           {/* Desktop Navigation */}
