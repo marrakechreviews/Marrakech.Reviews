@@ -418,7 +418,7 @@ const HomePage = () => {
         name: 'flights',
         component: (
           <section key="flights" className="py-16 flex justify-center">
-            <div className="text-center space-y-8 w-full">
+            <div className="text-center space-y-8">
               <h2 className="text-3xl md:text-4xl font-bold">Find Your Flight</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Search and compare the best flight deals for your trip.
