@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "@shelf/jest-mongodb": "^5.2.2",
+    "jest": "^30.0.5",
+    "supertest": "^7.1.4"
+  }
+}

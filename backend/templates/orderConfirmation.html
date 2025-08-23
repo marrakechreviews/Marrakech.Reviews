@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #28a745;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #28a745;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .order-id {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .details-section {
+            margin: 25px 0;
+        }
+        .section-title {
+            color: #28a745;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 5px;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        .item-details {
+            flex: 1;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .item-qty {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .item-price {
+            font-weight: 600;
+            color: #28a745;
+        }
+        .price-summary {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+        }
+        .price-total {
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #ffc107;
+            color: #212529;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .shipping-info {
+            background-color: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .contact-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 25px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .order-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .item-price {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">E-Store Morocco</div>
+            <h1 class="title">Order Confirmation</h1>
+            <p>Thank you for your order!</p>
+        </div>
+
+        <div class="order-id">
+            Order ID: {{orderId}}
+        </div>
+
+        <div class="details-section">
+            <h2 class="section-title">Order Items</h2>
+            {{#each orderItems}}
+            <div class="order-item">
+                <div class="item-details">
+                    <div class="item-name">{{name}}</div>
+                    <div class="item-qty">Quantity: {{qty}}</div>
+                </div>
+                <div class="item-price">${{price}}</div>
+            </div>
+            {{/each}}
+        </div>
+
+        <div class="price-summary">
+            <div class="price-row">
+                <span>Subtotal:</span>
+                <span>${{itemsPrice}}</span>
+            </div>
+            <div class="price-row">
+                <span>Shipping:</span>
+                <span>${{shippingPrice}}</span>
+            </div>
+            <div class="price-row">
+                <span>Tax:</span>
+                <span>${{taxPrice}}</span>
+            </div>
+        </div>
+
+        <div class="price-total">
+            Total: ${{totalPrice}}
+        </div>
+
+        <div class="details-section">
+            <h2 class="section-title">Order Status</h2>
+            <p>Status: <span class="status-badge">{{status}}</span></p>
+            <p>Payment Status: {{#if isPaid}}Paid{{else}}Pending Payment{{/if}}</p>
+            <p>Order Date: {{orderDate}}</p>
+        </div>
+
+        <div class="shipping-info">
+            <h3 style="color: #007bff; margin-top: 0;">Shipping Address</h3>
+            <p><strong>{{shippingAddress.fullName}}</strong></p>
+            <p>{{shippingAddress.address}}</p>
+            <p>{{shippingAddress.city}}, {{shippingAddress.postalCode}}</p>
+            <p>{{shippingAddress.country}}</p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{trackingUrl}}" class="button">Track Your Order</a>
+        </div>
+
+        <div class="contact-info">
+            <h3 style="color: #28a745; margin-top: 0;">Need Help?</h3>
+            <p><strong>Phone:</strong> {{contactPhone}}</p>
+            <p><strong>Email:</strong> {{supportEmail}}</p>
+            <p><strong>WhatsApp:</strong> {{whatsappNumber}}</p>
+        </div>
+
+        <div class="footer">
+            <p>We'll send you shipping confirmation when your items are on the way!</p>
+            <hr style="margin: 20px 0;">
+            <p>&copy; 2024 E-Store Morocco. All rights reserved.</p>
+            <p>This is an automated email. Please do not reply directly to this message.</p>
+        </div>
+    </div>
+</body>
+</html>

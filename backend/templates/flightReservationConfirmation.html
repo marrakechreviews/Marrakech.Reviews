@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Reservation Confirmation</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+    .flight-details { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #667eea; }
+    .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #eee; }
+    .detail-label { font-weight: bold; color: #555; }
+    .detail-value { color: #333; }
+    .price-summary { background: #e8f4fd; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .total-price { font-size: 24px; font-weight: bold; color: #667eea; text-align: center; }
+    .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+    .btn { display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 10px 5px; }
+    .route { font-size: 18px; font-weight: bold; color: #667eea; margin: 15px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✈️ Flight Reservation Confirmed!</h1>
+      <p>Booking Reference: <strong>{{bookingReference}}</strong></p>
+    </div>
+
+    <div class="content">
+      <h2>Dear {{firstName}} {{lastName}},</h2>
+      <p>Thank you for choosing us for your travel needs! Your flight reservation has been successfully submitted and is currently being processed.</p>
+
+      <div class="flight-details">
+        <h3>Flight Details</h3>
+        <div class="route">
+          {{departureCity}}, {{departureCountry}}
+          → {{arrivalCity}}, {{arrivalCountry}}
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Trip Type:</span>
+          <span class="detail-value">{{tripType}}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Departure:</span>
+          <span class="detail-value">{{departureAirport}} - {{departureDate}}</span>
+        </div>
+
+        {{#if arrivalDate}}
+        <div class="detail-row">
+          <span class="detail-label">Return:</span>
+          <span class="detail-value">{{arrivalAirport}} - {{arrivalDate}}</span>
+        </div>
+        {{/if}}
+
+        <div class="detail-row">
+          <span class="detail-label">Passengers:</span>
+          <span class="detail-value">
+            {{adults}} Adult(s)
+            {{#if children}}, {{children}} Child(ren){{/if}}
+            {{#if infants}}, {{infants}} Infant(s){{/if}}
+          </span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Class:</span>
+          <span class="detail-value">{{class}}</span>
+        </div>
+      </div>
+
+      <div class="price-summary">
+        <h3>Price Summary</h3>
+        <div class="detail-row">
+          <span class="detail-label">Base Price:</span>
+          <span class="detail-value">{{currency}} {{basePrice}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Taxes:</span>
+          <span class="detail-value">{{currency}} {{taxes}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Fees:</span>
+          <span class="detail-value">{{currency}} {{fees}}</span>
+        </div>
+        <hr>
+        <div class="total-price">
+          Total: {{currency}} {{totalPrice}}
+        </div>
+      </div>
+
+      <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+        <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ Important Information</h4>
+        <ul style="margin: 0; padding-left: 20px; color: #856404;">
+          <li>This is a reservation confirmation, not a ticket</li>
+          <li>Our team will contact you within 24 hours to finalize your booking</li>
+          <li>Please ensure your passport is valid for at least 6 months</li>
+          <li>Check visa requirements for your destination</li>
+        </ul>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="tel:{{contactPhone}}" class="btn">📞 Call Us</a>
+        <a href="https://wa.me/{{whatsappNumber}}" class="btn">💬 WhatsApp</a>
+      </div>
+
+      {{#if specialRequests}}
+      <div class="flight-details">
+        <h4>Special Requests:</h4>
+        <p>{{specialRequests}}</p>
+      </div>
+      {{/if}}
+
+      <p>If you have any questions or need to make changes to your reservation, please contact us using the booking reference above.</p>
+
+      <p>Thank you for choosing us for your travel needs!</p>
+
+      <p>Best regards,<br>
+      <strong>The Travel Team</strong></p>
+    </div>
+
+    <div class="footer">
+      <p>This email was sent to {{customerEmail}}</p>
+      <p>© 2024 Your Travel Company. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

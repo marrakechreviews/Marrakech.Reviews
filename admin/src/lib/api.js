@@ -196,6 +196,13 @@ export const articlesAPI = {
   generateAIArticles: (data) => api.post('/articles/generate-ai', data),
 };
 
+// Activities API
+export const activitiesAPI = {
+  getActivities: (params) => api.get('/activities', { params }),
+  getReservations: (params) => api.get('/activities/reservations', { params }),
+  updateReservationStatus: (id, data) => api.put(`/activities/reservations/${id}/status`, data),
+};
+
 // Settings API
 export const settingsAPI = {
   getSettings: () => api.get('/settings'),

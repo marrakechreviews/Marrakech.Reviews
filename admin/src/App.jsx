@@ -16,6 +16,7 @@ import UsersPage from './pages/UsersPage';
 import ReviewsPage from './pages/ReviewsPage';
 import ActivitiesManagementPage from './pages/ActivitiesManagementPage';
 import ReservationsManagementPage from './pages/ReservationsManagementPage';
+import ActivityReservationsManagementPage from './pages/ActivityReservationsManagementPage';
 import FlightReservationsManagementPage from './pages/FlightReservationsManagementPage';
 import OrganizedTravelPage from './pages/OrganizedTravelPage';
 import HomepageSectionsManagementPage from './pages/HomepageSectionsManagementPage';
@@ -72,6 +73,7 @@ function App() {
                         <Route path="/reviews" element={<ReviewsPage />} />
                         <Route path="/activities" element={<ActivitiesManagementPage />} />
                         <Route path="/reservations" element={<ReservationsManagementPage />} />
+                        <Route path="/activity-reservations" element={<ActivityReservationsManagementPage />} />
                         <Route path="/flights" element={<FlightReservationsManagementPage />} />
                         <Route path="/organized-travel" element={<OrganizedTravelPage />} />
                         <Route path="/customers" element={<CustomersListPage />} />

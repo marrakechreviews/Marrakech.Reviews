@@ -1,6 +1,6 @@
 const Activity = require('../models/Activity');
 const ActivityReservation = require('../models/ActivityReservation');
-const { sendReservationConfirmation, sendAdminNotification } = require('../utils/emailService');
+const { sendReservationConfirmation, sendAdminNotification, sendReservationStatusUpdate } = require('../utils/emailService');
 const asyncHandler = require('express-async-handler');
 
 // @desc    Get all activities
@@ -233,7 +233,14 @@ const createReservation = asyncHandler(async (req, res) => {
   const createdReservation = await reservation.save();
   await createdReservation.populate('activity', 'name location duration');
 
-  // Send email notifications
+  /**
+   * Send email notifications when a new reservation is created.
+   *
+   * - A confirmation email is sent to the customer.
+   * - A notification email is sent to the admin.
+   *
+   * The email sending is wrapped in a try...catch block to prevent the request from failing if the email sending fails.
+   */
   try {
     // Send confirmation email to customer
     const confirmationResult = await sendReservationConfirmation(createdReservation);
@@ -279,6 +286,22 @@ const getReservations = asyncHandler(async (req, res) => {
     query.activity = req.query.activity;
   }
 
+  // Search filter
+  if (req.query.search) {
+    const searchTerm = req.query.search;
+    const regex = new RegExp(searchTerm, 'i');
+
+    // Find activities that match the search term
+    const matchingActivities = await Activity.find({ name: regex }).select('_id');
+    const activityIds = matchingActivities.map(a => a._id);
+
+    query.$or = [
+      { 'customerInfo.name': regex },
+      { 'customerInfo.email': regex },
+      { 'activity': { $in: activityIds } }
+    ];
+  }
+
   const reservations = await ActivityReservation.find(query)
     .populate('activity', 'name category location duration price')
     .sort({ createdAt: -1 })
@@ -319,13 +342,14 @@ const getReservation = asyncHandler(async (req, res) => {
 const updateReservationStatus = asyncHandler(async (req, res) => {
   const { status, adminNotes } = req.body;
 
-  const reservation = await ActivityReservation.findById(req.params.id);
+  const reservation = await ActivityReservation.findById(req.params.id).populate('activity');
 
   if (!reservation) {
     res.status(404);
     throw new Error('Reservation not found');
   }
 
+  const oldStatus = reservation.status;
   reservation.status = status;
   if (adminNotes) {
     reservation.adminNotes = adminNotes;
@@ -333,6 +357,20 @@ const updateReservationStatus = asyncHandler(async (req, res) => {
 
   const updatedReservation = await reservation.save();
   await updatedReservation.populate('activity', 'name category location');
+
+  /**
+   * Send a status update email to the customer if the reservation status has changed.
+   * This is wrapped in a try...catch block to ensure that an email sending failure
+   * does not prevent the API from sending a successful response.
+   */
+  if (oldStatus !== updatedReservation.status) {
+    try {
+      await sendReservationStatusUpdate(updatedReservation);
+    } catch (emailError) {
+      console.error('Failed to send status update email:', emailError);
+      // Do not block the response for email errors
+    }
+  }
 
   res.json(updatedReservation);
 });

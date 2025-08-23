@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const ActivityReservation = require('../models/ActivityReservation');
 const { sendOrderConfirmation, sendOrderNotification } = require('../utils/emailService');
 
 // @desc    Create new order
