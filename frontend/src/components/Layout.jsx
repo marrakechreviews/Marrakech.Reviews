@@ -66,62 +66,17 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar - DISABLED */}
-      {/* 
-      <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white py-2 text-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <Phone className="h-3 w-3" />
-                <span>{settings?.general?.contactPhone || '+1 (555) 123-4567'}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Mail className="h-3 w-3" />
-                <span>{settings?.general?.contactEmail || 'contact@example.com'}</span>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span>Free shipping on orders over $50!</span>
-              <div className="flex items-center space-x-2">
-                {settings?.social?.facebook && (
-                  <a href={settings.social.facebook} className="hover:text-white/80">
-                    <Facebook className="h-3 w-3" />
-                  </a>
-                )}
-                {settings?.social?.twitter && (
-                  <a href={settings.social.twitter} className="hover:text-white/80">
-                    <Twitter className="h-3 w-3" />
-                  </a>
-                )}
-                {settings?.social?.instagram && (
-                  <a href={settings.social.instagram} className="hover:text-white/80">
-                    <Instagram className="h-3 w-3" />
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      */}
-
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="flex items-center">
-              <Link to="/" className="flex items-center space-x-2">
-                <ShoppingBag className="h-8 w-8 text-red-500" />
-                <span className="text-xl font-bold text-gray-900">
-                  {settings?.general?.siteName || 'Your Store'}
-                </span>
-              </Link>
-            </div>
+            <Link to="/" className="flex items-center gap-30">
+              <img src="\logo.png" alt="Marrakech Reviews Logo" className="h-19" />
+            </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
+            {/* Desktop Navigation with added margin for spacing */}
+            <nav className="hidden md:flex items-center space-x-8 ml-8"> {/* Added ml-8 for left margin */}
               {navigation.map((item) => (
                 <Link
                   key={item.name}
@@ -220,7 +175,7 @@ export default function Layout({ children }) {
       </header>
 
       {/* Categories Bar */}
-      <div className="bg-gray-50 border-b">
+      {/* <div className="bg-gray-50 border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center space-x-8 py-3 overflow-x-auto">
             {categories.map((category) => (
@@ -234,7 +189,7 @@ export default function Layout({ children }) {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <main>{children}</main>
@@ -378,4 +333,3 @@ export default function Layout({ children }) {
     </div>
   );
 }
-

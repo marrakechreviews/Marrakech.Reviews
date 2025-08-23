@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
-import logo from '../../assets/images/logo.jpg';
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,7 +53,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 gap-8">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="E-Store Logo" className="h-10" />
+            <img src="\Marrakech-Reviews3.png" alt="Marrakech Reviews Logo" className="h-10" />
           </Link>
 
           {/* Desktop Navigation */}
