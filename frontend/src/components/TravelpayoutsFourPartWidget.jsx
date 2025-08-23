@@ -47,7 +47,7 @@ const TravelpayoutsFourPartWidget = () => {
   }, []);
 
   return (
-    <div className="flex justify-center items-center space-x-0">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {widgets.map(widget => (
         <div key={widget.id} id={widget.id}></div>
       ))}
