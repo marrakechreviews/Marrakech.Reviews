@@ -115,7 +115,7 @@ const HomePage = () => {
       icon: Utensils,
       count: '280+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?category=fashion',
+      href: '/articles',
     },
     {
       name: 'hosting',

@@ -198,7 +198,7 @@ export default function Layout({ children }) {
       <footer className="bg-black text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Features */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+          {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div className="text-center">
               <Truck className="h-8 w-8 text-red-500 mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Free Shipping</h3>
@@ -219,16 +219,16 @@ export default function Layout({ children }) {
               <h3 className="font-semibold mb-2">Quality Guarantee</h3>
               <p className="text-sm text-gray-400">Premium quality products</p>
             </div>
-          </div>
+          </div> */}
 
           {/* Footer Links */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <ShoppingBag className="h-6 w-6 text-red-500" />
-                <h3 className="text-lg font-semibold">
-                  {settings?.general?.siteName || 'Your Store'}
-                </h3>
+                {/* Logo */}
+                <Link to="/" className="flex items-center gap-70">
+                  <img src="\logo2.png" alt="Marrakech Reviews Logo" className="h-29" />
+                </Link>
               </div>
               <p className="text-gray-400 mb-4">
                 {settings?.general?.siteDescription || 'Your premier online shopping destination'}

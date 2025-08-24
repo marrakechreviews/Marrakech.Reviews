@@ -148,8 +148,8 @@ module.exports = app;
 
 
 
-// Handle favicon.ico requests to prevent 404 errors
-app.get("/favicon.ico", (req, res) => res.status(204).send());
+// Handle favicon.png requests to prevent 404 errors
+app.get("/favicon.png", (req, res) => res.status(204).send());
 
 
 
