@@ -287,7 +287,7 @@ const getReservations = asyncHandler(async (req, res) => {
   }
 
   // Search filter
-  if (req.query.search) {
+  if (req.query.search && req.query.search.trim() !== '') {
     const searchTerm = req.query.search;
     const regex = new RegExp(searchTerm, 'i');
 

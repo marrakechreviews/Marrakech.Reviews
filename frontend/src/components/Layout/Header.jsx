@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
-import LanguageSwitcher from '../LanguageSwitcher';
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -86,7 +85,6 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <LanguageSwitcher />
             {/* Cart */}
             <Button
               variant="ghost"
