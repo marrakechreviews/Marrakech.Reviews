@@ -51,6 +51,7 @@ export default function Layout({ children }) {
     { name: 'Home', href: '/' },
     // { name: 'Products', href: '/products' },
     { name: 'Articles', href: '/articles' },
+    { name: 'Activities', href: '/Activities' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];
