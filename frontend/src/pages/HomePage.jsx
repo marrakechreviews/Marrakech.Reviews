@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '../components/ui/button';
@@ -46,7 +45,6 @@ import riadImage from '../assets/images/marrakech-riad.jpg';
 import './HomePage.css';
 
 const HomePage = () => {
-  const { t } = useTranslation();
   const [products, setProducts] = useState([]);
   const [homepageSections, setHomepageSections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,7 +187,7 @@ const HomePage = () => {
             <div className="container mx-auto px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                  {t('shopByCategory')}
+                  Shop by Category
                 </h2>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                   Find exactly what you're looking for in our carefully curated categories
