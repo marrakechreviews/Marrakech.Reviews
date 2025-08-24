@@ -154,7 +154,7 @@ const ArticleDetailPage = () => {
           {article.author && (
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              <span>{article.author.name || 'Anonymous'}</span>
+              <span>{article.author.name || 'Marrakech.Reviews'}</span>
             </div>
           )}
           

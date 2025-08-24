@@ -35,9 +35,9 @@ const InstagramSection = () => {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-6">
             {settings.social.instagramLogoUrl ? (
-              <img src={settings.social.instagramLogoUrl} alt="Instagram" className="h-12 w-12 text-pink-500" />
+              <img src={settings.social.instagramLogoUrl} alt="Instagram" className="h-12 w-12 text-custom-orange" />
             ) : (
-              <Instagram className="h-12 w-12 text-pink-500" />
+              <Instagram className="h-12 w-12 text-custom-orange" />
             )}
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -48,7 +48,7 @@ const InstagramSection = () => {
             hidden gems, and authentic experiences.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
+            <Button asChild className="bg-gradient-to-r from-custom-orange to-orange-500 hover:from-orange-500 hover:to-custom-orange">
               <Link to="/instagram" className="inline-flex items-center">
                 <Instagram className="mr-2 h-5 w-5" />
                 See All Videos
@@ -57,7 +57,7 @@ const InstagramSection = () => {
             <Button 
               variant="outline" 
               asChild
-              className="border-pink-500 text-pink-500 hover:bg-pink-50"
+              className="border-custom-orange text-custom-orange hover:bg-orange-50"
             >
               <a 
                 href="https://www.instagram.com/marrakechreviews/" 

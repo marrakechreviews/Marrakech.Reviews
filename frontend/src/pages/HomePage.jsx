@@ -122,28 +122,28 @@ const HomePage = () => {
       icon: MapPin,
       count: '120+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?category=home-garden',
+      href: 'https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574&journey_id=NRRMDQb20Kvmwopr_QsXi&trace_id=Zz4316d516ceaa4115959b1df-666986&promo_kind=tp_long&page_url=http%3A%2F%2Flocalhost%3A3000%2F&product_type=tp_manual&install_type=partner',
     },
     {
       name: 'hidden gems',
       icon: Star,
       count: '90+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?category=sports',
+      href: 'https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574&journey_id=NRRMDQb20Kvmwopr_QsXi&trace_id=Zz4316d516ceaa4115959b1df-666986&promo_kind=tp_long&page_url=http%3A%2F%2Flocalhost%3A3000%2F&product_type=tp_manual&install_type=partner',
     },
     {
       name: 'fast food',
       icon: Utensils,
       count: '200+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?category=books',
+      href: '/articles',
     },
     {
       name: 'guide',
       icon: BookOpen,
       count: '45+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?sale=true',
+      href: 'https://www.instagram.com/marrakechreviews/',
     },
   ];
 
@@ -179,7 +179,6 @@ const HomePage = () => {
   const renderSections = () => {
     const sections = [
       { name: 'hero', component: <HeroSlideshow key="hero" /> },
-      { name: 'instagram', component: <InstagramSection key="instagram" /> },
       {
         name: 'categories',
         component: (
@@ -215,6 +214,64 @@ const HomePage = () => {
                     </Link>
                   );
                 })}
+              </div>
+            </div>
+          </section>
+        )
+      },
+      { name: 'instagram', component: <InstagramSection key="instagram" /> },
+     
+      {
+        name: 'features',
+        component: (
+          <section key="features" className="py-16 bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                  Why Choose Our Marrakech Experiences?
+                </h2>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                  Your trusted partner for an unforgettable journey in the Red City
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
+                    <Truck className="h-8 w-8 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Seamless Booking</h3>
+                  <p className="text-gray-600">
+                    Effortless online booking for all your Marrakech adventures.
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
+                    <Shield className="h-8 w-8 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Authentic Experiences</h3>
+                  <p className="text-gray-600">
+                    Curated selection of genuine Marrakech cultural and travel experiences.
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
+                    <Award className="h-8 w-8 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Local Expertise</h3>
+                  <p className="text-gray-600">
+                    Benefit from our deep knowledge of Marrakech to discover its true essence.
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
+                    <Users className="h-8 w-8 text-red-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Dedicated Support</h3>
+                  <p className="text-gray-600">
+                    Our team is always ready to assist you with your travel plans.
+                  </p>
+                </div>
               </div>
             </div>
           </section>
@@ -390,31 +447,6 @@ const HomePage = () => {
         )
       },
       {
-        name: 'stats',
-        component: (
-          <section key="stats" className="py-16 bg-muted/30">
-            <div className="container mx-auto px-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {stats.map((stat, index) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={index} className="text-center">
-                      <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4">
-                        <Icon className="h-6 w-6 text-red-600" />
-                      </div>
-                      <div className="text-3xl font-bold text-foreground mb-2">
-                        {stat.value}
-                      </div>
-                      <div className="text-muted-foreground">{stat.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )
-      },
-      {
         name: 'flights',
         component: (
           <section key="flights" className="py-16 flex justify-center">
@@ -438,57 +470,27 @@ const HomePage = () => {
           </section>
         )
       },
-      {
-        name: 'features',
-        component: (
-          <section key="features" className="py-16 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                  Why Choose Our Marrakech Experiences?
-                </h2>
-                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                  Your trusted partner for an unforgettable journey in the Red City
-                </p>
-              </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
-                    <Truck className="h-8 w-8 text-red-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Seamless Booking</h3>
-                  <p className="text-gray-600">
-                    Effortless online booking for all your Marrakech adventures.
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
-                    <Shield className="h-8 w-8 text-red-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Authentic Experiences</h3>
-                  <p className="text-gray-600">
-                    Curated selection of genuine Marrakech cultural and travel experiences.
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
-                    <Award className="h-8 w-8 text-red-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Local Expertise</h3>
-                  <p className="text-gray-600">
-                    Benefit from our deep knowledge of Marrakech to discover its true essence.
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-100 to-red-100 rounded-full mb-6">
-                    <Users className="h-8 w-8 text-red-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Dedicated Support</h3>
-                  <p className="text-gray-600">
-                    Our team is always ready to assist you with your travel plans.
-                  </p>
-                </div>
+      {
+        name: 'stats',
+        component: (
+          <section key="stats" className="py-16 bg-muted/30">
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                {stats.map((stat, index) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div key={index} className="text-center">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4">
+                        <Icon className="h-6 w-6 text-red-600" />
+                      </div>
+                      <div className="text-3xl font-bold text-foreground mb-2">
+                        {stat.value}
+                      </div>
+                      <div className="text-muted-foreground">{stat.label}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>

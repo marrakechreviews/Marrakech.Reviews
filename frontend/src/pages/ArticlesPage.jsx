@@ -164,7 +164,7 @@ const ArticlesPage = () => {
                     {article.author && (
                       <>
                         <User className="h-4 w-4 ml-2" />
-                        <span>{article.author.name || 'Anonymous'}</span>
+                        <span>{article.author.name || 'Marrakech.Reviews'}</span>
                       </>
                     )}
                   </div>

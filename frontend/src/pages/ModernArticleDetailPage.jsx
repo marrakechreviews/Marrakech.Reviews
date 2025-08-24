@@ -308,7 +308,7 @@ const ModernArticleDetailPage = () => {
             {article.author && (
               <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-sm">
                 <User className="h-4 w-4 text-green-500" />
-                <span className="font-medium">{article.author.name || 'Anonymous'}</span>
+                <span className="font-medium">{article.author.name || 'Marrakech.Reviews'}</span>
               </div>
             )}
             

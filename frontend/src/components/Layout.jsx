@@ -57,11 +57,11 @@ export default function Layout({ children }) {
 
   const categories = [
     { name: 'Activities', href: '/Activities' },
-    // { name: 'restaurants', href: '/category/restaurants' },
-    { name: 'hosting', href: '/hosting' },
-    // { name: 'hidden gems', href: '/category/hidden-gems' },
-    // { name: 'fast food', href: '/category/fast-food' },
-    // { name: 'guide', href: '/category/guide' },
+    { name: 'restaurants', href: '/articles' },
+    { name: 'hosting', href: 'https://search.hotellook.com/?marker=666986.Zzbd472563f0e449feae8f86d-666986&locale=en_US' },
+    { name: 'hidden gems', href: 'https://search.hotellook.com/?marker=666986.Zzbd472563f0e449feae8f86d-666986&locale=en_US' },
+    { name: 'fast food', href: '/articles' },
+    { name: 'guide', href: 'https://www.instagram.com/marrakechreviews/' },
   ];
 
   return (
@@ -326,7 +326,7 @@ export default function Layout({ children }) {
 
           {/* Copyright */}
           <div className="border-t border-gray-800 pt-8 text-center text-white-500">
-            <p>&copy; 2024 {settings?.general?.siteName || 'Your Store'}. All rights reserved.</p>
+            <p>&copy; 2025 {settings?.general?.siteName || 'Your Store'}. All rights reserved.</p>
           </div>
         </div>
       </footer>
