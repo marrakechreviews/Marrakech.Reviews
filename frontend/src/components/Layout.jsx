@@ -58,11 +58,11 @@ export default function Layout({ children }) {
 
   const categories = [
     { name: 'Activities', href: '/Activities' },
-    { name: 'restaurants', href: '/articles' },
-    { name: 'hosting', href: 'https://search.hotellook.com/?marker=666986.Zzbd472563f0e449feae8f86d-666986&locale=en_US' },
-    { name: 'hidden gems', href: 'https://search.hotellook.com/?marker=666986.Zzbd472563f0e449feae8f86d-666986&locale=en_US' },
-    { name: 'fast food', href: '/articles' },
-    { name: 'guide', href: 'https://www.instagram.com/marrakechreviews/' },
+    { name: 'Restaurants', href: '/articles' },
+    { name: 'Hosting', href: 'https://search.hotellook.com/?marker=666986.Zzbd472563f0e449feae8f86d-666986&locale=en_US' },
+    { name: 'Hidden gems', href: 'https://search.hotellook.com/?marker=666986.Zzbd472563f0e449feae8f86d-666986&locale=en_US' },
+    { name: 'Fast food', href: '/articles' },
+    { name: 'Guide', href: 'https://www.instagram.com/marrakechreviews/' },
   ];
 
   return (
