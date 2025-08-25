@@ -50,19 +50,34 @@ const getEmailTemplate = (templateName, data) => {
  * @returns {import('nodemailer').Transporter} A nodemailer transporter instance.
  */
 const createTransporter = () => {
-  return nodemailer.createTransporter({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USERNAME,
-      pass: process.env.SMTP_PASSWORD
-    },
-    tls: {
-      rejectUnauthorized: false
-    }
-  });
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST || process.env.SMTP_SERVER,
+      port: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '587'),
+      secure: (process.env.EMAIL_PORT || process.env.SMTP_PORT) === '465', // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER || process.env.SMTP_USERNAME,
+        pass: process.env.EMAIL_PASS || process.env.SMTP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    // Verify connection configuration
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('Email transporter configuration error:', error);
+      } else {
+        console.log('Email transporter is ready to send emails');
+      }
+    });
+
+    return transporter;
+  } catch (error) {
+    console.error('Failed to create email transporter:', error);
+    return null;
+  }
 };
 
 /**
@@ -409,6 +424,90 @@ const sendReservationStatusUpdate = async (reservationData) => {
   }
 };
 
+/**
+ * Sends a notification email to the admin about a new contact form submission.
+ * @param {object} contactData - The contact form submission data.
+ */
+const sendContactAdminNotification = async (contactData) => {
+  try {
+    const transporter = createTransporter();
+
+    const emailData = {
+      name: contactData.name,
+      email: contactData.email,
+      subject: contactData.subject,
+      category: contactData.category,
+      message: contactData.message,
+      date: new Date(contactData.createdAt).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+    };
+
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL;
+    const mailOptions = {
+      from: {
+        name: 'Marrakech Reviews System',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: adminEmail,
+      subject: `New Contact Inquiry: ${contactData.subject}`,
+      html: getEmailTemplate('contactAdminNotification', emailData)
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Contact admin notification sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending contact admin notification:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Sends a confirmation email to the user after submitting the contact form.
+ * @param {object} contactData - The contact form submission data.
+ */
+const sendContactConfirmation = async (contactData) => {
+  try {
+    const transporter = createTransporter();
+
+    const emailData = {
+      name: contactData.name,
+      subject: contactData.subject,
+      category: contactData.category,
+      date: new Date(contactData.createdAt).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      websiteUrl: process.env.WEBSITE_URL || 'https://example.com'
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'Marrakech Reviews',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: contactData.email,
+      subject: 'Thank you for contacting us!',
+      html: getEmailTemplate('contactConfirmation', emailData)
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Contact confirmation email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending contact confirmation email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendReservationConfirmation,
   sendAdminNotification,
@@ -417,6 +516,8 @@ module.exports = {
   sendOrderNotification,
   sendReservationStatusUpdate,
   testEmailConfiguration,
-  getEmailTemplate
+  getEmailTemplate,
+  sendContactAdminNotification,
+  sendContactConfirmation
 };
 

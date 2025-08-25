@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You for Contacting Us</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .header {
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            color: #e74c3c;
+            margin: 0;
+        }
+        .content-block {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .content-block h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+        .quick-links ul {
+            list-style: none;
+            padding: 0;
+        }
+        .quick-links li {
+            margin: 10px 0;
+        }
+        .quick-links a {
+            color: #e74c3c;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Thank You for Contacting Us!</h2>
+        </div>
+
+        <p>Dear {{name}},</p>
+
+        <p>Thank you for reaching out to Marrakech Reviews. We have received your message and will get back to you within 24 hours.</p>
+
+        <div class="content-block">
+            <h3>Your Message Details</h3>
+            <p><strong>Subject:</strong> {{subject}}</p>
+            <p><strong>Category:</strong> {{category}}</p>
+            <p><strong>Date Submitted:</strong> {{date}}</p>
+        </div>
+
+        <p>In the meantime, feel free to explore our website for the latest reviews and travel tips about Marrakech.</p>
+
+        <div class="quick-links" style="margin-top: 30px; padding: 20px; background-color: #e8f5e8; border-radius: 5px;">
+            <h3 style="color: #2d5a2d; margin-top: 0;">Quick Links</h3>
+            <ul>
+                <li><a href="{{websiteUrl}}/articles">📖 Latest Reviews</a></li>
+                <li><a href="{{websiteUrl}}/activities">🎯 Activities</a></li>
+                <li><a href="{{websiteUrl}}/faq">❓ FAQ</a></li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Best regards,<br>The Marrakech Reviews Team</p>
+            <p>This is an automated confirmation email.</p>
+        </div>
+    </div>
+</body>
+</html>
