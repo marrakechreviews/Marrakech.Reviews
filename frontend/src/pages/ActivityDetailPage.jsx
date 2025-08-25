@@ -51,10 +51,13 @@ export default function ActivityDetailPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    console.log("ActivityDetailPage mounted. Slug:", slug);
     const fetchActivity = async () => {
       setLoading(true);
+      console.log("Fetching activity data...");
       try {
         const response = await activitiesAPI.getActivityBySlug(slug);
+        console.log("Activity data received:", response.data);
         setActivity(response.data);
       } catch (error) {
         console.error("Failed to fetch activity:", error);
@@ -113,7 +116,9 @@ export default function ActivityDetailPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log("Submit button clicked. Validating form...");
     if (!validateForm()) {
+      console.log("Form validation failed:", formErrors);
       return;
     }
     
@@ -127,7 +132,9 @@ export default function ActivityDetailPage() {
         notes: formData.notes
       };
       
+      console.log("Submitting reservation data:", reservationData);
       const response = await activitiesAPI.createReservation(activity._id, reservationData);
+      console.log("Reservation successful:", response.data);
       
       navigate('/thank-you', { 
         state: { 
