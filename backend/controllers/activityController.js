@@ -151,9 +151,13 @@ const checkAvailability = asyncHandler(async (req, res) => {
 // @route   POST /api/activities
 // @access  Private/Admin
 const createActivity = asyncHandler(async (req, res) => {
-  const activity = new Activity(req.body);
-  const createdActivity = await activity.save();
-  res.status(201).json(createdActivity);
+  try {
+    const activity = new Activity(req.body);
+    const createdActivity = await activity.save();
+    res.status(201).json(createdActivity);
+  } catch (error) {
+    res.status(400).json({ message: error.message, errors: error.errors });
+  }
 });
 
 // @desc    Update activity
@@ -418,4 +422,3 @@ module.exports = {
   updateReservationStatus,
   getActivityStats
 };
-
