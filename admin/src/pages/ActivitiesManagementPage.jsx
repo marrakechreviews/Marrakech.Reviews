@@ -28,105 +28,138 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { toast } from 'sonner';
-import { activitiesAPI } from '@/lib/api';
 
 export default function ActivitiesManagementPage() {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('');
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [categories, setCategories] = useState([]);
 
-  const fetchActivities = async () => {
+  // Sample activities data
+  const sampleActivities = [
+    {
+      id: 1,
+      name: "Sahara Desert Camel Trek",
+      category: "Desert Tours",
+      location: "Merzouga, Sahara Desert",
+      duration: "2 Days, 1 Night",
+      price: 120,
+      marketPrice: 180,
+      maxParticipants: 12,
+      minParticipants: 2,
+      rating: 4.9,
+      numReviews: 156,
+      isActive: true,
+      isFeatured: true,
+      difficulty: "Moderate",
+      createdAt: "2024-01-15",
+      totalReservations: 45,
+      revenue: 5400
+    },
+    {
+      id: 2,
+      name: "Marrakech Food Walking Tour",
+      category: "Food & Cooking",
+      location: "Marrakech Medina",
+      duration: "4 Hours",
+      price: 45,
+      marketPrice: 65,
+      maxParticipants: 8,
+      minParticipants: 2,
+      rating: 4.8,
+      numReviews: 203,
+      isActive: true,
+      isFeatured: true,
+      difficulty: "Easy",
+      createdAt: "2024-01-10",
+      totalReservations: 78,
+      revenue: 3510
+    },
+    {
+      id: 3,
+      name: "Atlas Mountains Hiking",
+      category: "Adventure Sports",
+      location: "Atlas Mountains, Imlil",
+      duration: "Full Day (8 Hours)",
+      price: 85,
+      marketPrice: 120,
+      maxParticipants: 10,
+      minParticipants: 4,
+      rating: 4.7,
+      numReviews: 89,
+      isActive: true,
+      isFeatured: false,
+      difficulty: "Challenging",
+      createdAt: "2024-01-05",
+      totalReservations: 32,
+      revenue: 2720
+    }
+  ];
+
+  const categories = [
+    "Desert Tours",
+    "Food & Cooking", 
+    "Adventure Sports",
+    "Day Trips",
+    "Wellness & Spa",
+    "Cultural Experiences"
+  ];
+
+  useEffect(() => {
+    // Simulate API call
     setLoading(true);
-    try {
-      const params = {
-        search: searchTerm,
-        category: filterCategory === 'all' ? '' : filterCategory,
-        isActive: filterStatus === 'all' ? 'all' : filterStatus === 'active',
-        isFeatured: filterStatus === 'featured' ? true : undefined,
-      };
-      const response = await activitiesAPI.getActivities(params);
-      setActivities(response.data.activities);
-    } catch (error) {
-      toast.error('Failed to fetch activities.');
-      console.error('Failed to fetch activities:', error);
-    } finally {
+    setTimeout(() => {
+      setActivities(sampleActivities);
       setLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const response = await activitiesAPI.getActivityCategories();
-      setCategories(response.data);
-    } catch (error) {
-      toast.error('Failed to fetch categories.');
-    }
-  };
-
-  useEffect(() => {
-    fetchActivities();
-  }, [searchTerm, filterCategory, filterStatus]);
-
-  useEffect(() => {
-    fetchCategories();
+    }, 1000);
   }, []);
 
-  const filteredActivities = activities;
+  const filteredActivities = activities.filter(activity => {
+    const matchesSearch = activity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         activity.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !filterCategory || activity.category === filterCategory;
+    const matchesStatus = !filterStatus || 
+                         (filterStatus === 'active' && activity.isActive) ||
+                         (filterStatus === 'inactive' && !activity.isActive) ||
+                         (filterStatus === 'featured' && activity.isFeatured);
+    
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
-  const handleToggleStatus = async (activity, field) => {
-    try {
-      await activitiesAPI.updateActivity(activity._id, {
-        ...activity,
-        [field]: !activity[field],
-      });
-      toast.success(`Activity ${field} status updated.`);
-      fetchActivities();
-    } catch (error) {
-      toast.error(`Failed to update activity ${field} status.`);
+  const handleToggleStatus = (activityId, field) => {
+    setActivities(prev => prev.map(activity => 
+      activity.id === activityId 
+        ? { ...activity, [field]: !activity[field] }
+        : activity
+    ));
+  };
+
+  const handleDeleteActivity = (activityId) => {
+    if (window.confirm('Are you sure you want to delete this activity?')) {
+      setActivities(prev => prev.filter(activity => activity.id !== activityId));
     }
   };
 
-  const handleDeleteActivity = async (activityId) => {
-    if (window.confirm('Are you sure you want to delete this activity? This is a soft delete.')) {
-      try {
-        await activitiesAPI.deleteActivity(activityId);
-        toast.success('Activity deleted successfully.');
-        fetchActivities();
-      } catch (error) {
-        toast.error('Failed to delete activity.');
-      }
-    }
-  };
-
-  const ActivityForm = ({ activity, categories, onSave, onCancel }) => {
+  const ActivityForm = ({ activity, onSave, onCancel }) => {
     const [formData, setFormData] = useState(activity || {
       name: '',
       category: '',
       location: '',
       duration: '',
-      price: 0,
-      marketPrice: 0,
-      maxParticipants: 10,
-      minParticipants: 1,
+      price: '',
+      marketPrice: '',
+      maxParticipants: '',
+      minParticipants: '',
       difficulty: 'Easy',
       shortDescription: '',
       description: '',
-      images: [],
-      tags: [],
       isActive: true,
       isFeatured: false
     });
-
-    const handleFormChange = (field, value) => {
-      setFormData(prev => ({ ...prev, [field]: value }));
-    };
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -141,7 +174,7 @@ export default function ActivitiesManagementPage() {
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => handleFormChange('name', e.target.value)}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               required
             />
           </div>
@@ -150,15 +183,15 @@ export default function ActivitiesManagementPage() {
             <Label htmlFor="category">Category *</Label>
             <Select 
               value={formData.category} 
-              onValueChange={(value) => handleFormChange('category', value)}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map(category => (
-                  <SelectItem key={category._id} value={category._id}>
-                    {category._id}
+                  <SelectItem key={category} value={category}>
+                    {category}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -170,7 +203,7 @@ export default function ActivitiesManagementPage() {
             <Input
               id="location"
               value={formData.location}
-              onChange={(e) => handleFormChange('location', e.target.value)}
+              onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
               required
             />
           </div>
@@ -180,7 +213,7 @@ export default function ActivitiesManagementPage() {
             <Input
               id="duration"
               value={formData.duration}
-              onChange={(e) => handleFormChange('duration', e.target.value)}
+              onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
               placeholder="e.g., 4 Hours, Full Day"
               required
             />
@@ -192,7 +225,7 @@ export default function ActivitiesManagementPage() {
               id="price"
               type="number"
               value={formData.price}
-              onChange={(e) => handleFormChange('price', e.target.valueAsNumber)}
+              onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
               required
             />
           </div>
@@ -203,7 +236,7 @@ export default function ActivitiesManagementPage() {
               id="marketPrice"
               type="number"
               value={formData.marketPrice}
-              onChange={(e) => handleFormChange('marketPrice', e.target.valueAsNumber)}
+              onChange={(e) => setFormData(prev => ({ ...prev, marketPrice: e.target.value }))}
               required
             />
           </div>
@@ -214,7 +247,7 @@ export default function ActivitiesManagementPage() {
               id="minParticipants"
               type="number"
               value={formData.minParticipants}
-              onChange={(e) => handleFormChange('minParticipants', e.target.valueAsNumber)}
+              onChange={(e) => setFormData(prev => ({ ...prev, minParticipants: e.target.value }))}
               required
             />
           </div>
@@ -225,7 +258,7 @@ export default function ActivitiesManagementPage() {
               id="maxParticipants"
               type="number"
               value={formData.maxParticipants}
-              onChange={(e) => handleFormChange('maxParticipants', e.target.valueAsNumber)}
+              onChange={(e) => setFormData(prev => ({ ...prev, maxParticipants: e.target.value }))}
               required
             />
           </div>
@@ -234,7 +267,7 @@ export default function ActivitiesManagementPage() {
             <Label htmlFor="difficulty">Difficulty Level</Label>
             <Select 
               value={formData.difficulty} 
-              onValueChange={(value) => handleFormChange('difficulty', value)}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -254,7 +287,7 @@ export default function ActivitiesManagementPage() {
           <Textarea
             id="shortDescription"
             value={formData.shortDescription}
-            onChange={(e) => handleFormChange('shortDescription', e.target.value)}
+            onChange={(e) => setFormData(prev => ({ ...prev, shortDescription: e.target.value }))}
             placeholder="Brief description for listings (max 300 characters)"
             maxLength={300}
             required
@@ -266,28 +299,10 @@ export default function ActivitiesManagementPage() {
           <Textarea
             id="description"
             value={formData.description}
-            onChange={(e) => handleFormChange('description', e.target.value)}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             placeholder="Detailed description of the activity"
             rows={6}
             required
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="images">Images (comma-separated URLs)</Label>
-          <Input
-            id="images"
-            value={formData.images.join(',')}
-            onChange={(e) => handleFormChange('images', e.target.value.split(','))}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="tags">Tags (comma-separated)</Label>
-          <Input
-            id="tags"
-            value={formData.tags.join(',')}
-            onChange={(e) => handleFormChange('tags', e.target.value.split(','))}
           />
         </div>
         
@@ -296,7 +311,7 @@ export default function ActivitiesManagementPage() {
             <Switch
               id="isActive"
               checked={formData.isActive}
-              onCheckedChange={(checked) => handleFormChange('isActive', checked)}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
             />
             <Label htmlFor="isActive">Active</Label>
           </div>
@@ -305,7 +320,7 @@ export default function ActivitiesManagementPage() {
             <Switch
               id="isFeatured"
               checked={formData.isFeatured}
-              onCheckedChange={(checked) => handleFormChange('isFeatured', checked)}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isFeatured: checked }))}
             />
             <Label htmlFor="isFeatured">Featured</Label>
           </div>
@@ -425,8 +440,8 @@ export default function ActivitiesManagementPage() {
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map(category => (
-                  <SelectItem key={category._id} value={category._id}>
-                    {category._id} ({category.count})
+                  <SelectItem key={category} value={category}>
+                    {category}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -464,6 +479,7 @@ export default function ActivitiesManagementPage() {
                   <TableHead>Participants</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Performance</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -471,7 +487,7 @@ export default function ActivitiesManagementPage() {
                 {loading ? (
                   Array.from({ length: 5 }, (_, i) => (
                     <TableRow key={i}>
-                      <TableCell colSpan={8}>
+                      <TableCell colSpan={9}>
                         <div className="animate-pulse flex space-x-4">
                           <div className="rounded bg-gray-300 h-4 w-full"></div>
                         </div>
@@ -480,7 +496,7 @@ export default function ActivitiesManagementPage() {
                   ))
                 ) : filteredActivities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={9} className="text-center py-8">
                       <div className="text-gray-500">
                         <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No activities found</p>
@@ -489,7 +505,7 @@ export default function ActivitiesManagementPage() {
                   </TableRow>
                 ) : (
                   filteredActivities.map((activity) => (
-                    <TableRow key={activity._id}>
+                    <TableRow key={activity.id}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{activity.name}</div>
@@ -537,7 +553,7 @@ export default function ActivitiesManagementPage() {
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => handleToggleStatus(activity, 'isActive')}
+                              onClick={() => handleToggleStatus(activity.id, 'isActive')}
                               className="flex items-center gap-1"
                             >
                               {activity.isActive ? (
@@ -550,19 +566,19 @@ export default function ActivitiesManagementPage() {
                               </span>
                             </button>
                           </div>
-                          <button
-                            onClick={() => handleToggleStatus(activity, 'isFeatured')}
-                            className="flex items-center gap-1"
-                          >
-                            {activity.isFeatured ? (
-                                <Star className="h-4 w-4 text-yellow-500" />
-                            ) : (
-                                <Star className="h-4 w-4 text-gray-400" />
-                            )}
-                            <span className="text-xs">
-                              {activity.isFeatured ? 'Featured' : 'Not Featured'}
-                            </span>
-                          </button>
+                          {activity.isFeatured && (
+                            <Badge variant="secondary" className="text-xs">
+                              Featured
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div>{activity.totalReservations} bookings</div>
+                          <div className="text-green-600 font-medium">
+                            ${activity.revenue}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -580,7 +596,7 @@ export default function ActivitiesManagementPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDeleteActivity(activity._id)}
+                            onClick={() => handleDeleteActivity(activity.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -602,16 +618,18 @@ export default function ActivitiesManagementPage() {
             <DialogTitle>Create New Activity</DialogTitle>
           </DialogHeader>
           <ActivityForm
-            categories={categories}
-            onSave={async (formData) => {
-              try {
-                await activitiesAPI.createActivity(formData);
-                toast.success('Activity created successfully.');
-                fetchActivities();
-                setIsCreateDialogOpen(false);
-              } catch (error) {
-                toast.error('Failed to create activity.');
-              }
+            onSave={(formData) => {
+              const newActivity = {
+                ...formData,
+                id: Date.now(),
+                rating: 0,
+                numReviews: 0,
+                totalReservations: 0,
+                revenue: 0,
+                createdAt: new Date().toISOString().split('T')[0]
+              };
+              setActivities(prev => [newActivity, ...prev]);
+              setIsCreateDialogOpen(false);
             }}
             onCancel={() => setIsCreateDialogOpen(false)}
           />
@@ -626,17 +644,14 @@ export default function ActivitiesManagementPage() {
           </DialogHeader>
           <ActivityForm
             activity={selectedActivity}
-            categories={categories}
-            onSave={async (formData) => {
-              try {
-                await activitiesAPI.updateActivity(selectedActivity._id, formData);
-                toast.success('Activity updated successfully.');
-                fetchActivities();
-                setIsEditDialogOpen(false);
-                setSelectedActivity(null);
-              } catch (error) {
-                toast.error('Failed to update activity.');
-              }
+            onSave={(formData) => {
+              setActivities(prev => prev.map(activity => 
+                activity.id === selectedActivity.id 
+                  ? { ...activity, ...formData }
+                  : activity
+              ));
+              setIsEditDialogOpen(false);
+              setSelectedActivity(null);
             }}
             onCancel={() => {
               setIsEditDialogOpen(false);
