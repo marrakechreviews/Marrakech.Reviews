@@ -47,11 +47,13 @@ export default function ActivitiesPage() {
       setLoading(true);
       try {
         const params = new URLSearchParams();
-        Object.entries(filters).forEach(([key, value]) => {
-          if (value) {
-            params.append(key, value);
-          }
-        });
+        if (filters.search) params.append('search', filters.search);
+        if (filters.category) params.append('category', filters.category);
+        if (filters.location) params.append('location', filters.location);
+        if (filters.sort) params.append('sort', filters.sort);
+        if (filters.minPrice > 0) params.append('minPrice', filters.minPrice);
+        if (filters.maxPrice < 500) params.append('maxPrice', filters.maxPrice);
+
         const response = await api.get(`/activities?${params.toString()}`);
         setActivities(response.data.activities);
         setPagination(response.data.pagination);
