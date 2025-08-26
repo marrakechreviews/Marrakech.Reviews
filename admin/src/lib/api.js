@@ -199,6 +199,11 @@ export const articlesAPI = {
 // Activities API
 export const activitiesAPI = {
   getActivities: (params) => api.get('/activities', { params }),
+  getActivity: (id) => api.get(`/activities/${id}`),
+  createActivity: (data) => api.post('/activities', data),
+  updateActivity: (id, data) => api.put(`/activities/${id}`, data),
+  deleteActivity: (id) => api.delete(`/activities/${id}`),
+  getActivityCategories: () => api.get('/activities/categories'),
   getReservations: (params) => api.get('/activities/reservations', { params }),
   updateReservationStatus: (id, data) => api.put(`/activities/reservations/${id}/status`, data),
 };
