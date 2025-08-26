@@ -32,10 +32,13 @@ const getEmailTemplate = (templateName, data) => {
   const templatePath = path.join(__dirname, '..', 'templates', `${templateName}.html`);
   try {
     let template = fs.readFileSync(templatePath, 'utf-8');
+    // Replace provided data
     for (const key in data) {
       const regex = new RegExp(`{{${key}}}`, 'g');
-      template = template.replace(regex, data[key]);
+      template = template.replace(regex, data[key] || ''); // Use empty string if data[key] is null/undefined
     }
+    // Remove any remaining placeholders
+    template = template.replace(/{{[a-zA-Z0-9_]+}}/g, '');
     return template;
   } catch (error) {
     console.error(`Error reading email template ${templateName}:`, error);
@@ -104,6 +107,7 @@ const sendReservationConfirmation = async (reservationData) => {
       customerPhone: reservationData.customerInfo.phone || '',
       notes: reservationData.notes || '',
       totalPrice: reservationData.totalPrice,
+      status: reservationData.status,
       contactPhone: process.env.BUSINESS_PHONE || '+212 524-123456',
       whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
       supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com',
@@ -520,4 +524,3 @@ module.exports = {
   sendContactAdminNotification,
   sendContactConfirmation
 };
-
