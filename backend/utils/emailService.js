@@ -112,7 +112,7 @@ const sendReservationConfirmation = async (reservationData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store Morocco',
+        name: 'Marrakech Reviews',
         address: process.env.SUPPORT_EMAIL
       },
       to: reservationData.customerInfo.email,
@@ -277,7 +277,7 @@ const sendOrderConfirmation = async (orderData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store Morocco',
+        name: 'Marrakech Reviews',
         address: process.env.SUPPORT_EMAIL
       },
       to: orderData.user.email,
@@ -405,7 +405,7 @@ const sendReservationStatusUpdate = async (reservationData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store Morocco',
+        name: 'Marrakech Reviews',
         address: process.env.SUPPORT_EMAIL
       },
       to: reservationData.customerInfo.email,

@@ -152,33 +152,36 @@
                 margin-bottom: 5px;
             }
         }
+        .template-data {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">E-Store Morocco</div>
+            <div class="logo">Marrakech Reviews</div>
             <h1 class="title">Reservation Confirmation</h1>
             <p>Thank you for choosing our services!</p>
         </div>
 
         <div class="reservation-id">
-            Reservation ID: {{reservationId}}
+            Reservation ID: <span id="reservationId">RSV-12345</span>
         </div>
 
         <div class="details-section">
             <h2 class="section-title">Reservation Details</h2>
             <div class="detail-row">
                 <span class="detail-label">Activity:</span>
-                <span class="detail-value">{{activityName}}</span>
+                <span class="detail-value" id="activityName">Desert Tour</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Date:</span>
-                <span class="detail-value">{{reservationDate}}</span>
+                <span class="detail-value" id="reservationDate">2024-06-15</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Number of Persons:</span>
-                <span class="detail-value">{{numberOfPersons}}</span>
+                <span class="detail-value" id="numberOfPersons">2</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Status:</span>
@@ -190,35 +193,31 @@
             <h2 class="section-title">Customer Information</h2>
             <div class="detail-row">
                 <span class="detail-label">Name:</span>
-                <span class="detail-value">{{customerName}}</span>
+                <span class="detail-value" id="customerName">John Doe</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Email:</span>
-                <span class="detail-value">{{customerEmail}}</span>
+                <span class="detail-value" id="customerEmail">john.doe@example.com</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">WhatsApp:</span>
-                <span class="detail-value">{{customerWhatsApp}}</span>
+                <span class="detail-value" id="customerWhatsApp">+1234567890</span>
             </div>
-            {{#if customerPhone}}
-            <div class="detail-row">
+            <div class="detail-row" id="phoneRow">
                 <span class="detail-label">Phone:</span>
-                <span class="detail-value">{{customerPhone}}</span>
+                <span class="detail-value" id="customerPhone">+1234567890</span>
             </div>
-            {{/if}}
         </div>
 
-        {{#if notes}}
-        <div class="details-section">
+        <div class="details-section" id="notesSection">
             <h2 class="section-title">Special Requests</h2>
-            <p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; font-style: italic;">
-                "{{notes}}"
+            <p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; font-style: italic;" id="notes">
+                "Please provide vegetarian meals"
             </p>
         </div>
-        {{/if}}
 
         <div class="price-total">
-            Total Amount: ${{totalPrice}}
+            Total Amount: $<span id="totalPrice">150.00</span>
         </div>
 
         <div class="next-steps">
@@ -230,25 +229,100 @@
         </div>
 
         <div style="text-align: center; margin: 30px 0;">
-            <a href="https://wa.me/{{whatsappNumber}}" class="button button-secondary">Contact via WhatsApp</a>
-            <a href="mailto:{{supportEmail}}" class="button">Email Support</a>
+            <a href="#" id="whatsappLink" class="button button-secondary">Contact via WhatsApp</a>
+            <a href="#" id="emailLink" class="button">Email Support</a>
         </div>
 
         <div class="contact-info">
             <h3 style="color: #007bff; margin-top: 0;">Contact Information</h3>
-            <div class="contact-item"><strong>Phone:</strong> {{contactPhone}}</div>
-            <div class="contact-item"><strong>WhatsApp:</strong> {{whatsappNumber}}</div>
-            <div class="contact-item"><strong>Email:</strong> {{supportEmail}}</div>
-            <div class="contact-item"><strong>Website:</strong> {{websiteUrl}}</div>
+            <div class="contact-item"><strong>Phone:</strong> <span id="contactPhone">+212 123-456-789</span></div>
+            <div class="contact-item"><strong>WhatsApp:</strong> <span id="whatsappNumber">+212 123-456-789</span></div>
+            <div class="contact-item"><strong>Email:</strong> <span id="supportEmail">support@estoremorocco.com</span></div>
+            <div class="contact-item"><strong>Website:</strong> <span id="websiteUrl">www.estoremorocco.com</span></div>
         </div>
 
         <div class="footer">
             <p><strong>Important:</strong> This reservation is not confirmed until you receive our personal contact and complete the payment process.</p>
             <p>Please keep this email for your records and have it available when our team contacts you.</p>
             <hr style="margin: 20px 0;">
-            <p>&copy; 2024 E-Store Morocco. All rights reserved.</p>
+            <p>&copy; 2025 Marrakech Reviews. All rights reserved.</p>
             <p>This is an automated email. Please do not reply directly to this message.</p>
         </div>
     </div>
+
+    <!-- Hidden template data storage -->
+    <div class="template-data" id="templateData">
+        <span id="reservationIdValue">{{reservationId}}</span>
+        <span id="activityNameValue">{{activityName}}</span>
+        <span id="reservationDateValue">{{reservationDate}}</span>
+        <span id="numberOfPersonsValue">{{numberOfPersons}}</span>
+        <span id="customerNameValue">{{customerName}}</span>
+        <span id="customerEmailValue">{{customerEmail}}</span>
+        <span id="customerWhatsAppValue">{{customerWhatsApp}}</span>
+        <span id="customerPhoneValue">{{customerPhone}}</span>
+        <span id="notesValue">{{notes}}</span>
+        <span id="totalPriceValue">{{totalPrice}}</span>
+        <span id="whatsappNumberValue">{{whatsappNumber}}</span>
+        <span id="supportEmailValue">{{supportEmail}}</span>
+        <span id="contactPhoneValue">{{contactPhone}}</span>
+        <span id="websiteUrlValue">{{websiteUrl}}</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to safely get template values
+            function getTemplateValue(id, defaultValue = '') {
+                const element = document.getElementById(id);
+                return element ? element.textContent : defaultValue;
+            }
+
+            // Get all template values
+            const reservationId = getTemplateValue('reservationIdValue', 'RSV-12345');
+            const activityName = getTemplateValue('activityNameValue', 'Desert Tour');
+            const reservationDate = getTemplateValue('reservationDateValue', '2024-06-15');
+            const numberOfPersons = getTemplateValue('numberOfPersonsValue', '2');
+            const customerName = getTemplateValue('customerNameValue', 'John Doe');
+            const customerEmail = getTemplateValue('customerEmailValue', 'john.doe@example.com');
+            const customerWhatsApp = getTemplateValue('customerWhatsAppValue', '+1234567890');
+            const customerPhone = getTemplateValue('customerPhoneValue', '');
+            const notes = getTemplateValue('notesValue', '');
+            const totalPrice = getTemplateValue('totalPriceValue', '150.00');
+            const whatsappNumber = getTemplateValue('whatsappNumberValue', '+212123456789');
+            const supportEmail = getTemplateValue('supportEmailValue', 'support@estoremorocco.com');
+            const contactPhone = getTemplateValue('contactPhoneValue', '+212 123-456-789');
+            const websiteUrl = getTemplateValue('websiteUrlValue', 'www.estoremorocco.com');
+
+            // Update the displayed values
+            document.getElementById('reservationId').textContent = reservationId;
+            document.getElementById('activityName').textContent = activityName;
+            document.getElementById('reservationDate').textContent = reservationDate;
+            document.getElementById('numberOfPersons').textContent = numberOfPersons;
+            document.getElementById('customerName').textContent = customerName;
+            document.getElementById('customerEmail').textContent = customerEmail;
+            document.getElementById('customerWhatsApp').textContent = customerWhatsApp;
+            document.getElementById('totalPrice').textContent = totalPrice;
+            document.getElementById('whatsappNumber').textContent = whatsappNumber;
+            document.getElementById('supportEmail').textContent = supportEmail;
+            document.getElementById('contactPhone').textContent = contactPhone;
+            document.getElementById('websiteUrl').textContent = websiteUrl;
+            
+            // Update links
+            document.getElementById('whatsappLink').href = `https://wa.me/+212708040530`;
+            document.getElementById('emailLink').href = `mailto:${supportEmail}`;
+
+            // Handle optional fields
+            if (customerPhone) {
+                document.getElementById('customerPhone').textContent = customerPhone;
+            } else {
+                document.getElementById('phoneRow').style.display = 'none';
+            }
+
+            if (notes) {
+                document.getElementById('notes').textContent = `"${notes}"`;
+            } else {
+                document.getElementById('notesSection').style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
