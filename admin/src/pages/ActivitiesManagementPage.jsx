@@ -28,6 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { activitiesAPI } from '../lib/api';
 
 export default function ActivitiesManagementPage() {
   const [activities, setActivities] = useState([]);
@@ -39,108 +40,76 @@ export default function ActivitiesManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  // Sample activities data
-  const sampleActivities = [
-    {
-      id: 1,
-      name: "Sahara Desert Camel Trek",
-      category: "Desert Tours",
-      location: "Merzouga, Sahara Desert",
-      duration: "2 Days, 1 Night",
-      price: 120,
-      marketPrice: 180,
-      maxParticipants: 12,
-      minParticipants: 2,
-      rating: 4.9,
-      numReviews: 156,
-      isActive: true,
-      isFeatured: true,
-      difficulty: "Moderate",
-      createdAt: "2024-01-15",
-      totalReservations: 45,
-      revenue: 5400
-    },
-    {
-      id: 2,
-      name: "Marrakech Food Walking Tour",
-      category: "Food & Cooking",
-      location: "Marrakech Medina",
-      duration: "4 Hours",
-      price: 45,
-      marketPrice: 65,
-      maxParticipants: 8,
-      minParticipants: 2,
-      rating: 4.8,
-      numReviews: 203,
-      isActive: true,
-      isFeatured: true,
-      difficulty: "Easy",
-      createdAt: "2024-01-10",
-      totalReservations: 78,
-      revenue: 3510
-    },
-    {
-      id: 3,
-      name: "Atlas Mountains Hiking",
-      category: "Adventure Sports",
-      location: "Atlas Mountains, Imlil",
-      duration: "Full Day (8 Hours)",
-      price: 85,
-      marketPrice: 120,
-      maxParticipants: 10,
-      minParticipants: 4,
-      rating: 4.7,
-      numReviews: 89,
-      isActive: true,
-      isFeatured: false,
-      difficulty: "Challenging",
-      createdAt: "2024-01-05",
-      totalReservations: 32,
-      revenue: 2720
-    }
-  ];
-
-  const categories = [
-    "Desert Tours",
-    "Food & Cooking", 
-    "Adventure Sports",
-    "Day Trips",
-    "Wellness & Spa",
-    "Cultural Experiences"
-  ];
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setActivities(sampleActivities);
-      setLoading(false);
-    }, 1000);
+    fetchActivities();
+    fetchCategories();
   }, []);
 
-  const filteredActivities = activities.filter(activity => {
-    const matchesSearch = activity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         activity.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !filterCategory || activity.category === filterCategory;
-    const matchesStatus = !filterStatus || 
-                         (filterStatus === 'active' && activity.isActive) ||
-                         (filterStatus === 'inactive' && !activity.isActive) ||
-                         (filterStatus === 'featured' && activity.isFeatured);
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+  const fetchActivities = async () => {
+    setLoading(true);
+    try {
+      const params = {
+        search: searchTerm,
+        category: filterCategory === 'all' ? '' : filterCategory,
+        isActive: 'all'
+      };
+      if (filterStatus === 'active') params.isActive = true;
+      if (filterStatus === 'inactive') params.isActive = false;
+      if (filterStatus === 'featured') params.isFeatured = true;
 
-  const handleToggleStatus = (activityId, field) => {
-    setActivities(prev => prev.map(activity => 
-      activity.id === activityId 
-        ? { ...activity, [field]: !activity[field] }
-        : activity
-    ));
+      const response = await activitiesAPI.getActivities(params);
+      setActivities(response.data.activities);
+    } catch (error) {
+      console.error("Failed to fetch activities:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteActivity = (activityId) => {
+  const fetchCategories = async () => {
+    try {
+      const response = await activitiesAPI.getActivityCategories();
+      setCategories(response.data.map(c => c._id));
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchActivities();
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, filterCategory, filterStatus]);
+
+
+  const handleToggleStatus = async (activityId, field) => {
+    const activity = activities.find(a => a._id === activityId);
+    if (!activity) return;
+
+    const updatedActivityData = { ...activity, [field]: !activity[field] };
+
+    try {
+      await activitiesAPI.updateActivity(activityId, updatedActivityData);
+      setActivities(prev => prev.map(a =>
+        a._id === activityId ? updatedActivityData : a
+      ));
+    } catch (error) {
+      console.error(`Failed to toggle ${field} status:`, error);
+    }
+  };
+
+  const handleDeleteActivity = async (activityId) => {
     if (window.confirm('Are you sure you want to delete this activity?')) {
-      setActivities(prev => prev.filter(activity => activity.id !== activityId));
+      try {
+        await activitiesAPI.deleteActivity(activityId);
+        setActivities(prev => prev.filter(activity => activity._id !== activityId));
+      } catch (error) {
+        console.error("Failed to delete activity:", error);
+      }
     }
   };
 
@@ -150,20 +119,30 @@ export default function ActivitiesManagementPage() {
       category: '',
       location: '',
       duration: '',
-      price: '',
-      marketPrice: '',
-      maxParticipants: '',
-      minParticipants: '',
+      price: 0,
+      marketPrice: 0,
+      maxParticipants: 10,
+      minParticipants: 1,
       difficulty: 'Easy',
       shortDescription: '',
       description: '',
+      images: ['https://via.placeholder.com/400x300.png?text=Activity+Image'],
       isActive: true,
       isFeatured: false
     });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
-      onSave(formData);
+      try {
+        if (activity) {
+          await activitiesAPI.updateActivity(activity._id, formData);
+        } else {
+          await activitiesAPI.createActivity(formData);
+        }
+        onSave();
+      } catch (error) {
+        console.error("Failed to save activity:", error);
+      }
     };
 
     return (
@@ -225,7 +204,7 @@ export default function ActivitiesManagementPage() {
               id="price"
               type="number"
               value={formData.price}
-              onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
               required
             />
           </div>
@@ -236,7 +215,7 @@ export default function ActivitiesManagementPage() {
               id="marketPrice"
               type="number"
               value={formData.marketPrice}
-              onChange={(e) => setFormData(prev => ({ ...prev, marketPrice: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, marketPrice: parseFloat(e.target.value) || 0 }))}
               required
             />
           </div>
@@ -247,7 +226,7 @@ export default function ActivitiesManagementPage() {
               id="minParticipants"
               type="number"
               value={formData.minParticipants}
-              onChange={(e) => setFormData(prev => ({ ...prev, minParticipants: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, minParticipants: parseInt(e.target.value) || 1 }))}
               required
             />
           </div>
@@ -258,7 +237,7 @@ export default function ActivitiesManagementPage() {
               id="maxParticipants"
               type="number"
               value={formData.maxParticipants}
-              onChange={(e) => setFormData(prev => ({ ...prev, maxParticipants: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 10 }))}
               required
             />
           </div>
@@ -504,8 +483,8 @@ export default function ActivitiesManagementPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredActivities.map((activity) => (
-                    <TableRow key={activity.id}>
+                  activities.map((activity) => (
+                    <TableRow key={activity._id}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{activity.name}</div>
@@ -553,7 +532,7 @@ export default function ActivitiesManagementPage() {
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => handleToggleStatus(activity.id, 'isActive')}
+                              onClick={() => handleToggleStatus(activity._id, 'isActive')}
                               className="flex items-center gap-1"
                             >
                               {activity.isActive ? (
@@ -575,9 +554,9 @@ export default function ActivitiesManagementPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <div>{activity.totalReservations} bookings</div>
+                          <div>{activity.totalReservations || 0} bookings</div>
                           <div className="text-green-600 font-medium">
-                            ${activity.revenue}
+                            ${activity.revenue || 0}
                           </div>
                         </div>
                       </TableCell>
@@ -596,7 +575,7 @@ export default function ActivitiesManagementPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDeleteActivity(activity.id)}
+                            onClick={() => handleDeleteActivity(activity._id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -618,18 +597,9 @@ export default function ActivitiesManagementPage() {
             <DialogTitle>Create New Activity</DialogTitle>
           </DialogHeader>
           <ActivityForm
-            onSave={(formData) => {
-              const newActivity = {
-                ...formData,
-                id: Date.now(),
-                rating: 0,
-                numReviews: 0,
-                totalReservations: 0,
-                revenue: 0,
-                createdAt: new Date().toISOString().split('T')[0]
-              };
-              setActivities(prev => [newActivity, ...prev]);
+            onSave={() => {
               setIsCreateDialogOpen(false);
+              fetchActivities();
             }}
             onCancel={() => setIsCreateDialogOpen(false)}
           />
@@ -644,14 +614,10 @@ export default function ActivitiesManagementPage() {
           </DialogHeader>
           <ActivityForm
             activity={selectedActivity}
-            onSave={(formData) => {
-              setActivities(prev => prev.map(activity => 
-                activity.id === selectedActivity.id 
-                  ? { ...activity, ...formData }
-                  : activity
-              ));
+            onSave={() => {
               setIsEditDialogOpen(false);
               setSelectedActivity(null);
+              fetchActivities();
             }}
             onCancel={() => {
               setIsEditDialogOpen(false);
