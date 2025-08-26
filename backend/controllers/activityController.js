@@ -215,79 +215,84 @@ const deleteActivity = asyncHandler(async (req, res) => {
 // @route   POST /api/activities/:id/reserve
 // @access  Public
 const createReservation = asyncHandler(async (req, res) => {
-  const activity = await Activity.findById(req.params.id);
-
-  if (!activity || !activity.isActive) {
-    res.status(404);
-    throw new Error('Activity not found or not available');
-  }
-
-  const { customerInfo, reservationDate, numberOfPersons, notes } = req.body;
-
-  // Validate required fields
-  if (!customerInfo || !customerInfo.name || !customerInfo.email || !customerInfo.whatsapp) {
-    res.status(400);
-    throw new Error('Customer name, email, and WhatsApp are required');
-  }
-
-  if (!reservationDate || !numberOfPersons) {
-    res.status(400);
-    throw new Error('Reservation date and number of persons are required');
-  }
-
-  // Check if number of persons is within limits
-  if (numberOfPersons < activity.minParticipants || numberOfPersons > activity.maxParticipants) {
-    res.status(400);
-    throw new Error(`Number of persons must be between ${activity.minParticipants} and ${activity.maxParticipants}`);
-  }
-
-  // Check availability for the date
-  const isAvailable = await Activity.checkAvailability(activity._id, reservationDate);
-  if (!isAvailable) {
-    res.status(400);
-    throw new Error('Activity is not available on the selected date');
-  }
-
-  // Calculate total price
-  const totalPrice = activity.price * numberOfPersons;
-
-  // Create reservation
-  const reservation = new ActivityReservation({
-    activity: activity._id,
-    customerInfo,
-    reservationDate: new Date(reservationDate),
-    numberOfPersons,
-    totalPrice,
-    notes
-  });
-
-  const createdReservation = await reservation.save();
-  await createdReservation.populate('activity', 'name location duration');
-
-  /**
-   * Send email notifications when a new reservation is created.
-   *
-   * - A confirmation email is sent to the customer.
-   * - A notification email is sent to the admin.
-   *
-   * The email sending is wrapped in a try...catch block to prevent the request from failing if the email sending fails.
-   */
   try {
-    // Send confirmation email to customer
-    const confirmationResult = await sendReservationConfirmation(createdReservation);
-    if (confirmationResult.success) {
-      createdReservation.confirmationSent = true;
-      await createdReservation.save();
+    const activity = await Activity.findById(req.params.id);
+
+    if (!activity || !activity.isActive) {
+      res.status(404).json({ message: 'Activity not found or not available' });
+      return;
     }
 
-    // Send notification email to admin
-    await sendAdminNotification(createdReservation);
-  } catch (emailError) {
-    console.error('Email sending error:', emailError);
-    // Don't fail the reservation if email fails
-  }
+    const { customerInfo, reservationDate, numberOfPersons, notes } = req.body;
 
-  res.status(201).json(createdReservation);
+    // Validate required fields
+    if (!customerInfo || !customerInfo.name || !customerInfo.email || !customerInfo.whatsapp) {
+      res.status(400).json({ message: 'Customer name, email, and WhatsApp are required' });
+      return;
+    }
+
+    if (!reservationDate || !numberOfPersons) {
+      res.status(400).json({ message: 'Reservation date and number of persons are required' });
+      return;
+    }
+
+    // Check if number of persons is within limits
+    if (numberOfPersons < activity.minParticipants || numberOfPersons > activity.maxParticipants) {
+      res.status(400).json({ message: `Number of persons must be between ${activity.minParticipants} and ${activity.maxParticipants}` });
+      return;
+    }
+
+    // Check availability for the date
+    const isAvailable = await Activity.checkAvailability(activity._id, reservationDate);
+    if (!isAvailable) {
+      res.status(400).json({ message: 'Activity is not available on the selected date' });
+      return;
+    }
+
+    // Calculate total price
+    const totalPrice = activity.price * numberOfPersons;
+
+    // Generate reservation ID
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 5);
+    const reservationId = `ACT-${timestamp}-${random}`.toUpperCase();
+
+    // Create reservation
+    const reservation = new ActivityReservation({
+      reservationId,
+      activity: activity._id,
+      customerInfo,
+      reservationDate: new Date(reservationDate),
+      numberOfPersons,
+      totalPrice,
+      notes
+    });
+
+    const createdReservation = await reservation.save();
+    await createdReservation.populate('activity', 'name location duration');
+
+    /**
+     * Send email notifications when a new reservation is created.
+     */
+    try {
+      // Send confirmation email to customer
+      const confirmationResult = await sendReservationConfirmation(createdReservation);
+      if (confirmationResult.success) {
+        createdReservation.confirmationSent = true;
+        await createdReservation.save();
+      }
+
+      // Send notification email to admin
+      await sendAdminNotification(createdReservation);
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      // Don't fail the reservation if email fails
+    }
+
+    res.status(201).json(createdReservation);
+  } catch (error) {
+    res.status(400).json({ message: error.message, errors: error.errors });
+  }
 });
 
 // @desc    Get activity reservations
