@@ -123,31 +123,46 @@ export default function ActivitiesManagementPage() {
   };
 
   const ActivityForm = ({ activity, onSave, onCancel }) => {
-    const [formData, setFormData] = useState(activity || {
-      name: '',
-      category: '',
-      location: '',
-      duration: '',
-      price: 0,
-      marketPrice: 0,
-      maxParticipants: 10,
-      minParticipants: 1,
-      difficulty: 'Easy',
-      shortDescription: '',
-      description: '',
-      image: 'https://via.placeholder.com/400x300.png?text=Activity+Image',
-      isActive: true,
-      isFeatured: false
-    });
+    const [formData, setFormData] = useState(
+      activity
+        ? {
+            ...activity,
+            images: activity.images ? activity.images.join(', ') : '',
+          }
+        : {
+            name: '',
+            category: '',
+            location: '',
+            duration: '',
+            price: 0,
+            marketPrice: 0,
+            maxParticipants: 10,
+            minParticipants: 1,
+            difficulty: 'Easy',
+            shortDescription: '',
+            description: '',
+            image: 'https://via.placeholder.com/400x300.png?text=Activity+Image',
+            images: '',
+            isActive: true,
+            isFeatured: false,
+          }
+    );
 
     const handleSubmit = async (e) => {
       e.preventDefault();
+      const dataToSend = {
+        ...formData,
+        images: typeof formData.images === 'string'
+          ? formData.images.split(',').map(url => url.trim()).filter(url => url)
+          : formData.images,
+      };
+
       try {
         if (activity) {
-          await activitiesAPI.updateActivity(activity._id, formData);
+          await activitiesAPI.updateActivity(activity._id, dataToSend);
           toast.success("Activity updated successfully!");
         } else {
-          await activitiesAPI.createActivity(formData);
+          await activitiesAPI.createActivity(dataToSend);
           toast.success("Activity created successfully!");
         }
         onSave();
@@ -292,6 +307,28 @@ export default function ActivitiesManagementPage() {
           />
         </div>
         
+        <div>
+          <Label htmlFor="image">Main Image URL *</Label>
+          <Input
+            id="image"
+            value={formData.image}
+            onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+            placeholder="e.g., https://example.com/main-image.jpg"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="images">Additional Images (comma-separated)</Label>
+          <Textarea
+            id="images"
+            value={formData.images}
+            onChange={(e) => setFormData(prev => ({ ...prev, images: e.target.value }))}
+            placeholder="e.g., https://example.com/image1.jpg, https://example.com/image2.jpg"
+            rows={3}
+          />
+        </div>
+
         <div>
           <Label htmlFor="description">Full Description *</Label>
           <Textarea
