@@ -16,7 +16,13 @@ const getActivities = asyncHandler(async (req, res) => {
 
   // isActive filter
   if (req.query.isActive) {
-    query.isActive = req.query.isActive === 'true';
+    // Allow fetching all (active and inactive) activities with ?isActive=all
+    if (req.query.isActive !== 'all') {
+      query.isActive = req.query.isActive === 'true';
+    }
+  } else {
+    // By default, only fetch active activities for public view
+    query.isActive = true;
   }
 
   // Category filter

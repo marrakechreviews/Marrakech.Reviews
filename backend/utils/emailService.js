@@ -446,7 +446,7 @@ const sendContactAdminNotification = async (contactData) => {
       }),
     };
 
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL;
+    const adminEmail = 'hello@marrakech.reviews';
     const mailOptions = {
       from: {
         name: 'Marrakech Reviews System',
