@@ -134,7 +134,7 @@ export default function ActivitiesManagementPage() {
       difficulty: 'Easy',
       shortDescription: '',
       description: '',
-      images: ['https://via.placeholder.com/400x300.png?text=Activity+Image'],
+      image: 'https://via.placeholder.com/400x300.png?text=Activity+Image',
       isActive: true,
       isFeatured: false
     });
@@ -637,5 +637,4 @@ export default function ActivitiesManagementPage() {
     </div>
   );
 }
-
 
