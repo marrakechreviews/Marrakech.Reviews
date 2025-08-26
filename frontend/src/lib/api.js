@@ -71,3 +71,16 @@ export const authAPI = {
   updateProfile: (userData) => api.put("/auth/profile", userData),
 };
 
+// Activities API
+export const activitiesAPI = {
+  getActivities: (params = {}) => {
+    const queryParams = new URLSearchParams(params);
+    return api.get(`/activities?${queryParams.toString()}`);
+  },
+  getActivityBySlug: (slug) => {
+    return api.get(`/activities/${slug}`);
+  },
+  createReservation: (activityId, reservationData) => {
+    return api.post(`/activities/${activityId}/reserve`, reservationData);
+  },
+};

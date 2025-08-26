@@ -16,6 +16,7 @@ import {
   Star
 } from 'lucide-react';
 import { toast } from 'sonner';
+import api from '../lib/api';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -40,8 +41,7 @@ export default function ContactPage() {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await api.post('/contact', formData);
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       setFormData({
         name: '',
@@ -51,7 +51,8 @@ export default function ContactPage() {
         message: ''
       });
     } catch (error) {
-      toast.error('Failed to send message. Please try again.');
+      const errorMessage = error.response?.data?.message || 'Failed to send message. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

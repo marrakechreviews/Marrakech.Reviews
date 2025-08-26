@@ -12,7 +12,18 @@ const getActivities = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   // Build query
-  let query = { isActive: true };
+  let query = {};
+
+  // isActive filter
+  if (req.query.isActive) {
+    // Allow fetching all (active and inactive) activities with ?isActive=all
+    if (req.query.isActive !== 'all') {
+      query.isActive = req.query.isActive === 'true';
+    }
+  } else {
+    // By default, only fetch active activities for public view
+    query.isActive = true;
+  }
 
   // Category filter
   if (req.query.category) {
@@ -270,7 +281,7 @@ const getReservations = asyncHandler(async (req, res) => {
   let query = {};
 
   // Status filter
-  if (req.query.status) {
+  if (req.query.status && req.query.status !== 'all') {
     query.status = req.query.status;
   }
 

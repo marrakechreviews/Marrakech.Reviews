@@ -1,27 +1,6 @@
 const { validationResult } = require('express-validator');
-const nodemailer = require('nodemailer');
 const Contact = require('../models/Contact');
-
-// Email transporter configuration
-const createTransporter = () => {
-  try {
-    return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || process.env.SMTP_SERVER || 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '587'),
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: process.env.EMAIL_USER || process.env.SMTP_USERNAME,
-        pass: process.env.EMAIL_PASS || process.env.SMTP_PASSWORD
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-  } catch (error) {
-    console.error('Failed to create email transporter:', error);
-    return null;
-  }
-};
+const { sendContactAdminNotification, sendContactConfirmation } = require('../utils/emailService');
 
 // @desc    Submit contact form
 // @route   POST /api/contact
@@ -57,20 +36,13 @@ const submitContactForm = async (req, res) => {
 
     await contact.save();
 
-    // Send email notification to admin
+    // Send email notifications
     try {
-      await sendEmailNotification(contact);
+      await sendContactAdminNotification(contact);
+      await sendContactConfirmation(contact);
     } catch (emailError) {
-      console.error('Email notification failed:', emailError);
-      // Don't fail the request if email fails
-    }
-
-    // Send confirmation email to user
-    try {
-      await sendConfirmationEmail(contact);
-    } catch (emailError) {
-      console.error('Confirmation email failed:', emailError);
-      // Don't fail the request if email fails
+      console.error('Failed to send contact form emails:', emailError);
+      // Do not block the response for email errors
     }
 
     res.status(201).json({
@@ -288,109 +260,6 @@ const deleteContactSubmission = async (req, res) => {
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
-};
-
-// Helper function to send email notification to admin
-const sendEmailNotification = async (contact) => {
-  const transporter = createTransporter();
-  
-  if (!transporter) {
-    console.warn('Email transporter not available, skipping admin notification');
-    return;
-  }
-
-  const adminEmail = process.env.SUPPORT_EMAIL || process.env.EMAIL_USER || process.env.SMTP_USERNAME || 'admin@marrakechreviews.com';
-
-  const mailOptions = {
-    from: `"Marrakech Reviews" <${process.env.SUPPORT_EMAIL}>`,
-    to: adminEmail,
-    subject: `New Contact Form Submission: ${contact.subject}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #333; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;">
-          New Contact Form Submission
-        </h2>
-        
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="color: #e74c3c; margin-top: 0;">Contact Details</h3>
-          <p><strong>Name:</strong> ${contact.name}</p>
-          <p><strong>Email:</strong> ${contact.email}</p>
-          <p><strong>Subject:</strong> ${contact.subject}</p>
-          <p><strong>Category:</strong> ${contact.category}</p>
-          <p><strong>Date:</strong> ${contact.formattedDate}</p>
-        </div>
-        
-        <div style="background-color: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
-          <h3 style="color: #333; margin-top: 0;">Message</h3>
-          <p style="line-height: 1.6; white-space: pre-wrap;">${contact.message}</p>
-        </div>
-        
-        <div style="margin-top: 20px; padding: 15px; background-color: #e8f5e8; border-radius: 5px;">
-          <p style="margin: 0; color: #2d5a2d;">
-            <strong>Action Required:</strong> Please respond to this inquiry through the admin dashboard.
-          </p>
-        </div>
-        
-        <div style="margin-top: 20px; text-align: center; color: #666; font-size: 12px;">
-          <p>This is an automated notification from Marrakech Reviews contact form.</p>
-        </div>
-      </div>
-    `
-  };
-
-  await transporter.sendMail(mailOptions);
-};
-
-// Helper function to send confirmation email to user
-const sendConfirmationEmail = async (contact) => {
-  const transporter = createTransporter();
-  
-  if (!transporter) {
-    console.warn('Email transporter not available, skipping confirmation email');
-    return;
-  }
-
-  const mailOptions = {
-    from: `"Marrakech Reviews" <${process.env.SUPPORT_EMAIL}>`,
-    to: contact.email,
-    subject: 'Thank you for contacting Marrakech Reviews',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;">
-          Thank You for Contacting Us!
-        </h2>
-        
-        <p>Dear ${contact.name},</p>
-        
-        <p>Thank you for reaching out to Marrakech Reviews. We have received your message and will get back to you within 24 hours.</p>
-        
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="color: #333; margin-top: 0;">Your Message Details</h3>
-          <p><strong>Subject:</strong> ${contact.subject}</p>
-          <p><strong>Category:</strong> ${contact.category}</p>
-          <p><strong>Date Submitted:</strong> ${contact.formattedDate}</p>
-        </div>
-        
-        <p>In the meantime, feel free to explore our website for the latest reviews and travel tips about Marrakech.</p>
-        
-        <div style="margin-top: 30px; padding: 20px; background-color: #e8f5e8; border-radius: 5px;">
-          <h3 style="color: #2d5a2d; margin-top: 0;">Quick Links</h3>
-          <ul style="list-style: none; padding: 0;">
-            <li style="margin: 10px 0;"><a href="https://marrakechreviews.com/articles" style="color: #e74c3c; text-decoration: none;">📖 Latest Reviews</a></li>
-            <li style="margin: 10px 0;"><a href="https://marrakechreviews.com/activities" style="color: #e74c3c; text-decoration: none;">🎯 Activities</a></li>
-            <li style="margin: 10px 0;"><a href="https://marrakechreviews.com/faq" style="color: #e74c3c; text-decoration: none;">❓ FAQ</a></li>
-          </ul>
-        </div>
-        
-        <div style="margin-top: 20px; text-align: center; color: #666; font-size: 12px;">
-          <p>Best regards,<br>The Marrakech Reviews Team</p>
-          <p>This is an automated confirmation email.</p>
-        </div>
-      </div>
-    `
-  };
-
-  await transporter.sendMail(mailOptions);
 };
 
 module.exports = {

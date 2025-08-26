@@ -29,167 +29,64 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { activitiesAPI } from '@/lib/api';
 
 export default function ReservationsManagementPage() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterActivity, setFilterActivity] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterActivity, setFilterActivity] = useState('all');
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [activities, setActivities] = useState([]);
 
-  // Sample reservations data
-  const sampleReservations = [
-    {
-      id: 1,
-      reservationId: 'ACT-1K2L3M4N-ABCDE',
-      activity: {
-        id: 1,
-        name: 'Sahara Desert Camel Trek',
-        category: 'Desert Tours',
-        location: 'Merzouga, Sahara Desert'
-      },
-      customerInfo: {
-        name: 'John Smith',
-        email: 'john.smith@email.com',
-        phone: '+1 555-0123',
-        whatsapp: '+1 555-0123'
-      },
-      reservationDate: '2024-02-15',
-      numberOfPersons: 2,
-      totalPrice: 240,
-      status: 'Pending',
-      paymentStatus: 'Pending',
-      notes: 'Celebrating anniversary, would like romantic setup if possible',
-      createdAt: '2024-01-20T10:30:00Z',
-      confirmationSent: true,
-      reminderSent: false,
-      adminNotes: ''
-    },
-    {
-      id: 2,
-      reservationId: 'ACT-5P6Q7R8S-FGHIJ',
-      activity: {
-        id: 2,
-        name: 'Marrakech Food Walking Tour',
-        category: 'Food & Cooking',
-        location: 'Marrakech Medina'
-      },
-      customerInfo: {
-        name: 'Sarah Johnson',
-        email: 'sarah.j@email.com',
-        phone: '+44 20 7946 0958',
-        whatsapp: '+44 7700 900123'
-      },
-      reservationDate: '2024-02-10',
-      numberOfPersons: 4,
-      totalPrice: 180,
-      status: 'Confirmed',
-      paymentStatus: 'Paid',
-      notes: 'Vegetarian options needed for 2 people',
-      createdAt: '2024-01-18T14:15:00Z',
-      confirmationSent: true,
-      reminderSent: true,
-      adminNotes: 'Confirmed vegetarian arrangements with guide'
-    },
-    {
-      id: 3,
-      reservationId: 'ACT-9T0U1V2W-KLMNO',
-      activity: {
-        id: 3,
-        name: 'Atlas Mountains Hiking',
-        category: 'Adventure Sports',
-        location: 'Atlas Mountains, Imlil'
-      },
-      customerInfo: {
-        name: 'Ahmed Hassan',
-        email: 'ahmed.hassan@email.com',
-        phone: '+212 6XX-XXXXXX',
-        whatsapp: '+212 6XX-XXXXXX'
-      },
-      reservationDate: '2024-02-08',
-      numberOfPersons: 6,
-      totalPrice: 510,
-      status: 'Completed',
-      paymentStatus: 'Paid',
-      notes: '',
-      createdAt: '2024-01-15T09:45:00Z',
-      confirmationSent: true,
-      reminderSent: true,
-      adminNotes: 'Excellent group, left positive review'
-    },
-    {
-      id: 4,
-      reservationId: 'ACT-3X4Y5Z6A-PQRST',
-      activity: {
-        id: 4,
-        name: 'Traditional Cooking Class',
-        category: 'Food & Cooking',
-        location: 'Marrakech Medina'
-      },
-      customerInfo: {
-        name: 'Maria Rodriguez',
-        email: 'maria.r@email.com',
-        phone: '+34 91 123 4567',
-        whatsapp: '+34 600 123 456'
-      },
-      reservationDate: '2024-02-12',
-      numberOfPersons: 2,
-      totalPrice: 130,
-      status: 'Cancelled',
-      paymentStatus: 'Refunded',
-      notes: 'First time cooking Moroccan food',
-      createdAt: '2024-01-16T16:20:00Z',
-      confirmationSent: true,
-      reminderSent: false,
-      adminNotes: 'Customer cancelled due to flight changes, full refund processed',
-      cancelledAt: '2024-01-25T11:30:00Z',
-      cancellationReason: 'Flight schedule changed'
+  const fetchReservations = async () => {
+    setLoading(true);
+    try {
+      const params = {
+        search: searchTerm,
+        status: filterStatus === 'all' ? '' : filterStatus,
+        activity: filterActivity === 'all' ? '' : filterActivity,
+      };
+      const response = await activitiesAPI.getReservations(params);
+      setReservations(response.data.reservations);
+    } catch (error) {
+      toast.error('Failed to fetch reservations.');
+      console.error('Failed to fetch reservations:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const activities = [
-    'Sahara Desert Camel Trek',
-    'Marrakech Food Walking Tour',
-    'Atlas Mountains Hiking',
-    'Traditional Cooking Class'
-  ];
+  const fetchActivitiesForFilter = async () => {
+    try {
+      const response = await activitiesAPI.getActivities({ isActive: 'all', limit: 1000 });
+      setActivities(response.data.activities);
+    } catch (error) {
+      toast.error('Failed to fetch activities for filter.');
+    }
+  };
 
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setReservations(sampleReservations);
-      setLoading(false);
-    }, 1000);
+    fetchReservations();
+  }, [searchTerm, filterStatus, filterActivity]);
+
+  useEffect(() => {
+    fetchActivitiesForFilter();
   }, []);
 
-  const filteredReservations = reservations.filter(reservation => {
-    const matchesSearch = 
-      reservation.reservationId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.customerInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.customerInfo.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.activity.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = !filterStatus || reservation.status === filterStatus;
-    const matchesActivity = !filterActivity || reservation.activity.name === filterActivity;
-    
-    return matchesSearch && matchesStatus && matchesActivity;
-  });
+  const filteredReservations = reservations;
 
-  const handleStatusChange = (reservationId, newStatus, adminNotes = '') => {
-    setReservations(prev => prev.map(reservation => 
-      reservation.id === reservationId 
-        ? { 
-            ...reservation, 
-            status: newStatus,
-            adminNotes: adminNotes || reservation.adminNotes,
-            confirmedAt: newStatus === 'Confirmed' ? new Date().toISOString() : reservation.confirmedAt,
-            cancelledAt: newStatus === 'Cancelled' ? new Date().toISOString() : reservation.cancelledAt
-          }
-        : reservation
-    ));
+  const handleStatusChange = async (reservationId, newStatus, adminNotes = '') => {
+    try {
+      await activitiesAPI.updateReservationStatus(reservationId, { status: newStatus, adminNotes });
+      toast.success('Reservation status updated.');
+      fetchReservations();
+    } catch (error) {
+      toast.error('Failed to update reservation status.');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -218,7 +115,7 @@ export default function ReservationsManagementPage() {
     if (!reservation) return null;
 
     const handleSaveStatus = () => {
-      onStatusChange(reservation.id, newStatus, adminNotes);
+      onStatusChange(reservation._id, newStatus, adminNotes);
       onClose();
     };
 
@@ -245,15 +142,15 @@ export default function ReservationsManagementPage() {
                   <CardContent className="space-y-3">
                     <div>
                       <Label className="text-sm font-medium text-gray-600">Activity</Label>
-                      <p className="font-medium">{reservation.activity.name}</p>
+                      <p className="font-medium">{reservation.activity?.name}</p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-600">Category</Label>
-                      <p>{reservation.activity.category}</p>
+                      <p>{reservation.activity?.category}</p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-600">Location</Label>
-                      <p>{reservation.activity.location}</p>
+                      <p>{reservation.activity?.location}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -491,7 +388,7 @@ export default function ReservationsManagementPage() {
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={fetchReservations}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
@@ -548,7 +445,7 @@ export default function ReservationsManagementPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">${stats.totalRevenue}</p>
+              <p className="text-2xl font-bold text-green-600">${stats.totalRevenue.toLocaleString()}</p>
               <p className="text-sm text-gray-600">Revenue</p>
             </div>
           </CardContent>
@@ -591,8 +488,8 @@ export default function ReservationsManagementPage() {
               <SelectContent>
                 <SelectItem value="all">All Activities</SelectItem>
                 {activities.map(activity => (
-                  <SelectItem key={activity} value={activity}>
-                    {activity}
+                  <SelectItem key={activity._id} value={activity._id}>
+                    {activity.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -644,7 +541,7 @@ export default function ReservationsManagementPage() {
                   </TableRow>
                 ) : (
                   filteredReservations.map((reservation) => (
-                    <TableRow key={reservation.id}>
+                    <TableRow key={reservation._id}>
                       <TableCell>
                         <div className="font-mono text-sm">
                           {reservation.reservationId}
@@ -658,8 +555,8 @@ export default function ReservationsManagementPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{reservation.activity.name}</div>
-                          <div className="text-sm text-gray-500">{reservation.activity.category}</div>
+                          <div className="font-medium">{reservation.activity?.name}</div>
+                          <div className="text-sm text-gray-500">{reservation.activity?.category}</div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -700,7 +597,7 @@ export default function ReservationsManagementPage() {
                           </Button>
                           <Select
                             value={reservation.status}
-                            onValueChange={(value) => handleStatusChange(reservation.id, value)}
+                            onValueChange={(value) => handleStatusChange(reservation._id, value)}
                           >
                             <SelectTrigger className="w-32">
                               <SelectValue />

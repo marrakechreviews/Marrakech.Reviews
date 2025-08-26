@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { allActivities } from '../data/allActivities';
+import api from '../lib/api';
 
 export default function ActivitiesPage() {
   const navigate = useNavigate();
@@ -40,23 +40,43 @@ export default function ActivitiesPage() {
     sort: searchParams.get('sort') || 'featured'
   });
 
-  const sampleCategories = [
-    { _id: 'Desert Tours', count: 8, averagePrice: 125 },
-    { _id: 'Food & Cooking', count: 12, averagePrice: 55 },
-    { _id: 'Adventure Sports', count: 6, averagePrice: 95 },
-    { _id: 'Day Trips', count: 10, averagePrice: 85 },
-    { _id: 'Wellness & Spa', count: 5, averagePrice: 65 },
-    { _id: 'Cultural Experiences', count: 15, averagePrice: 45 }
-  ];
+  const [pagination, setPagination] = useState({});
 
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setActivities(allActivities);
-      setCategories(sampleCategories);
-      setLoading(false);
-    }, 1000);
+    const fetchActivities = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (filters.search) params.append('search', filters.search);
+        if (filters.category) params.append('category', filters.category);
+        if (filters.location) params.append('location', filters.location);
+        if (filters.sort) params.append('sort', filters.sort);
+        if (filters.minPrice > 0) params.append('minPrice', filters.minPrice);
+        if (filters.maxPrice < 500) params.append('maxPrice', filters.maxPrice);
+
+        const response = await api.get(`/activities?${params.toString()}`);
+        setActivities(response.data.activities);
+        setPagination(response.data.pagination);
+      } catch (error) {
+        console.error('Failed to fetch activities:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, [filters]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get('/activities/categories');
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+    fetchCategories();
   }, []);
 
   const handleFilterChange = (key, value) => {
@@ -87,38 +107,6 @@ export default function ActivitiesPage() {
       />
     ));
   };
-
-  const filteredActivities = activities.filter(activity => {
-    if (filters.search && !activity.name.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false;
-    }
-    if (filters.category && activity.category !== filters.category) {
-      return false;
-    }
-    if (filters.location && !activity.location.toLowerCase().includes(filters.location.toLowerCase())) {
-      return false;
-    }
-    if (activity.price < filters.minPrice || activity.price > filters.maxPrice) {
-      return false;
-    }
-    return true;
-  });
-
-  const sortedActivities = [...filteredActivities].sort((a, b) => {
-    switch (filters.sort) {
-      case 'price_asc':
-        return a.price - b.price;
-      case 'price_desc':
-        return b.price - a.price;
-      case 'rating':
-        return b.rating - a.rating;
-      case 'popular':
-        return b.numReviews - a.numReviews;
-      case 'featured':
-      default:
-        return b.isFeatured - a.isFeatured || b.rating - a.rating;
-    }
-  });
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -247,7 +235,7 @@ export default function ActivitiesPage() {
 
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-gray-600">
-                    {sortedActivities.length} activities found
+                    {pagination.total || 0} activities found
                   </span>
                   <Select value={filters.sort} onValueChange={(value) => handleFilterChange('sort', value)}>
                     <SelectTrigger className="w-48">
@@ -283,9 +271,9 @@ export default function ActivitiesPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {sortedActivities.map((activity) => (
+                  {activities.map((activity) => (
                     <Card 
-                      key={activity.id} 
+                      key={activity._id}
                       className="cursor-pointer hover:shadow-lg transition-all group"
                       onClick={() => handleActivityClick(activity)}
                     >
@@ -402,7 +390,7 @@ export default function ActivitiesPage() {
                 </div>
               )}
 
-              {!loading && sortedActivities.length === 0 && (
+              {!loading && activities.length === 0 && (
                 <div className="text-center py-12">
                   <div className="text-gray-400 mb-4">
                     <Search className="h-16 w-16 mx-auto" />

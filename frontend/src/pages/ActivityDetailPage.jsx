@@ -30,7 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
-import { allActivities } from '../data/allActivities';
+import { activitiesAPI } from '../lib/api';
 
 export default function ActivityDetailPage() {
   const { slug } = useParams();
@@ -51,13 +51,20 @@ export default function ActivityDetailPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      const foundActivity = allActivities.find(act => act.slug === slug);
-      setActivity(foundActivity);
-      setLoading(false);
-    }, 1000);
+    const fetchActivity = async () => {
+      setLoading(true);
+      try {
+        const response = await activitiesAPI.getActivityBySlug(slug);
+        setActivity(response.data);
+      } catch (error) {
+        console.error("Failed to fetch activity:", error);
+        setActivity(null); // Set activity to null on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivity();
   }, [slug]);
 
   const handleInputChange = (field, value) => {
@@ -113,33 +120,26 @@ export default function ActivityDetailPage() {
     setSubmitting(true);
     
     try {
-      // Simulate API call
       const reservationData = {
-        activity: activity.id,
-        activityName: activity.name,
         customerInfo: formData,
-        reservationDate: selectedDate,
+        reservationDate: selectedDate.toISOString(),
         numberOfPersons,
-        totalPrice: activity.price * numberOfPersons,
-        subject: `Reservation for activity: ${activity.name}`
+        notes: formData.notes
       };
       
-      console.log('Reservation data:', reservationData);
+      const response = await activitiesAPI.createReservation(activity._id, reservationData);
       
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Navigate to thank you page with reservation data
       navigate('/thank-you', { 
         state: { 
-          reservationData,
+          reservationData: response.data,
           type: 'activity'
         } 
       });
       
     } catch (error) {
       console.error('Reservation error:', error);
-      alert('There was an error submitting your reservation. Please try again.');
+      const errorMessage = error.response?.data?.message || 'There was an error submitting your reservation. Please try again.';
+      alert(errorMessage);
     } finally {
       setSubmitting(false);
     }
