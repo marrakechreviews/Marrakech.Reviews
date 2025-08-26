@@ -28,6 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 import { activitiesAPI } from '../lib/api';
 
 export default function ActivitiesManagementPage() {
@@ -99,10 +100,10 @@ export default function ActivitiesManagementPage() {
     if (!activity) return;
 
     const updatedActivityData = { ...activity, [field]: !activity[field] };
-    
+
     try {
       await activitiesAPI.updateActivity(activityId, updatedActivityData);
-      setActivities(prev => prev.map(a => 
+      setActivities(prev => prev.map(a =>
         a._id === activityId ? updatedActivityData : a
       ));
     } catch (error) {
@@ -144,12 +145,22 @@ export default function ActivitiesManagementPage() {
       try {
         if (activity) {
           await activitiesAPI.updateActivity(activity._id, formData);
+          toast.success("Activity updated successfully!");
         } else {
           await activitiesAPI.createActivity(formData);
+          toast.success("Activity created successfully!");
         }
         onSave();
       } catch (error) {
         console.error("Failed to save activity:", error);
+        if (error.response && error.response.data && error.response.data.errors) {
+          const errorMessages = Object.values(error.response.data.errors).map(err => err.message).join('\n');
+          toast.error(errorMessages || "Please check the form for errors.");
+        } else if (error.response && error.response.data && error.response.data.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Failed to save activity. Please try again.");
+        }
       }
     };
 
