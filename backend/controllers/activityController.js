@@ -152,7 +152,23 @@ const checkAvailability = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const createActivity = asyncHandler(async (req, res) => {
   try {
-    const activity = new Activity(req.body);
+    const { name } = req.body;
+    if (!name) {
+      res.status(400).json({ message: 'Activity name is required to generate a slug.' });
+      return;
+    }
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .trim('-'); // Remove leading/trailing hyphens
+
+    const activity = new Activity({
+      ...req.body,
+      slug,
+    });
+
     const createdActivity = await activity.save();
     res.status(201).json(createdActivity);
   } catch (error) {
