@@ -91,10 +91,10 @@ export default function ActivitiesManagementPage() {
     if (!activity) return;
 
     const updatedActivityData = { ...activity, [field]: !activity[field] };
-
+    
     try {
       await activitiesAPI.updateActivity(activityId, updatedActivityData);
-      setActivities(prev => prev.map(a =>
+      setActivities(prev => prev.map(a => 
         a._id === activityId ? updatedActivityData : a
       ));
     } catch (error) {
