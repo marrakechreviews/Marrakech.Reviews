@@ -36,9 +36,14 @@ app.use(helmet());
 // Rate limiting disabled for development
 
 // CORS configuration - More permissive for development
-const corsOrigins = process.env.CORS_ORIGIN 
+let corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ["https://www.marrakech.reviews", "http://localhost:5000", "http://localhost:3000", "http://localhost:5173", "https://marrakech-reviews-sigma.vercel.app", "https://marrakech-reviews-backend.vercel.app/", "https://admin.marrakech.reviews"];
+  : ["https://www.marrakech.reviews", "http://localhost:5000", "http://localhost:3000", "http://localhost:5173", "https://marrakech-reviews-sigma.vercel.app", "https://marrakech-reviews-backend.vercel.app/"];
+
+// Ensure admin origin is always allowed
+if (!corsOrigins.includes("https://admin.marrakech.reviews")) {
+  corsOrigins.push("https://admin.marrakech.reviews");
+}
 
 app.use(cors({
   origin: corsOrigins,
