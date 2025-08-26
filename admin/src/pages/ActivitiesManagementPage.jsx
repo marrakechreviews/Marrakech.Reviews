@@ -40,11 +40,19 @@ export default function ActivitiesManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([
+    "Desert Tours",
+    "City Tours",
+    "Cultural Experiences",
+    "Adventure Sports",
+    "Food & Cooking",
+    "Wellness & Spa",
+    "Day Trips",
+    "Multi-day Tours"
+  ]);
 
   useEffect(() => {
     fetchActivities();
-    fetchCategories();
   }, []);
 
   const fetchActivities = async () => {
@@ -629,4 +637,5 @@ export default function ActivitiesManagementPage() {
     </div>
   );
 }
+
 
