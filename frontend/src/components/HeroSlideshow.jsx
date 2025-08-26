@@ -113,7 +113,7 @@ const HeroSlideshow = () => {
           }`}
           style={{ backgroundImage: `url(${slide.image})` }}
         >
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-black/60" />
         </div>
       ))}
 

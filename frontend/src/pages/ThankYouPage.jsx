@@ -60,7 +60,7 @@ export default function ThankYouPage() {
     const body = encodeURIComponent(
       `Dear Team,\n\nI have just submitted a reservation request with the following details:\n\nReservation ID: ${reservationId}\nActivity: ${reservationData.activityName || 'Service'}\nDate: ${reservationData.reservationDate ? format(new Date(reservationData.reservationDate), 'PPP') : 'N/A'}\nPersons: ${reservationData.numberOfPersons || 'N/A'}\nTotal: $${reservationData.totalPrice || 'N/A'}\n\nPlease confirm my booking and provide payment instructions.\n\nBest regards,\n${reservationData.customerInfo.name}`
     );
-    window.location.href = `mailto:info@example.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:Hello@marrakech.reviews?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -317,19 +317,19 @@ export default function ThankYouPage() {
                 <div>
                   <Phone className="h-6 w-6 mx-auto mb-2 text-primary" />
                   <h4 className="font-medium mb-1">Call Us</h4>
-                  <p className="text-sm text-gray-600">+212 524-123456</p>
+                  <p className="text-sm text-gray-600">+212 708-040530</p>
                 </div>
                 
                 <div>
                   <MessageCircle className="h-6 w-6 mx-auto mb-2 text-primary" />
                   <h4 className="font-medium mb-1">WhatsApp</h4>
-                  <p className="text-sm text-gray-600">+212 6XX-XXXXXX</p>
+                  <p className="text-sm text-gray-600">+212 708-040530</p>
                 </div>
                 
                 <div>
                   <Mail className="h-6 w-6 mx-auto mb-2 text-primary" />
                   <h4 className="font-medium mb-1">Email</h4>
-                  <p className="text-sm text-gray-600">info@example.com</p>
+                  <p className="text-sm text-gray-600">Hello@marrakech.reviews</p>
                 </div>
               </div>
             </CardContent>
