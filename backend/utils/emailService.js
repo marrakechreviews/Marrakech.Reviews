@@ -162,7 +162,7 @@ const sendAdminNotification = async (reservationData) => {
         name: 'E-Store System',
         address: process.env.SUPPORT_EMAIL
       },
-      to: 'hello@marrakech.reviews',
+      to: process.env.ADMIN_EMAIL || 'hello@marrakech.reviews',
       subject: `🚨 New Reservation Alert - ${reservationData.reservationId}`,
       html: getEmailTemplate('adminNotification', emailData)
     };
