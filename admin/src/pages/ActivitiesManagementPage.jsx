@@ -444,7 +444,7 @@ export default function ActivitiesManagementPage() {
       {/* Activities Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Activities ({filteredActivities.length})</CardTitle>
+          <CardTitle>Activities ({activities.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -473,7 +473,7 @@ export default function ActivitiesManagementPage() {
                       </TableCell>
                     </TableRow>
                   ))
-                ) : filteredActivities.length === 0 ? (
+                ) : activities.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-8">
                       <div className="text-gray-500">
