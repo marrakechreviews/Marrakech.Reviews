@@ -12,7 +12,12 @@ const getActivities = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   // Build query
-  let query = { isActive: true };
+  let query = {};
+
+  // isActive filter
+  if (req.query.isActive) {
+    query.isActive = req.query.isActive === 'true';
+  }
 
   // Category filter
   if (req.query.category) {
@@ -270,7 +275,7 @@ const getReservations = asyncHandler(async (req, res) => {
   let query = {};
 
   // Status filter
-  if (req.query.status) {
+  if (req.query.status && req.query.status !== 'all') {
     query.status = req.query.status;
   }
 
