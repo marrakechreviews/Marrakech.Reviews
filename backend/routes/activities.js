@@ -12,7 +12,9 @@ const {
   createReservation,
   getReservations,
   getReservation,
-  updateReservationStatus,
+  updateReservation,
+  deleteReservation,
+  createReservationAdmin,
   getActivityStats
 } = require('../controllers/activityController');
 const { protect, admin } = require('../middleware/authMiddleware');
@@ -25,9 +27,11 @@ router.get('/stats', protect, admin, getActivityStats);
 
 // Reservation routes
 // Note: /reservations route must come before /:slug to avoid conflicts
+router.post('/reservations', protect, admin, createReservationAdmin);
 router.get('/reservations', protect, admin, getReservations);
 router.get('/reservations/:id', protect, admin, getReservation);
-router.put('/reservations/:id/status', protect, admin, updateReservationStatus);
+router.put('/reservations/:id', protect, admin, updateReservation);
+router.delete('/reservations/:id', protect, admin, deleteReservation);
 router.post('/:id/reserve', createReservation);
 
 // Public routes with params - must be after specific routes

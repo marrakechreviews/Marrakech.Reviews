@@ -148,17 +148,21 @@ export const activitiesAPI = {
   deleteActivity: (id) => api.delete(`/activities/${id}`),
   getActivityCategories: () => api.get('/activities/categories'),
   getReservations: (params) => api.get('/activities/reservations', { params }),
-  updateReservationStatus: (id, data) => api.put(`/activities/reservations/${id}/status`, data),
+  createReservation: (data) => api.post('/activities/reservations', data),
+  updateReservation: (id, data) => api.put(`/activities/reservations/${id}`, data),
+  deleteReservation: (id) => api.delete(`/activities/reservations/${id}`),
 };
 
 // Organized Travel API
 export const organizedTravelAPI = {
   getPrograms: (params) => api.get('/organized-travel/admin/programs', { params }),
-  getReservations: (params) => api.get('/organized-travel/admin/reservations', { params }),
   createProgram: (data) => api.post('/organized-travel/admin/programs', data),
   updateProgram: (id, data) => api.put(`/organized-travel/admin/programs/${id}`, data),
   deleteProgram: (id) => api.delete(`/organized-travel/admin/programs/${id}`),
-  updateReservationStatus: (id, data) => api.put(`/organized-travel/admin/reservations/${id}`, data),
+  getReservations: (params) => api.get('/organized-travel/admin/reservations', { params }),
+  createReservation: (data) => api.post('/organized-travel/admin/reservations', data),
+  updateReservation: (id, data) => api.put(`/organized-travel/admin/reservations/${id}`, data),
+  deleteReservation: (id) => api.delete(`/organized-travel/admin/reservations/${id}`),
 };
 
 // Settings API

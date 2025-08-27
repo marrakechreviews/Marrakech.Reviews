@@ -377,12 +377,47 @@ const getReservation = asyncHandler(async (req, res) => {
   res.json(reservation);
 });
 
-// @desc    Update reservation status
-// @route   PUT /api/activities/reservations/:id/status
+// @desc    Admin Create activity reservation
+// @route   POST /api/activities/reservations
 // @access  Private/Admin
-const updateReservationStatus = asyncHandler(async (req, res) => {
-  const { status, adminNotes, paymentStatus } = req.body;
+const createReservationAdmin = asyncHandler(async (req, res) => {
+  try {
+    const { activity, customerInfo, reservationDate, numberOfPersons, totalPrice, status, paymentStatus, notes } = req.body;
 
+    if (!activity || !customerInfo || !reservationDate || !numberOfPersons) {
+      return res.status(400).json({ message: 'Missing required fields for reservation.' });
+    }
+
+    // Generate reservation ID
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 5);
+    const reservationId = `ACT-ADM-${timestamp}-${random}`.toUpperCase();
+
+    const reservation = new ActivityReservation({
+      reservationId,
+      activity,
+      customerInfo,
+      reservationDate: new Date(reservationDate),
+      numberOfPersons,
+      totalPrice,
+      status: status || 'confirmed',
+      paymentStatus: paymentStatus || 'pending',
+      notes,
+      createdBy: req.user._id, // Track who created it
+    });
+
+    const createdReservation = await reservation.save();
+    await createdReservation.populate('activity', 'name');
+    res.status(201).json(createdReservation);
+  } catch (error) {
+    res.status(400).json({ message: error.message, errors: error.errors });
+  }
+});
+
+// @desc    Update reservation
+// @route   PUT /api/activities/reservations/:id
+// @access  Private/Admin
+const updateReservation = asyncHandler(async (req, res) => {
   const reservation = await ActivityReservation.findById(req.params.id).populate('activity');
 
   if (!reservation) {
@@ -391,15 +426,9 @@ const updateReservationStatus = asyncHandler(async (req, res) => {
   }
 
   const oldStatus = reservation.status;
-  if (status) {
-    reservation.status = status;
-  }
-  if (adminNotes) {
-    reservation.adminNotes = adminNotes;
-  }
-  if (paymentStatus) {
-    reservation.paymentStatus = paymentStatus;
-  }
+
+  // Update all fields from the request body
+  Object.assign(reservation, req.body);
 
   const updatedReservation = await reservation.save();
   await updatedReservation.populate('activity', 'name category location');
@@ -407,7 +436,7 @@ const updateReservationStatus = asyncHandler(async (req, res) => {
   /**
    * Send a status update email to the customer if the reservation status has changed.
    */
-  if (status && oldStatus !== updatedReservation.status) {
+  if (req.body.status && oldStatus !== updatedReservation.status) {
     try {
       await sendReservationStatusUpdate(updatedReservation);
     } catch (emailError) {
@@ -435,6 +464,22 @@ const getActivityStats = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Delete reservation
+// @route   DELETE /api/activities/reservations/:id
+// @access  Private/Admin
+const deleteReservation = asyncHandler(async (req, res) => {
+  const reservation = await ActivityReservation.findById(req.params.id);
+
+  if (!reservation) {
+    res.status(404);
+    throw new Error('Reservation not found');
+  }
+
+  await reservation.deleteOne();
+
+  res.json({ message: 'Reservation removed' });
+});
+
 module.exports = {
   getActivities,
   getActivity,
@@ -447,6 +492,8 @@ module.exports = {
   createReservation,
   getReservations,
   getReservation,
-  updateReservationStatus,
+  updateReservation,
+  deleteReservation,
+  createReservationAdmin,
   getActivityStats
 };

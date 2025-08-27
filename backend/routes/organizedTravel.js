@@ -176,39 +176,61 @@ router.get("/admin/reservations", protect, admin, async (req, res) => {
   }
 });
 
-// @desc    Update reservation status and payment status (Admin only)
+// @desc    Admin Create travel reservation
+// @route   POST /api/organized-travel/admin/reservations
+// @access  Private/Admin
+router.post("/admin/reservations", protect, admin, async (req, res) => {
+  try {
+    const reservation = new TravelReservation({
+      ...req.body,
+      createdBy: req.user._id,
+    });
+    const savedReservation = await reservation.save();
+    await savedReservation.populate('programId');
+    res.status(201).json(savedReservation);
+  } catch (error) {
+    res.status(400).json({ message: error.message, errors: error.errors });
+  }
+});
+
+// @desc    Update travel reservation (Admin only)
 // @route   PUT /api/organized-travel/admin/reservations/:id
 // @access  Private/Admin
 router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
   try {
-    const { status, paymentStatus, notes } = req.body;
+    const reservation = await TravelReservation.findById(req.params.id);
 
-    const updateData = { updatedAt: Date.now() };
-    if (status) {
-      updateData.status = status;
-    }
-    if (paymentStatus) {
-      updateData.paymentStatus = paymentStatus;
-    }
-    if (notes) {
-      updateData.notes = notes;
-    }
-    
-    const reservation = await TravelReservation.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    ).populate('programId');
-    
     if (!reservation) {
       return res.status(404).json({ message: "Reservation not found" });
     }
-    
-    // TODO: Optionally send an email notification about the status update
 
-    res.json(reservation);
+    // TODO: Consider sending status update email if status changes
+    // const oldStatus = reservation.status;
+
+    Object.assign(reservation, req.body);
+    
+    const updatedReservation = await reservation.save();
+    await updatedReservation.populate('programId');
+
+    res.json(updatedReservation);
   } catch (error) {
     res.status(400).json({ message: error.message, errors: error.errors });
+  }
+});
+
+// @desc    Delete travel reservation (Admin only)
+// @route   DELETE /api/organized-travel/admin/reservations/:id
+// @access  Private/Admin
+router.delete("/admin/reservations/:id", protect, admin, async (req, res) => {
+  try {
+    const reservation = await TravelReservation.findById(req.params.id);
+    if (!reservation) {
+      return res.status(404).json({ message: "Reservation not found" });
+    }
+    await reservation.deleteOne();
+    res.json({ message: "Reservation removed" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

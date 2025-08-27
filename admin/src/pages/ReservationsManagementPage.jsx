@@ -4,6 +4,8 @@ import {
   Filter, 
   Eye, 
   Edit, 
+  Trash2,
+  Plus,
   Calendar,
   Users,
   DollarSign,
@@ -40,7 +42,7 @@ export default function ReservationsManagementPage() {
   const [filterPaymentStatus, setFilterPaymentStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [selectedReservation, setSelectedReservation] = useState(null);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const fetchReservations = async () => {
     setLoading(true);
@@ -128,6 +130,23 @@ export default function ReservationsManagementPage() {
     }
   };
 
+  const handleDelete = async (reservation) => {
+    if (window.confirm(`Are you sure you want to delete this reservation?`)) {
+      try {
+        if (reservation.type === 'Activity') {
+          await activitiesAPI.deleteReservation(reservation._id);
+        } else {
+          await organizedTravelAPI.deleteReservation(reservation._id);
+        }
+        toast.success('Reservation deleted successfully.');
+        fetchReservations();
+      } catch (error) {
+        toast.error('Failed to delete reservation.');
+        console.error('Failed to delete reservation:', error);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -136,10 +155,16 @@ export default function ReservationsManagementPage() {
           <h1 className="text-3xl font-bold">All Reservations</h1>
           <p className="text-muted-foreground">Manage all bookings for activities and travel</p>
         </div>
-        <Button variant="outline" onClick={fetchReservations}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={fetchReservations}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button onClick={() => { setSelectedReservation(null); setIsFormOpen(true); }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Reservation
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -212,11 +237,12 @@ export default function ReservationsManagementPage() {
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Payment</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={8}>Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9}>Loading...</TableCell></TableRow>
               ) : reservations.map((reservation) => (
                 <TableRow key={reservation._id}>
                   <TableCell><Badge variant="outline">{reservation.type}</Badge></TableCell>
@@ -258,12 +284,225 @@ export default function ReservationsManagementPage() {
                       </SelectContent>
                     </Select>
                   </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => { setSelectedReservation(reservation); setIsFormOpen(true); }}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleDelete(reservation)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{selectedReservation ? 'Edit Reservation' : 'Create Reservation'}</DialogTitle>
+          </DialogHeader>
+          <ReservationForm
+            reservation={selectedReservation}
+            onSave={() => {
+              setIsFormOpen(false);
+              fetchReservations();
+            }}
+            onCancel={() => setIsFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+const ReservationForm = ({ reservation, onSave, onCancel }) => {
+  const [formData, setFormData] = useState({});
+  const [formType, setFormType] = useState('Activity');
+  const [availableActivities, setAvailableActivities] = useState([]);
+  const [availablePrograms, setAvailablePrograms] = useState([]);
+
+  useEffect(() => {
+    // Fetch lists of activities and programs for the dropdowns
+    const fetchPrerequisites = async () => {
+      try {
+        const [activitiesRes, programsRes] = await Promise.all([
+          activitiesAPI.getActivities({ limit: 1000, isActive: true }),
+          organizedTravelAPI.getPrograms({ limit: 1000, isActive: true })
+        ]);
+        setAvailableActivities(activitiesRes.data.activities);
+        setAvailablePrograms(programsRes.data);
+      } catch (error) {
+        console.error("Failed to fetch prerequisites:", error);
+        toast.error("Failed to load activities and programs for the form.");
+      }
+    };
+    fetchPrerequisites();
+  }, []);
+
+  useEffect(() => {
+    if (reservation) {
+      setFormType(reservation.type);
+      if (reservation.type === 'Activity') {
+        setFormData({
+          activity: reservation.activity?._id,
+          customerInfo: reservation.customerInfo,
+          reservationDate: format(new Date(reservation.reservationDate), 'yyyy-MM-dd'),
+          numberOfPersons: reservation.numberOfPersons,
+          totalPrice: reservation.totalPrice,
+          status: reservation.status,
+          paymentStatus: reservation.paymentStatus,
+          notes: reservation.notes || '',
+        });
+      } else { // Organized Travel
+        setFormData({
+          programId: reservation.programId?._id,
+          firstName: reservation.firstName,
+          lastName: reservation.lastName,
+          email: reservation.email,
+          phone: reservation.phone,
+          preferredDate: format(new Date(reservation.preferredDate), 'yyyy-MM-dd'),
+          numberOfTravelers: reservation.numberOfTravelers,
+          totalPrice: reservation.totalPrice,
+          status: reservation.status,
+          paymentStatus: reservation.paymentStatus,
+          notes: reservation.notes || '',
+        });
+      }
+    } else {
+      // Reset for new reservation
+      setFormType('Activity');
+      setFormData({
+        // Default fields for Activity
+      });
+    }
+  }, [reservation]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCustomerInfoChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      customerInfo: { ...prev.customerInfo, [name]: value }
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (reservation) { // Update
+        if (formType === 'Activity') {
+          await activitiesAPI.updateReservation(reservation._id, formData);
+        } else {
+          await organizedTravelAPI.updateReservation(reservation._id, formData);
+        }
+        toast.success("Reservation updated successfully.");
+      } else { // Create
+        if (formType === 'Activity') {
+          await activitiesAPI.createReservation(formData);
+        } else {
+          await organizedTravelAPI.createReservation(formData);
+        }
+        toast.success("Reservation created successfully.");
+      }
+      onSave();
+    } catch (error) {
+      toast.error("Failed to save reservation.");
+      console.error("Failed to save reservation:", error);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-6">
+      {!reservation && (
+        <Select value={formType} onValueChange={setFormType}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select reservation type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Activity">Activity</SelectItem>
+            <SelectItem value="Organized Travel">Organized Travel</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
+
+      {formType === 'Activity' ? (
+        <>
+          <Label>Activity</Label>
+          <Select name="activity" value={formData.activity} onValueChange={(value) => setFormData(prev => ({ ...prev, activity: value }))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{availableActivities.map(a => <SelectItem key={a._id} value={a._id}>{a.name}</SelectItem>)}</SelectContent>
+          </Select>
+          <Label>Customer Name</Label>
+          <Input name="name" value={formData.customerInfo?.name || ''} onChange={handleCustomerInfoChange} />
+          <Label>Customer Email</Label>
+          <Input name="email" type="email" value={formData.customerInfo?.email || ''} onChange={handleCustomerInfoChange} />
+          <Label>Customer WhatsApp</Label>
+          <Input name="whatsapp" value={formData.customerInfo?.whatsapp || ''} onChange={handleCustomerInfoChange} />
+          <Label>Reservation Date</Label>
+          <Input name="reservationDate" type="date" value={formData.reservationDate} onChange={handleInputChange} />
+          <Label>Number of Persons</Label>
+          <Input name="numberOfPersons" type="number" value={formData.numberOfPersons} onChange={handleInputChange} />
+        </>
+      ) : ( // Organized Travel
+        <>
+          <Label>Travel Program</Label>
+          <Select name="programId" value={formData.programId} onValueChange={(value) => setFormData(prev => ({ ...prev, programId: value }))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{availablePrograms.map(p => <SelectItem key={p._id} value={p._id}>{p.title}</SelectItem>)}</SelectContent>
+          </Select>
+          <Label>First Name</Label>
+          <Input name="firstName" value={formData.firstName || ''} onChange={handleInputChange} />
+          <Label>Last Name</Label>
+          <Input name="lastName" value={formData.lastName || ''} onChange={handleInputChange} />
+          <Label>Email</Label>
+          <Input name="email" type="email" value={formData.email || ''} onChange={handleInputChange} />
+          <Label>Phone</Label>
+          <Input name="phone" value={formData.phone || ''} onChange={handleInputChange} />
+          <Label>Preferred Date</Label>
+          <Input name="preferredDate" type="date" value={formData.preferredDate} onChange={handleInputChange} />
+          <Label>Number of Travelers</Label>
+          <Input name="numberOfTravelers" type="number" value={formData.numberOfTravelers} onChange={handleInputChange} />
+        </>
+      )}
+
+      <Label>Total Price</Label>
+      <Input name="totalPrice" type="number" value={formData.totalPrice} onChange={handleInputChange} />
+      <Label>Status</Label>
+      <Select name="status" value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+        <SelectTrigger><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="pending">Pending</SelectItem>
+          <SelectItem value="confirmed">Confirmed</SelectItem>
+          <SelectItem value="cancelled">Cancelled</SelectItem>
+          <SelectItem value="completed">Completed</SelectItem>
+        </SelectContent>
+      </Select>
+      <Label>Payment Status</Label>
+      <Select name="paymentStatus" value={formData.paymentStatus} onValueChange={(value) => setFormData(prev => ({ ...prev, paymentStatus: value }))}>
+        <SelectTrigger><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="pending">Pending</SelectItem>
+          <SelectItem value="partial">Partial</SelectItem>
+          <SelectItem value="paid">Paid</SelectItem>
+          <SelectItem value="refunded">Refunded</SelectItem>
+        </SelectContent>
+      </Select>
+      <Label>Admin Notes</Label>
+      <Textarea name="notes" value={formData.notes} onChange={handleInputChange} />
+
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+        <Button type="submit">{reservation ? 'Update Reservation' : 'Create Reservation'}</Button>
+      </div>
+    </form>
+  );
+};
