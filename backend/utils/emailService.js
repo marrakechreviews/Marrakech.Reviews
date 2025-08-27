@@ -32,13 +32,21 @@ const getEmailTemplate = (templateName, data) => {
   const templatePath = path.join(__dirname, '..', 'templates', `${templateName}.html`);
   try {
     let template = fs.readFileSync(templatePath, 'utf-8');
+
+    // Handle conditional blocks
+    template = template.replace(/{{#if (\w+)}}([\s\S]*?){{\/if}}/g, (match, key, content) => {
+      return data[key] ? content : '';
+    });
+
     // Replace provided data
     for (const key in data) {
       const regex = new RegExp(`{{${key}}}`, 'g');
-      template = template.replace(regex, data[key] || ''); // Use empty string if data[key] is null/undefined
+      template = template.replace(regex, data[key] || '');
     }
-    // Remove any remaining placeholders
+
+    // Remove any remaining single placeholders
     template = template.replace(/{{[a-zA-Z0-9_]+}}/g, '');
+
     return template;
   } catch (error) {
     console.error(`Error reading email template ${templateName}:`, error);
@@ -116,7 +124,7 @@ const sendReservationConfirmation = async (reservationData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store Morocco',
+        name: 'MARRAKECH REVIEWS',
         address: process.env.SUPPORT_EMAIL
       },
       to: reservationData.customerInfo.email,
@@ -163,7 +171,7 @@ const sendAdminNotification = async (reservationData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store System',
+        name: 'MARRAKECH REVIEWS System',
         address: process.env.SUPPORT_EMAIL
       },
       to: process.env.ADMIN_EMAIL || 'hello@marrakech.reviews',
@@ -281,7 +289,7 @@ const sendOrderConfirmation = async (orderData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store Morocco',
+        name: 'MARRAKECH REVIEWS',
         address: process.env.SUPPORT_EMAIL
       },
       to: orderData.user.email,
@@ -334,7 +342,7 @@ const sendOrderNotification = async (orderData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store System',
+        name: 'MARRAKECH REVIEWS System',
         address: process.env.SUPPORT_EMAIL
       },
       to: process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL,
@@ -409,7 +417,7 @@ const sendReservationStatusUpdate = async (reservationData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store Morocco',
+        name: 'MARRAKECH REVIEWS',
         address: process.env.SUPPORT_EMAIL
       },
       to: reservationData.customerInfo.email,
