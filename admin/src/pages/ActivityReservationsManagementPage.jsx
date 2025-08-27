@@ -38,12 +38,7 @@ export default function ActivityReservationsManagementPage() {
 
   const { data: reservationsResponse, isLoading, error, refetch } = useQuery({
     queryKey: ['activityReservations', searchTerm, filterStatus, filterActivity],
-    queryFn: () => activitiesAPI.getReservations({
-      search: searchTerm,
-      status: filterStatus && filterStatus !== 'all' ? filterStatus : undefined,
-      activity: filterActivity && filterActivity !== 'all' ? filterActivity : undefined,
-      limit: 50
-    })
+    queryFn: () => activitiesAPI.getReservations({ limit: 50 })
   });
 
   const reservations = reservationsResponse?.reservations || [];
@@ -55,6 +50,9 @@ export default function ActivityReservationsManagementPage() {
   });
   const activities = activitiesResponse?.activities || [];
 
+  useEffect(() => {
+    console.log('Reservations Response from API:', reservationsResponse);
+  }, [reservationsResponse]);
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, data }) => activitiesAPI.updateReservationStatus(id, data),
