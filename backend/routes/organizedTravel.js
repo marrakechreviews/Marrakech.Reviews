@@ -150,10 +150,11 @@ router.post("/reservations", async (req, res) => {
 // @access  Private/Admin
 router.get("/admin/reservations", protect, admin, async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, destination } = req.query;
+    const { page = 1, limit = 10, status, destination, paymentStatus } = req.query;
     
     const query = {};
-    if (status) query.status = status;
+    if (status && status !== 'all') query.status = status;
+    if (paymentStatus && paymentStatus !== 'all') query.paymentStatus = paymentStatus;
     if (destination) query.destination = { $regex: new RegExp(destination, 'i') };
     
     const reservations = await TravelReservation.find(query)
@@ -175,16 +176,27 @@ router.get("/admin/reservations", protect, admin, async (req, res) => {
   }
 });
 
-// @desc    Update reservation status (Admin only)
+// @desc    Update reservation status and payment status (Admin only)
 // @route   PUT /api/organized-travel/admin/reservations/:id
 // @access  Private/Admin
 router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
   try {
-    const { status, notes } = req.body;
+    const { status, paymentStatus, notes } = req.body;
+
+    const updateData = { updatedAt: Date.now() };
+    if (status) {
+      updateData.status = status;
+    }
+    if (paymentStatus) {
+      updateData.paymentStatus = paymentStatus;
+    }
+    if (notes) {
+      updateData.notes = notes;
+    }
     
     const reservation = await TravelReservation.findByIdAndUpdate(
       req.params.id,
-      { status, notes, updatedAt: Date.now() },
+      updateData,
       { new: true }
     ).populate('programId');
     
@@ -192,6 +204,8 @@ router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
       return res.status(404).json({ message: "Reservation not found" });
     }
     
+    // TODO: Optionally send an email notification about the status update
+
     res.json(reservation);
   } catch (error) {
     res.status(400).json({ message: error.message, errors: error.errors });

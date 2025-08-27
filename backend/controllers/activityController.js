@@ -310,6 +310,11 @@ const getReservations = asyncHandler(async (req, res) => {
     query.status = req.query.status;
   }
 
+  // Payment status filter
+  if (req.query.paymentStatus && req.query.paymentStatus !== 'all') {
+    query.paymentStatus = req.query.paymentStatus;
+  }
+
   // Date range filter
   if (req.query.startDate || req.query.endDate) {
     query.reservationDate = {};
@@ -376,7 +381,7 @@ const getReservation = asyncHandler(async (req, res) => {
 // @route   PUT /api/activities/reservations/:id/status
 // @access  Private/Admin
 const updateReservationStatus = asyncHandler(async (req, res) => {
-  const { status, adminNotes } = req.body;
+  const { status, adminNotes, paymentStatus } = req.body;
 
   const reservation = await ActivityReservation.findById(req.params.id).populate('activity');
 
@@ -386,9 +391,14 @@ const updateReservationStatus = asyncHandler(async (req, res) => {
   }
 
   const oldStatus = reservation.status;
-  reservation.status = status;
+  if (status) {
+    reservation.status = status;
+  }
   if (adminNotes) {
     reservation.adminNotes = adminNotes;
+  }
+  if (paymentStatus) {
+    reservation.paymentStatus = paymentStatus;
   }
 
   const updatedReservation = await reservation.save();
@@ -396,15 +406,12 @@ const updateReservationStatus = asyncHandler(async (req, res) => {
 
   /**
    * Send a status update email to the customer if the reservation status has changed.
-   * This is wrapped in a try...catch block to ensure that an email sending failure
-   * does not prevent the API from sending a successful response.
    */
-  if (oldStatus !== updatedReservation.status) {
+  if (status && oldStatus !== updatedReservation.status) {
     try {
       await sendReservationStatusUpdate(updatedReservation);
     } catch (emailError) {
       console.error('Failed to send status update email:', emailError);
-      // Do not block the response for email errors
     }
   }
 

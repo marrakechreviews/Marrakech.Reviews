@@ -1,0 +1,288 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Globe,
+  MapPin,
+  Clock,
+  Users,
+  DollarSign,
+  ToggleLeft,
+  ToggleRight,
+  Calendar,
+  Settings
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
+import { organizedTravelAPI } from '../lib/api';
+
+export default function OrganizedTravelManagementPage() {
+  const [programs, setPrograms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [selectedProgram, setSelectedProgram] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  useEffect(() => {
+    fetchPrograms();
+  }, [searchTerm, filterStatus]);
+
+  const fetchPrograms = async () => {
+    setLoading(true);
+    try {
+      const params = {
+        search: searchTerm,
+      };
+      if (filterStatus === 'active') params.isActive = true;
+      if (filterStatus === 'inactive') params.isActive = false;
+
+      const response = await organizedTravelAPI.getPrograms(params);
+      setPrograms(response.data);
+    } catch (error) {
+      console.error("Failed to fetch programs:", error);
+      toast.error("Failed to fetch travel programs.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (programId, field) => {
+    const program = programs.find(p => p._id === programId);
+    if (!program) return;
+
+    const updatedProgramData = { ...program, [field]: !program[field] };
+
+    try {
+      await organizedTravelAPI.updateProgram(programId, updatedProgramData);
+      setPrograms(prev => prev.map(p =>
+        p._id === programId ? updatedProgramData : p
+      ));
+      toast.success(`Program ${field} status updated.`);
+    } catch (error) {
+      console.error(`Failed to toggle ${field} status:`, error);
+      toast.error(`Failed to update program status.`);
+    }
+  };
+
+  const handleDeleteProgram = async (programId) => {
+    if (window.confirm('Are you sure you want to delete this travel program?')) {
+      try {
+        await organizedTravelAPI.deleteProgram(programId);
+        setPrograms(prev => prev.filter(p => p._id !== programId));
+        toast.success("Travel program deleted.");
+      } catch (error) {
+        console.error("Failed to delete program:", error);
+        toast.error("Failed to delete travel program.");
+      }
+    }
+  };
+
+  const openCreateForm = () => {
+    setSelectedProgram(null);
+    setIsFormOpen(true);
+  };
+
+  const openEditForm = (program) => {
+    setSelectedProgram(program);
+    setIsFormOpen(true);
+  };
+
+  const ProgramForm = ({ program, onSave, onCancel }) => {
+    const [formData, setFormData] = useState(
+      program
+        ? { ...program, included: program.included.join(', '), gallery: program.gallery.join(', ') }
+        : {
+            title: '',
+            subtitle: '',
+            destination: '',
+            duration: '',
+            price: 0,
+            maxGroupSize: 10,
+            description: '',
+            heroImage: '',
+            included: '',
+            gallery: '',
+            isActive: true,
+          }
+    );
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      const dataToSend = {
+        ...formData,
+        included: formData.included.split(',').map(item => item.trim()).filter(item => item),
+        gallery: formData.gallery.split(',').map(url => url.trim()).filter(url => url),
+      };
+
+      try {
+        if (program) {
+          await organizedTravelAPI.updateProgram(program._id, dataToSend);
+          toast.success("Program updated successfully!");
+        } else {
+          await organizedTravelAPI.createProgram(dataToSend);
+          toast.success("Program created successfully!");
+        }
+        onSave();
+      } catch (error) {
+        console.error("Failed to save program:", error);
+        toast.error("Failed to save program. Check console for details.");
+      }
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <Label htmlFor="title">Title *</Label>
+            <Input id="title" value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} required />
+          </div>
+          <div className="md:col-span-2">
+            <Label htmlFor="subtitle">Subtitle</Label>
+            <Input id="subtitle" value={formData.subtitle} onChange={(e) => setFormData(prev => ({ ...prev, subtitle: e.target.value }))} />
+          </div>
+          <div>
+            <Label htmlFor="destination">Destination *</Label>
+            <Input id="destination" value={formData.destination} onChange={(e) => setFormData(prev => ({ ...prev, destination: e.target.value }))} required />
+          </div>
+          <div>
+            <Label htmlFor="duration">Duration *</Label>
+            <Input id="duration" value={formData.duration} onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))} placeholder="e.g., 7 Days / 6 Nights" required />
+          </div>
+          <div>
+            <Label htmlFor="price">Price ($) *</Label>
+            <Input id="price" type="number" value={formData.price} onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))} required />
+          </div>
+          <div>
+            <Label htmlFor="maxGroupSize">Max Group Size *</Label>
+            <Input id="maxGroupSize" type="number" value={formData.maxGroupSize} onChange={(e) => setFormData(prev => ({ ...prev, maxGroupSize: parseInt(e.target.value) || 1 }))} required />
+          </div>
+          <div className="md:col-span-2">
+            <Label htmlFor="heroImage">Hero Image URL *</Label>
+            <Input id="heroImage" value={formData.heroImage} onChange={(e) => setFormData(prev => ({ ...prev, heroImage: e.target.value }))} required />
+          </div>
+          <div className="md:col-span-2">
+            <Label htmlFor="description">Description *</Label>
+            <Textarea id="description" value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} rows={5} required />
+          </div>
+          <div className="md:col-span-2">
+            <Label htmlFor="included">What's Included (comma-separated)</Label>
+            <Textarea id="included" value={formData.included} onChange={(e) => setFormData(prev => ({ ...prev, included: e.target.value }))} rows={3} />
+          </div>
+          <div className="md:col-span-2">
+            <Label htmlFor="gallery">Image Gallery (comma-separated URLs)</Label>
+            <Textarea id="gallery" value={formData.gallery} onChange={(e) => setFormData(prev => ({ ...prev, gallery: e.target.value }))} rows={3} />
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch id="isActive" checked={formData.isActive} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))} />
+          <Label htmlFor="isActive">Active</Label>
+        </div>
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button type="submit">{program ? 'Update Program' : 'Create Program'}</Button>
+        </div>
+      </form>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Organized Travel Management</h1>
+          <p className="text-gray-600">Manage your travel programs</p>
+        </div>
+        <Button onClick={openCreateForm}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Program
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex gap-4">
+            <Input
+              placeholder="Search by title or destination..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Travel Programs ({programs.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Destination</TableHead>
+                <TableHead>Duration</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow><TableCell colSpan={6}>Loading...</TableCell></TableRow>
+              ) : programs.map((program) => (
+                <TableRow key={program._id}>
+                  <TableCell className="font-medium">{program.title}</TableCell>
+                  <TableCell>{program.destination}</TableCell>
+                  <TableCell>{program.duration}</TableCell>
+                  <TableCell>${program.price}</TableCell>
+                  <TableCell>
+                    <Badge variant={program.isActive ? 'default' : 'secondary'}>
+                      {program.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => openEditForm(program)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleDeleteProgram(program._id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedProgram ? 'Edit Program' : 'Create New Program'}</DialogTitle>
+          </DialogHeader>
+          <ProgramForm
+            program={selectedProgram}
+            onSave={() => {
+              setIsFormOpen(false);
+              fetchPrograms();
+            }}
+            onCancel={() => setIsFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

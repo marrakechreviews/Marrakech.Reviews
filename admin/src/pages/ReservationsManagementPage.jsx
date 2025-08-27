@@ -37,6 +37,7 @@ export default function ReservationsManagementPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -48,6 +49,7 @@ export default function ReservationsManagementPage() {
       const params = {
         search: searchTerm,
         status: filterStatus === 'all' ? '' : filterStatus,
+        paymentStatus: filterPaymentStatus === 'all' ? '' : filterPaymentStatus,
       };
 
       if (filterType === 'all' || filterType === 'activity') {
@@ -71,7 +73,7 @@ export default function ReservationsManagementPage() {
 
   useEffect(() => {
     fetchReservations();
-  }, [searchTerm, filterStatus, filterType]);
+  }, [searchTerm, filterStatus, filterType, filterPaymentStatus]);
 
   const handleStatusChange = async (reservation, newStatus, adminNotes = '') => {
     try {
@@ -82,8 +84,23 @@ export default function ReservationsManagementPage() {
       }
       toast.success('Reservation status updated.');
       fetchReservations();
-    } catch (error) {
+    } catch (error) => {
       toast.error('Failed to update reservation status.');
+    }
+  };
+
+  const handlePaymentStatusChange = async (reservation, newPaymentStatus) => {
+    try {
+      if (reservation.type === 'Activity') {
+        await activitiesAPI.updateReservationStatus(reservation._id, { paymentStatus: newPaymentStatus });
+      } else {
+        await organizedTravelAPI.updateReservationStatus(reservation._id, { paymentStatus: newPaymentStatus });
+      }
+      toast.success('Payment status updated successfully.');
+      fetchReservations(); // Refresh the list
+    } catch (error) {
+      toast.error('Failed to update payment status.');
+      console.error('Failed to update payment status:', error);
     }
   };
 
@@ -97,6 +114,16 @@ export default function ReservationsManagementPage() {
       case 'Cancelled': return 'bg-red-100 text-red-800';
       case 'completed':
       case 'Completed': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPaymentStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'partial': return 'bg-blue-100 text-blue-800';
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'refunded': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -143,13 +170,27 @@ export default function ReservationsManagementPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="confirmed">Confirmed</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={filterPaymentStatus} onValueChange={setFilterPaymentStatus}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Payment Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Payments</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="partial">Partial</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="refunded">Refunded</SelectItem>
+              </SelectContent>
+            </Select>
+
           </div>
         </CardContent>
       </Card>
@@ -170,11 +211,12 @@ export default function ReservationsManagementPage() {
                 <TableHead>Guests</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={7}>Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8}>Loading...</TableCell></TableRow>
               ) : reservations.map((reservation) => (
                 <TableRow key={reservation._id}>
                   <TableCell><Badge variant="outline">{reservation.type}</Badge></TableCell>
@@ -199,6 +241,22 @@ export default function ReservationsManagementPage() {
                     <Badge className={getStatusColor(reservation.status)}>
                       {reservation.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={reservation.paymentStatus}
+                      onValueChange={(newPaymentStatus) => handlePaymentStatusChange(reservation, newPaymentStatus)}
+                    >
+                      <SelectTrigger className={getPaymentStatusColor(reservation.paymentStatus)}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="partial">Partial</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="refunded">Refunded</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                 </TableRow>
               ))}
