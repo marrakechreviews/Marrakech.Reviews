@@ -77,27 +77,21 @@ export default function ReservationsManagementPage() {
     fetchReservations();
   }, [searchTerm, filterStatus, filterType, filterPaymentStatus]);
 
-  const handleStatusChange = async (reservation, newStatus, adminNotes = '') => {
+  const handleStatusChange = async (reservation, newStatus) => {
     try {
-      if (reservation.type === 'Activity') {
-        await activitiesAPI.updateReservationStatus(reservation._id, { status: newStatus, adminNotes });
-      } else {
-        await organizedTravelAPI.updateReservationStatus(reservation._id, { status: newStatus, notes: adminNotes });
-      }
+      const api = reservation.type === 'Activity' ? activitiesAPI : organizedTravelAPI;
+      await api.updateReservation(reservation._id, { status: newStatus });
       toast.success('Reservation status updated.');
       fetchReservations();
-    } catch (error) => {
+    } catch (error) {
       toast.error('Failed to update reservation status.');
     }
   };
 
   const handlePaymentStatusChange = async (reservation, newPaymentStatus) => {
     try {
-      if (reservation.type === 'Activity') {
-        await activitiesAPI.updateReservationStatus(reservation._id, { paymentStatus: newPaymentStatus });
-      } else {
-        await organizedTravelAPI.updateReservationStatus(reservation._id, { paymentStatus: newPaymentStatus });
-      }
+      const api = reservation.type === 'Activity' ? activitiesAPI : organizedTravelAPI;
+      await api.updateReservation(reservation._id, { paymentStatus: newPaymentStatus });
       toast.success('Payment status updated successfully.');
       fetchReservations(); // Refresh the list
     } catch (error) {
