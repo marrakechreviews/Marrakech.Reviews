@@ -1,6 +1,6 @@
 const Activity = require('../models/Activity');
 const ActivityReservation = require('../models/ActivityReservation');
-const { sendReservationConfirmation, sendAdminNotification, sendReservationStatusUpdate } = require('../utils/emailService');
+const { sendReservationConfirmation, sendAdminNotification, sendReservationUpdateNotification } = require('../utils/emailService');
 const asyncHandler = require('express-async-handler');
 
 // @desc    Get all activities
@@ -434,14 +434,13 @@ const updateReservation = asyncHandler(async (req, res) => {
   await updatedReservation.populate('activity', 'name category location');
 
   /**
-   * Send a status update email to the customer if the reservation status has changed.
+   * Send a generic update notification email.
    */
-  if (req.body.status && oldStatus !== updatedReservation.status) {
-    try {
-      await sendReservationStatusUpdate(updatedReservation);
-    } catch (emailError) {
-      console.error('Failed to send status update email:', emailError);
-    }
+  try {
+    await sendReservationUpdateNotification(updatedReservation);
+  } catch (emailError) {
+    console.error('Failed to send update notification email:', emailError);
+    // Do not fail the request if email sending fails
   }
 
   res.json(updatedReservation);

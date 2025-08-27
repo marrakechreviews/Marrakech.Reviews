@@ -1,0 +1,30 @@
+Hello {{customerName}},
+
+This is a notification to inform you that your reservation with MARRAKECH REVIEWS has been updated.
+
+Please review the latest details below.
+
+Reservation ID: {{reservationId}}
+===================================
+
+UPDATED RESERVATION DETAILS
+---------------------------
+{{#if isActivity}}Activity{{else}}Program{{/if}}: {{bookingName}}
+Date: {{bookingDate}}
+Number of Guests: {{numberOfGuests}}
+Status: {{status}}
+Payment Status: {{paymentStatus}}
+Total Price: ${{totalPrice}}
+
+{{#if notes}}
+Admin Notes:
+"{{notes}}"
+{{/if}}
+
+
+If you have any questions or did not authorize this change, please contact us immediately.
+
+You can reply to this email or reach us on WhatsApp: {{whatsappNumber}}
+
+Thank you,
+MARRAKECH REVIEWS

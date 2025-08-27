@@ -10,7 +10,7 @@ const emailService = require('../../utils/emailService');
 jest.mock('../../utils/emailService', () => ({
   sendReservationConfirmation: jest.fn().mockResolvedValue({ success: true }),
   sendAdminNotification: jest.fn().mockResolvedValue({ success: true }),
-  sendReservationStatusUpdate: jest.fn().mockResolvedValue({ success: true }),
+  sendReservationUpdateNotification: jest.fn().mockResolvedValue({ success: true }),
 }));
 
 const app = express();
@@ -79,7 +79,7 @@ describe('Activity Controller', () => {
 
   it('should update a reservation status and send a notification email', async () => {
     const response = await request(app)
-      .put(`/api/activities/reservations/${reservation._id}/status`)
+      .put(`/api/activities/reservations/${reservation._id}`)
       .set('Authorization', 'Bearer bypass-token')
       .send({ status: 'Confirmed' });
 
@@ -87,7 +87,7 @@ describe('Activity Controller', () => {
     expect(response.body.status).toBe('Confirmed');
 
     // Check if email function was called
-    expect(emailService.sendReservationStatusUpdate).toHaveBeenCalledTimes(1);
+    expect(emailService.sendReservationUpdateNotification).toHaveBeenCalledTimes(1);
 
     // Check if the reservation was updated in the database
     const updatedReservation = await ActivityReservation.findById(reservation._id);

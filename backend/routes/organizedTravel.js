@@ -3,7 +3,11 @@ const router = express.Router();
 const OrganizedTravel = require("../models/OrganizedTravel");
 const TravelReservation = require("../models/TravelReservation");
 const { protect, admin } = require("../middleware/authMiddleware");
-const { sendTravelReservationConfirmation, sendTravelAdminNotification } = require('../utils/emailService');
+const {
+  sendTravelReservationConfirmation,
+  sendTravelAdminNotification,
+  sendReservationUpdateNotification
+} = require('../utils/emailService');
 
 // @desc    Get all organized travel programs
 // @route   GET /api/organized-travel
@@ -204,13 +208,17 @@ router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
       return res.status(404).json({ message: "Reservation not found" });
     }
 
-    // TODO: Consider sending status update email if status changes
-    // const oldStatus = reservation.status;
-
     Object.assign(reservation, req.body);
     
     const updatedReservation = await reservation.save();
     await updatedReservation.populate('programId');
+
+    // Send update notification email
+    try {
+      await sendReservationUpdateNotification(updatedReservation);
+    } catch (emailError) {
+      console.error('Failed to send update notification email for travel reservation:', emailError);
+    }
 
     res.json(updatedReservation);
   } catch (error) {

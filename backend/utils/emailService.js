@@ -621,6 +621,67 @@ const sendTravelAdminNotification = async (reservationData) => {
   }
 };
 
+/**
+ * Sends a generic reservation update notification.
+ * This can be used for any change: status, payment, details, etc.
+ * @param {object} reservationData - The full reservation object (Activity or Travel).
+ */
+const sendReservationUpdateNotification = async (reservationData) => {
+  try {
+    const transporter = createTransporter();
+
+    const isActivity = !!reservationData.activity;
+    const customerEmail = isActivity ? reservationData.customerInfo.email : reservationData.email;
+    const customerName = isActivity ? reservationData.customerInfo.name : `${reservationData.firstName} ${reservationData.lastName}`;
+
+    const emailData = {
+      isActivity,
+      customerName,
+      reservationId: reservationData.reservationId || reservationData._id.toString(),
+      bookingName: isActivity ? reservationData.activity?.name : reservationData.programId?.title,
+      bookingDate: new Date(isActivity ? reservationData.reservationDate : reservationData.preferredDate).toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      }),
+      numberOfGuests: isActivity ? reservationData.numberOfPersons : reservationData.numberOfTravelers,
+      status: reservationData.status,
+      paymentStatus: reservationData.paymentStatus,
+      totalPrice: reservationData.totalPrice,
+      notes: reservationData.notes || reservationData.adminNotes || '',
+      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
+      supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com',
+    };
+
+    // Send to customer
+    const customerMailOptions = {
+      from: { name: 'MARRAKECH REVIEWS', address: process.env.SUPPORT_EMAIL },
+      to: customerEmail,
+      subject: `Update on your reservation - ${emailData.reservationId}`,
+      html: getEmailTemplate('reservationUpdateNotification', emailData),
+      text: getEmailTemplate('reservationUpdateNotification.txt', emailData)
+    };
+    await transporter.sendMail(customerMailOptions);
+    console.log(`Update notification sent to customer ${customerEmail}`);
+
+    // Send to admin
+    const adminMailOptions = {
+      from: { name: 'MARRAKECH REVIEWS System', address: process.env.SUPPORT_EMAIL },
+      to: process.env.ADMIN_EMAIL || 'hello@marrakech.reviews',
+      subject: `[Admin] Reservation Updated - ${emailData.reservationId}`,
+      html: getEmailTemplate('reservationUpdateNotification', emailData), // Can reuse or create an admin-specific one
+      text: getEmailTemplate('reservationUpdateNotification.txt', emailData)
+    };
+    await transporter.sendMail(adminMailOptions);
+    console.log(`Update notification sent to admin`);
+
+    return { success: true };
+
+  } catch (error) {
+    console.error('Error sending reservation update notification:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+
 module.exports = {
   sendReservationConfirmation,
   sendAdminNotification,
@@ -628,6 +689,7 @@ module.exports = {
   sendOrderConfirmation,
   sendOrderNotification,
   sendReservationStatusUpdate,
+  sendReservationUpdateNotification,
   testEmailConfiguration,
   getEmailTemplate,
   sendContactAdminNotification,
