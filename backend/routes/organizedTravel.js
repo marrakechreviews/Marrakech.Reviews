@@ -3,6 +3,7 @@ const router = express.Router();
 const OrganizedTravel = require("../models/OrganizedTravel");
 const TravelReservation = require("../models/TravelReservation");
 const { protect, admin } = require("../middleware/authMiddleware");
+const { sendTravelReservationConfirmation, sendTravelAdminNotification } = require('../utils/emailService');
 
 // @desc    Get all organized travel programs
 // @route   GET /api/organized-travel
@@ -127,17 +128,25 @@ router.post("/reservations", async (req, res) => {
 
     const savedReservation = await reservation.save();
     
+    // Send email notifications
+    try {
+      await sendTravelReservationConfirmation(savedReservation);
+      await sendTravelAdminNotification(savedReservation);
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+    }
+
     res.status(201).json({
       message: "Reservation created successfully",
       reservation: savedReservation
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: error.message, errors: error.errors });
   }
 });
 
 // @desc    Get all reservations (Admin only)
-// @route   GET /api/organized-travel/reservations
+// @route   GET /api/organized-travel/admin/reservations
 // @access  Private/Admin
 router.get("/admin/reservations", protect, admin, async (req, res) => {
   try {
@@ -167,7 +176,7 @@ router.get("/admin/reservations", protect, admin, async (req, res) => {
 });
 
 // @desc    Update reservation status (Admin only)
-// @route   PUT /api/organized-travel/reservations/:id
+// @route   PUT /api/organized-travel/admin/reservations/:id
 // @access  Private/Admin
 router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
   try {
@@ -185,7 +194,7 @@ router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
     
     res.json(reservation);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: error.message, errors: error.errors });
   }
 });
 
@@ -194,11 +203,13 @@ router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.post("/admin/programs", protect, admin, async (req, res) => {
   try {
-    const program = new OrganizedTravel(req.body);
+    const { title } = req.body;
+    const slug = title.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+    const program = new OrganizedTravel({ ...req.body, slug });
     const savedProgram = await program.save();
     res.status(201).json(savedProgram);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: error.message, errors: error.errors });
   }
 });
 
@@ -207,6 +218,10 @@ router.post("/admin/programs", protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.put("/admin/programs/:id", protect, admin, async (req, res) => {
   try {
+    const { title } = req.body;
+    if (title) {
+      req.body.slug = title.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+    }
     const program = await OrganizedTravel.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -219,7 +234,7 @@ router.put("/admin/programs/:id", protect, admin, async (req, res) => {
     
     res.json(program);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: error.message, errors: error.errors });
   }
 });
 
@@ -253,4 +268,3 @@ router.get("/admin/programs", protect, admin, async (req, res) => {
 });
 
 module.exports = router;
-

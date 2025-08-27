@@ -56,78 +56,28 @@ export const authAPI = {
 };
 
 // Users API
-// export const usersAPI = {
-  
-//   createUser: (data) => api.get('/users', { data}),
-//   getUsers: (params) => api.get('/users', { params }),
-//   getUserById: (id) => api.get(`/users/${id}`),
-//   updateUser: (id, data) => api.put(`/users/${id}`, data),
-//   deleteUser: (id) => api.delete(`/users/${id}`),
-//   getUserStats: () => api.get('/users/stats'),
-// };
-
-
 export const usersAPI = {
-  // Get all users with optional filters
   getUsers: (params = {}) => {
     const queryParams = new URLSearchParams();
-    
     if (params.search) queryParams.append('search', params.search);
     if (params.role) queryParams.append('role', params.role);
     if (params.isActive !== undefined) queryParams.append('isActive', params.isActive);
     if (params.sort) queryParams.append('sort', params.sort);
     if (params.limit) queryParams.append('limit', params.limit);
     if (params.page) queryParams.append('page', params.page);
-    
     const queryString = queryParams.toString();
     return api.get(`/users${queryString ? `?${queryString}` : ''}`);
   },
-
-  // Get user by ID
-  getUserById: (id) => {
-    return api.get(`/users/${id}`);
-  },
-
-  // Create new user
-  createUser: (data) => {
-    return api.post('/users', data);
-  },
-
-  // Update user
-  updateUser: (id, data) => {
-    return api.put(`/users/${id}`, data);
-  },
-
-  // Delete user
-  deleteUser: (id) => {
-    return api.delete(`/users/${id}`);
-  },
-
-  // Get user statistics
-  getUserStats: () => {
-    return api.get('/users/stats');
-  },
-
-  // Change user password
-  changePassword: (id, passwordData) => {
-    return api.patch(`/users/${id}/password`, passwordData);
-  },
-
-  // Toggle user status
-  toggleUserStatus: (id) => {
-    return api.patch(`/users/${id}/toggle-status`);
-  },
-
-  // Bulk operations
-  bulkDeleteUsers: (userIds) => {
-    return api.post('/users/bulk-delete', { userIds });
-  },
-
-  bulkUpdateUsers: (userIds, updateData) => {
-    return api.post('/users/bulk-update', { userIds, updateData });
-  }
+  getUserById: (id) => api.get(`/users/${id}`),
+  createUser: (data) => api.post('/users', data),
+  updateUser: (id, data) => api.put(`/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/users/${id}`),
+  getUserStats: () => api.get('/users/stats'),
+  changePassword: (id, passwordData) => api.patch(`/users/${id}/password`, passwordData),
+  toggleUserStatus: (id) => api.patch(`/users/${id}/toggle-status`),
+  bulkDeleteUsers: (userIds) => api.post('/users/bulk-delete', { userIds }),
+  bulkUpdateUsers: (userIds, updateData) => api.post('/users/bulk-update', { userIds, updateData }),
 };
-
 
 // Products API
 export const productsAPI = {
@@ -144,7 +94,6 @@ export const productGeneratorAPI = {
   generateProduct: (product_url) => api.post('/generate-product', { product_url }),
   getProductGenerationStatus: (taskId) => api.get(`/product-status/${taskId}`),
 };
-
 
 // Orders API
 export const ordersAPI = {
@@ -168,20 +117,14 @@ export const uploadAPI = {
     const formData = new FormData();
     formData.append('image', file);
     return api.post('/upload/image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
   uploadProductImages: (files) => {
     const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('images', file);
-    });
+    files.forEach((file) => formData.append('images', file));
     return api.post('/upload/product-images', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
 };
@@ -208,6 +151,16 @@ export const activitiesAPI = {
   updateReservationStatus: (id, data) => api.put(`/activities/reservations/${id}/status`, data),
 };
 
+// Organized Travel API
+export const organizedTravelAPI = {
+  getPrograms: (params) => api.get('/organized-travel/admin/programs', { params }),
+  getReservations: (params) => api.get('/organized-travel/admin/reservations', { params }),
+  createProgram: (data) => api.post('/organized-travel/admin/programs', data),
+  updateProgram: (id, data) => api.put(`/organized-travel/admin/programs/${id}`, data),
+  deleteProgram: (id) => api.delete(`/organized-travel/admin/programs/${id}`),
+  updateReservationStatus: (id, data) => api.put(`/organized-travel/admin/reservations/${id}`, data),
+};
+
 // Settings API
 export const settingsAPI = {
   getSettings: () => api.get('/settings'),
@@ -218,4 +171,3 @@ export const settingsAPI = {
 };
 
 export default api;
-

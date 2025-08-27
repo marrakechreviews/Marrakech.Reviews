@@ -520,6 +520,107 @@ const sendContactConfirmation = async (contactData) => {
   }
 };
 
+/**
+ * Sends a travel reservation confirmation email to the customer.
+ * @param {object} reservationData - The travel reservation data.
+ */
+const sendTravelReservationConfirmation = async (reservationData) => {
+  try {
+    const transporter = createTransporter();
+
+    const emailData = {
+      reservationId: reservationData.reservationId,
+      programName: reservationData.programId?.title || 'Organized Travel',
+      destination: reservationData.destination,
+      preferredDate: new Date(reservationData.preferredDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      numberOfTravelers: reservationData.numberOfTravelers,
+      firstName: reservationData.firstName,
+      lastName: reservationData.lastName,
+      email: reservationData.email,
+      phone: reservationData.phone,
+      specialRequests: reservationData.specialRequests || '',
+      totalPrice: reservationData.totalPrice,
+      status: reservationData.status,
+      contactPhone: process.env.BUSINESS_PHONE || '+212 524-123456',
+      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
+      supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com',
+      websiteUrl: process.env.WEBSITE_URL || 'https://example.com'
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'MARRAKECH REVIEWS',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: reservationData.email,
+      subject: `Travel Reservation Confirmation - ${reservationData.reservationId}`,
+      html: getEmailTemplate('travelReservationConfirmation', emailData),
+      attachments: []
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Travel confirmation email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending travel confirmation email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Sends a notification email to the admin about a new travel reservation.
+ * @param {object} reservationData - The travel reservation data.
+ */
+const sendTravelAdminNotification = async (reservationData) => {
+  try {
+    const transporter = createTransporter();
+
+    const emailData = {
+      reservationId: reservationData.reservationId,
+      programName: reservationData.programId?.title || 'Organized Travel',
+      destination: reservationData.destination,
+      preferredDate: new Date(reservationData.preferredDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      numberOfTravelers: reservationData.numberOfTravelers,
+      firstName: reservationData.firstName,
+      lastName: reservationData.lastName,
+      email: reservationData.email,
+      phone: reservationData.phone,
+      specialRequests: reservationData.specialRequests || '',
+      totalPrice: reservationData.totalPrice,
+      submittedDate: new Date(reservationData.createdAt).toLocaleString('en-US', { timeZone: 'UTC' })
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'MARRAKECH REVIEWS System',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: process.env.ADMIN_EMAIL || 'hello@marrakech.reviews',
+      subject: `🚨 New Travel Reservation Alert - ${reservationData.reservationId}`,
+      html: getEmailTemplate('travelAdminNotification', emailData)
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Travel admin notification sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending travel admin notification:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendReservationConfirmation,
   sendAdminNotification,
@@ -530,5 +631,7 @@ module.exports = {
   testEmailConfiguration,
   getEmailTemplate,
   sendContactAdminNotification,
-  sendContactConfirmation
+  sendContactConfirmation,
+  sendTravelReservationConfirmation,
+  sendTravelAdminNotification
 };
