@@ -116,19 +116,15 @@ const sendReservationConfirmation = async (reservationData) => {
       notes: reservationData.notes || '',
       totalPrice: reservationData.totalPrice,
       status: reservationData.status,
-      contactPhone: process.env.BUSINESS_PHONE || '+212 524-123456',
-      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
-      supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com',
-      websiteUrl: process.env.WEBSITE_URL || 'https://example.com'
+      contactPhone: process.env.BUSINESS_PHONE || '+212 708040530',
+      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 708040530',
+      supportEmail: process.env.SUPPORT_EMAIL || 'Hello@Marrakech.Reviews',
+      websiteUrl: process.env.WEBSITE_URL || 'https://Marrakech.Reviews'
     };
 
     const mailOptions = {
       from: {
-<<<<<<< HEAD
-        name: 'Marrakech Reviews',
-=======
         name: 'MARRAKECH REVIEWS',
->>>>>>> c189c1d3e608347260f3bdbbe18f75296aaf728c
         address: process.env.SUPPORT_EMAIL
       },
       to: reservationData.customerInfo.email,
@@ -293,11 +289,7 @@ const sendOrderConfirmation = async (orderData) => {
 
     const mailOptions = {
       from: {
-<<<<<<< HEAD
-        name: 'Marrakech Reviews',
-=======
         name: 'MARRAKECH REVIEWS',
->>>>>>> c189c1d3e608347260f3bdbbe18f75296aaf728c
         address: process.env.SUPPORT_EMAIL
       },
       to: orderData.user.email,
@@ -425,11 +417,7 @@ const sendReservationStatusUpdate = async (reservationData) => {
 
     const mailOptions = {
       from: {
-<<<<<<< HEAD
-        name: 'Marrakech Reviews',
-=======
         name: 'MARRAKECH REVIEWS',
->>>>>>> c189c1d3e608347260f3bdbbe18f75296aaf728c
         address: process.env.SUPPORT_EMAIL
       },
       to: reservationData.customerInfo.email,
@@ -539,7 +527,7 @@ const sendContactConfirmation = async (contactData) => {
 const sendTravelReservationConfirmation = async (reservationData) => {
   try {
     const transporter = createTransporter();
-
+    
     const emailData = {
       reservationId: reservationData.reservationId,
       programName: reservationData.programId?.title || 'Organized Travel',
@@ -592,7 +580,7 @@ const sendTravelReservationConfirmation = async (reservationData) => {
 const sendTravelAdminNotification = async (reservationData) => {
   try {
     const transporter = createTransporter();
-
+    
     const emailData = {
       reservationId: reservationData.reservationId,
       programName: reservationData.programId?.title || 'Organized Travel',
@@ -641,7 +629,7 @@ const sendTravelAdminNotification = async (reservationData) => {
 const sendReservationUpdateNotification = async (reservationData) => {
   try {
     const transporter = createTransporter();
-
+    
     const isActivity = !!reservationData.activity;
     const customerEmail = isActivity ? reservationData.customerInfo.email : reservationData.email;
     const customerName = isActivity ? reservationData.customerInfo.name : `${reservationData.firstName} ${reservationData.lastName}`;
