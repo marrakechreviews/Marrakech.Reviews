@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import { visualizer } from 'rollup-plugin-visualizer'
-import { critical } from 'rollup-plugin-critical'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -17,18 +16,20 @@ export default defineConfig({
       gzipSize: true,
       brotliSize: true,
     }),
-    critical({
-      criticalBase: 'dist/',
-      criticalUrl: 'http://localhost:5173',
-      criticalPages: [{ uri: '/', template: 'index' }],
-      criticalConfig: {
-        inline: true,
-        base: 'dist/',
-        extract: false,
-        width: 1300,
-        height: 900,
-      },
-    }),
+    // critical({
+    //   criticalUrl: './dist/',
+    //   criticalBase: 'dist',
+    //   criticalPages: [
+    //     { uri: 'index.html', template: 'index' },
+    //   ],
+    //   criticalConfig: {
+    //     inline: true,
+    //     base: 'dist',
+    //     extract: false,
+    //     width: 1300,
+    //     height: 900,
+    //   },
+    // }),
   ],
   resolve: {
     alias: {
