@@ -48,8 +48,8 @@ const activityReservationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed'],
-    default: 'Pending'
+    enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+    default: 'pending'
   },
   notes: {
     type: String,
@@ -57,8 +57,8 @@ const activityReservationSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['Pending', 'Paid', 'Refunded'],
-    default: 'Pending'
+    enum: ['pending', 'paid', 'refunded', 'partial'],
+    default: 'pending'
   },
   paymentMethod: {
     type: String,
@@ -138,10 +138,10 @@ activityReservationSchema.pre('save', function(next) {
 
 // Pre-save middleware to set confirmation timestamp
 activityReservationSchema.pre('save', function(next) {
-  if (this.isModified('status') && this.status === 'Confirmed' && !this.confirmedAt) {
+  if (this.isModified('status') && this.status === 'confirmed' && !this.confirmedAt) {
     this.confirmedAt = new Date();
   }
-  if (this.isModified('status') && this.status === 'Cancelled' && !this.cancelledAt) {
+  if (this.isModified('status') && this.status === 'cancelled' && !this.cancelledAt) {
     this.cancelledAt = new Date();
   }
   next();
@@ -156,28 +156,28 @@ activityReservationSchema.statics.getReservationStats = async function() {
         totalReservations: { $sum: 1 },
         pendingReservations: {
           $sum: {
-            $cond: [{ $eq: ['$status', 'Pending'] }, 1, 0]
+            $cond: [{ $eq: ['$status', 'pending'] }, 1, 0]
           }
         },
         confirmedReservations: {
           $sum: {
-            $cond: [{ $eq: ['$status', 'Confirmed'] }, 1, 0]
+            $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0]
           }
         },
         cancelledReservations: {
           $sum: {
-            $cond: [{ $eq: ['$status', 'Cancelled'] }, 1, 0]
+            $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0]
           }
         },
         completedReservations: {
           $sum: {
-            $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0]
+            $cond: [{ $eq: ['$status', 'completed'] }, 1, 0]
           }
         },
         totalRevenue: {
           $sum: {
             $cond: [
-              { $in: ['$status', ['Confirmed', 'Completed']] },
+              { $in: ['$status', ['confirmed', 'completed']] },
               '$totalPrice',
               0
             ]
@@ -219,7 +219,7 @@ activityReservationSchema.statics.getMonthlyStats = async function(year = new Da
         revenue: {
           $sum: {
             $cond: [
-              { $in: ['$status', ['Confirmed', 'Completed']] },
+              { $in: ['$status', ['confirmed', 'completed']] },
               '$totalPrice',
               0
             ]
@@ -239,7 +239,7 @@ activityReservationSchema.statics.getPopularActivities = async function(limit = 
   return await this.aggregate([
     {
       $match: {
-        status: { $in: ['Confirmed', 'Completed'] }
+        status: { $in: ['confirmed', 'completed'] }
       }
     },
     {
