@@ -32,10 +32,21 @@ const getEmailTemplate = (templateName, data) => {
   const templatePath = path.join(__dirname, '..', 'templates', `${templateName}.html`);
   try {
     let template = fs.readFileSync(templatePath, 'utf-8');
+
+    // Handle conditional blocks
+    template = template.replace(/{{#if (\w+)}}([\s\S]*?){{\/if}}/g, (match, key, content) => {
+      return data[key] ? content : '';
+    });
+
+    // Replace provided data
     for (const key in data) {
       const regex = new RegExp(`{{${key}}}`, 'g');
-      template = template.replace(regex, data[key]);
+      template = template.replace(regex, data[key] || '');
     }
+
+    // Remove any remaining single placeholders
+    template = template.replace(/{{[a-zA-Z0-9_]+}}/g, '');
+
     return template;
   } catch (error) {
     console.error(`Error reading email template ${templateName}:`, error);
@@ -104,6 +115,7 @@ const sendReservationConfirmation = async (reservationData) => {
       customerPhone: reservationData.customerInfo.phone || '',
       notes: reservationData.notes || '',
       totalPrice: reservationData.totalPrice,
+      status: reservationData.status,
       contactPhone: process.env.BUSINESS_PHONE || '+212 524-123456',
       whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
       supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com',
@@ -112,7 +124,11 @@ const sendReservationConfirmation = async (reservationData) => {
 
     const mailOptions = {
       from: {
+<<<<<<< HEAD
         name: 'Marrakech Reviews',
+=======
+        name: 'MARRAKECH REVIEWS',
+>>>>>>> c189c1d3e608347260f3bdbbe18f75296aaf728c
         address: process.env.SUPPORT_EMAIL
       },
       to: reservationData.customerInfo.email,
@@ -159,7 +175,7 @@ const sendAdminNotification = async (reservationData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store System',
+        name: 'MARRAKECH REVIEWS System',
         address: process.env.SUPPORT_EMAIL
       },
       to: process.env.ADMIN_EMAIL || 'hello@marrakech.reviews',
@@ -277,7 +293,11 @@ const sendOrderConfirmation = async (orderData) => {
 
     const mailOptions = {
       from: {
+<<<<<<< HEAD
         name: 'Marrakech Reviews',
+=======
+        name: 'MARRAKECH REVIEWS',
+>>>>>>> c189c1d3e608347260f3bdbbe18f75296aaf728c
         address: process.env.SUPPORT_EMAIL
       },
       to: orderData.user.email,
@@ -330,7 +350,7 @@ const sendOrderNotification = async (orderData) => {
 
     const mailOptions = {
       from: {
-        name: 'E-Store System',
+        name: 'MARRAKECH REVIEWS System',
         address: process.env.SUPPORT_EMAIL
       },
       to: process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL,
@@ -405,7 +425,11 @@ const sendReservationStatusUpdate = async (reservationData) => {
 
     const mailOptions = {
       from: {
+<<<<<<< HEAD
         name: 'Marrakech Reviews',
+=======
+        name: 'MARRAKECH REVIEWS',
+>>>>>>> c189c1d3e608347260f3bdbbe18f75296aaf728c
         address: process.env.SUPPORT_EMAIL
       },
       to: reservationData.customerInfo.email,
@@ -508,6 +532,168 @@ const sendContactConfirmation = async (contactData) => {
   }
 };
 
+/**
+ * Sends a travel reservation confirmation email to the customer.
+ * @param {object} reservationData - The travel reservation data.
+ */
+const sendTravelReservationConfirmation = async (reservationData) => {
+  try {
+    const transporter = createTransporter();
+
+    const emailData = {
+      reservationId: reservationData.reservationId,
+      programName: reservationData.programId?.title || 'Organized Travel',
+      destination: reservationData.destination,
+      preferredDate: new Date(reservationData.preferredDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      numberOfTravelers: reservationData.numberOfTravelers,
+      firstName: reservationData.firstName,
+      lastName: reservationData.lastName,
+      email: reservationData.email,
+      phone: reservationData.phone,
+      specialRequests: reservationData.specialRequests || '',
+      totalPrice: reservationData.totalPrice,
+      status: reservationData.status,
+      contactPhone: process.env.BUSINESS_PHONE || '+212 524-123456',
+      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
+      supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com',
+      websiteUrl: process.env.WEBSITE_URL || 'https://example.com'
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'MARRAKECH REVIEWS',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: reservationData.email,
+      subject: `Travel Reservation Confirmation - ${reservationData.reservationId}`,
+      html: getEmailTemplate('travelReservationConfirmation', emailData),
+      attachments: []
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Travel confirmation email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending travel confirmation email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Sends a notification email to the admin about a new travel reservation.
+ * @param {object} reservationData - The travel reservation data.
+ */
+const sendTravelAdminNotification = async (reservationData) => {
+  try {
+    const transporter = createTransporter();
+
+    const emailData = {
+      reservationId: reservationData.reservationId,
+      programName: reservationData.programId?.title || 'Organized Travel',
+      destination: reservationData.destination,
+      preferredDate: new Date(reservationData.preferredDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      numberOfTravelers: reservationData.numberOfTravelers,
+      firstName: reservationData.firstName,
+      lastName: reservationData.lastName,
+      email: reservationData.email,
+      phone: reservationData.phone,
+      specialRequests: reservationData.specialRequests || '',
+      totalPrice: reservationData.totalPrice,
+      submittedDate: new Date(reservationData.createdAt).toLocaleString('en-US', { timeZone: 'UTC' })
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'MARRAKECH REVIEWS System',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: process.env.ADMIN_EMAIL || 'hello@marrakech.reviews',
+      subject: `🚨 New Travel Reservation Alert - ${reservationData.reservationId}`,
+      html: getEmailTemplate('travelAdminNotification', emailData)
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Travel admin notification sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending travel admin notification:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Sends a generic reservation update notification.
+ * This can be used for any change: status, payment, details, etc.
+ * @param {object} reservationData - The full reservation object (Activity or Travel).
+ */
+const sendReservationUpdateNotification = async (reservationData) => {
+  try {
+    const transporter = createTransporter();
+
+    const isActivity = !!reservationData.activity;
+    const customerEmail = isActivity ? reservationData.customerInfo.email : reservationData.email;
+    const customerName = isActivity ? reservationData.customerInfo.name : `${reservationData.firstName} ${reservationData.lastName}`;
+
+    const emailData = {
+      isActivity,
+      customerName,
+      reservationId: reservationData.reservationId || reservationData._id.toString(),
+      bookingName: isActivity ? reservationData.activity?.name : reservationData.programId?.title,
+      bookingDate: new Date(isActivity ? reservationData.reservationDate : reservationData.preferredDate).toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      }),
+      numberOfGuests: isActivity ? reservationData.numberOfPersons : reservationData.numberOfTravelers,
+      status: reservationData.status,
+      paymentStatus: reservationData.paymentStatus,
+      totalPrice: reservationData.totalPrice,
+      notes: reservationData.notes || reservationData.adminNotes || '',
+      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
+      supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com',
+    };
+
+    // Send to customer
+    const customerMailOptions = {
+      from: { name: 'MARRAKECH REVIEWS', address: process.env.SUPPORT_EMAIL },
+      to: customerEmail,
+      subject: `Update on your reservation - ${emailData.reservationId}`,
+      html: getEmailTemplate('reservationUpdateNotification', emailData),
+      text: getEmailTemplate('reservationUpdateNotification.txt', emailData)
+    };
+    await transporter.sendMail(customerMailOptions);
+    console.log(`Update notification sent to customer ${customerEmail}`);
+
+    // Send to admin
+    const adminMailOptions = {
+      from: { name: 'MARRAKECH REVIEWS System', address: process.env.SUPPORT_EMAIL },
+      to: process.env.ADMIN_EMAIL || 'hello@marrakech.reviews',
+      subject: `[Admin] Reservation Updated - ${emailData.reservationId}`,
+      html: getEmailTemplate('reservationUpdateNotification', emailData), // Can reuse or create an admin-specific one
+      text: getEmailTemplate('reservationUpdateNotification.txt', emailData)
+    };
+    await transporter.sendMail(adminMailOptions);
+    console.log(`Update notification sent to admin`);
+
+    return { success: true };
+
+  } catch (error) {
+    console.error('Error sending reservation update notification:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+
 module.exports = {
   sendReservationConfirmation,
   sendAdminNotification,
@@ -515,9 +701,11 @@ module.exports = {
   sendOrderConfirmation,
   sendOrderNotification,
   sendReservationStatusUpdate,
+  sendReservationUpdateNotification,
   testEmailConfiguration,
   getEmailTemplate,
   sendContactAdminNotification,
-  sendContactConfirmation
+  sendContactConfirmation,
+  sendTravelReservationConfirmation,
+  sendTravelAdminNotification
 };
-

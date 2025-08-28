@@ -13,11 +13,13 @@ import GoogleReviewsPage from './pages/GoogleReviewsPage';
 import HostingReservationsPage from './pages/HostingReservationsPage';
 import ActivitiesPage from './pages/ActivitiesPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
-import OrganizedTravelPage from './pages/OrganizedTravelPage';
+import OrganizedTravelsPage from './pages/OrganizedTravelsPage';
+import OrganizedTravelDetailsPage from './pages/OrganizedTravelDetailsPage';
 import InstagramPage from './pages/InstagramPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import ThankYouPage from './pages/ThankYouPage';
+import TravelThankYouPage from './pages/TravelThankYouPage';
 import AboutUsPage from './pages/AboutUsPage';
 import ContactUsPage from './pages/ContactUsPage';
 import FAQPage from './pages/FAQPage';
@@ -56,11 +58,13 @@ function App() {
                 <Route path="/hosting" element={<HostingReservationsPage />} />
                 <Route path="/activities" element={<ActivitiesPage />} />
                 <Route path="/activities/:slug" element={<ActivityDetailPage />} />
-                <Route path="/destinations/:destination" element={<OrganizedTravelPage />} />
+                <Route path="/travels" element={<OrganizedTravelsPage />} />
+                <Route path="/travels/:destination" element={<OrganizedTravelDetailsPage />} />
                 <Route path="/instagram" element={<InstagramPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />
+                <Route path="/travel/thank-you" element={<TravelThankYouPage />} />
                 <Route path="/about" element={<AboutUsPage />} />
                 <Route path="/contact" element={<ContactUsPage />} />
                 <Route path="/faq" element={<FAQPage />} />

@@ -62,9 +62,9 @@ const navigation = [
     icon: Plane,
   },
   {
-    name: 'Organized Travel',
+    name: 'Travel Programs',
     href: '/organized-travel',
-    icon: MapPin,
+    icon: Plane,
   },
   {
     name: 'Customers',

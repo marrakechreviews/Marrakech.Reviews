@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -26,12 +26,12 @@ import {
 } from 'lucide-react';
 import api from '../lib/api';
 
-const OrganizedTravelPage = () => {
+const OrganizedTravelDetailsPage = () => {
   const { destination } = useParams();
+  const navigate = useNavigate();
   const [travelProgram, setTravelProgram] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
@@ -82,11 +82,18 @@ const OrganizedTravelPage = () => {
         ...formData,
         destination,
         programId: travelProgram?._id,
+        programName: travelProgram?.title,
         totalPrice: travelProgram?.price * formData.numberOfTravelers
       };
 
-      await api.post("organized-travel/reservations", reservationData);
-      setSubmitted(true);
+      const response = await api.post("organized-travel/reservations", reservationData);
+
+      // Pass the response data to the thank you page
+      navigate('/travel/thank-you', {
+        state: {
+          reservationData: { ...reservationData, reservationId: response.data.reservation.reservationId }
+        }
+      });
     } catch (error) {
       console.error('Error submitting reservation:', error);
       setError('Failed to submit reservation. Please try again.');
@@ -114,25 +121,6 @@ const OrganizedTravelPage = () => {
           <h2 className="text-2xl font-bold mb-2">Program Not Found</h2>
           <p className="text-gray-600">{error}</p>
         </div>
-      </div>
-    );
-  }
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="max-w-md w-full mx-4">
-          <CardContent className="text-center p-8">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Reservation Confirmed!</h2>
-            <p className="text-gray-600 mb-4">
-              Thank you for your reservation. We'll contact you within 24 hours to confirm your travel details.
-            </p>
-            <Button onClick={() => window.location.href = '/'} className="w-full">
-              Return to Home
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -453,5 +441,5 @@ const OrganizedTravelPage = () => {
   );
 };
 
-export default OrganizedTravelPage;
+export default OrganizedTravelDetailsPage;
 
