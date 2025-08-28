@@ -38,7 +38,7 @@ export default defineConfig({
     // Enable source maps for production debugging
     sourcemap: false,
     // Optimize for modern browsers
-    target: 'es2015',
+    target: 'es2020',
     // Enable minification
     minify: 'terser',
     terserOptions: {
