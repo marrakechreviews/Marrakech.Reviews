@@ -2,11 +2,21 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    visualizer({
+      filename: 'dist/stats.html',
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -20,17 +30,17 @@ export default defineConfig({
     // Optimize chunk splitting for better caching
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks
-          'react-vendor': ['react', 'react-dom'],
-          'router-vendor': ['react-router-dom'],
-          'ui-vendor': ['lucide-react', '@radix-ui/react-slot'],
-          'query-vendor': ['@tanstack/react-query'],
-          'form-vendor': ['react-hook-form'],
-          // Utility chunks
-          'utils': ['clsx', 'tailwind-merge', 'class-variance-authority'],
-          'date-utils': ['date-fns'],
-        }
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@radix-ui')) {
+              return 'radix-ui';
+            }
+            if (id.includes('framer-motion')) {
+              return 'framer-motion';
+            }
+            return 'vendor';
+          }
+        },
       }
     },
     // Increase chunk size warning limit

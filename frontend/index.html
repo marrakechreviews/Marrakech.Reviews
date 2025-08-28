@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preload" href="/src/assets/images/marrakech-architecture-hero.jpg" as="image">
     <title>Marrakech.Reviews</title>
     
     <!-- SEO Meta Tags -->
@@ -76,7 +77,16 @@
         })(window, document, "clarity", "script", "szxnsbgya8");
       }
 
-      window.addEventListener('load', loadThirdPartyScripts);
+      function triggerLoad() {
+        loadThirdPartyScripts();
+        window.removeEventListener('scroll', triggerLoad);
+        window.removeEventListener('mousemove', triggerLoad);
+        window.removeEventListener('touchstart', triggerLoad);
+      }
+
+      window.addEventListener('scroll', triggerLoad, { passive: true });
+      window.addEventListener('mousemove', triggerLoad, { passive: true });
+      window.addEventListener('touchstart', triggerLoad, { passive: true });
     </script>
   </head>
   <body>
