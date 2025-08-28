@@ -425,10 +425,14 @@ const updateReservation = asyncHandler(async (req, res) => {
     throw new Error('Reservation not found');
   }
 
-  const oldStatus = reservation.status;
-
-  // Update all fields from the request body
-  Object.assign(reservation, req.body);
+  // Selectively update fields from the request body
+  // This is safer than Object.assign for partial updates, as it avoids validation errors on required fields.
+  for (const key in req.body) {
+    if (Object.hasOwnProperty.call(req.body, key)) {
+      // Use set to handle nested objects like customerInfo
+      reservation.set(key, req.body[key]);
+    }
+  }
 
   const updatedReservation = await reservation.save();
   await updatedReservation.populate('activity', 'name category location');

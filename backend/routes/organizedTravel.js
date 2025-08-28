@@ -208,7 +208,12 @@ router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
       return res.status(404).json({ message: "Reservation not found" });
     }
 
-    Object.assign(reservation, req.body);
+    // Selectively update fields from the request body
+    for (const key in req.body) {
+      if (Object.hasOwnProperty.call(req.body, key)) {
+        reservation.set(key, req.body[key]);
+      }
+    }
     
     const updatedReservation = await reservation.save();
     await updatedReservation.populate('programId');
