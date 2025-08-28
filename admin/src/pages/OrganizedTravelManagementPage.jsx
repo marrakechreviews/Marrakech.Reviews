@@ -24,7 +24,84 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { organizedTravelAPI } from '../lib/api';
+import { organizedTravelAPI, uploadAPI } from '../lib/api';
+
+const ImageUploader = ({ value, onChange, onUpload, isUploading }) => {
+  const triggerFileInput = () => {
+    document.getElementById('image-upload').click();
+  };
+
+  return (
+    <div>
+      <Label>Hero Image</Label>
+      <div className="mt-2 flex items-center gap-4">
+        {value && <img src={value} alt="Hero" className="w-20 h-20 object-cover rounded" />}
+        <Input
+          id="image-upload"
+          type="file"
+          className="hidden"
+          onChange={onUpload}
+          accept="image/*"
+        />
+        <Button type="button" variant="outline" onClick={triggerFileInput} disabled={isUploading}>
+          {isUploading ? 'Uploading...' : 'Upload Image'}
+        </Button>
+        <Input
+          type="text"
+          placeholder="Or paste image URL"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1"
+        />
+      </div>
+    </div>
+  );
+};
+
+const GalleryUploader = ({ gallery, onGalleryChange, onUpload, isUploading }) => {
+  const triggerFileInput = () => {
+    document.getElementById('gallery-upload').click();
+  };
+
+  const handleRemoveImage = (index) => {
+    const newGallery = [...gallery];
+    newGallery.splice(index, 1);
+    onGalleryChange(newGallery);
+  };
+
+  return (
+    <div>
+      <Label>Image Gallery</Label>
+      <div className="mt-2 p-4 border rounded-lg">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 mb-4">
+          {gallery.map((url, index) => (
+            <div key={index} className="relative group">
+              <img src={url} alt={`Gallery ${index + 1}`} className="w-full h-24 object-cover rounded" />
+              <button
+                type="button"
+                onClick={() => handleRemoveImage(index)}
+                className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <Input
+          id="gallery-upload"
+          type="file"
+          multiple
+          className="hidden"
+          onChange={onUpload}
+          accept="image/*"
+        />
+        <Button type="button" variant="outline" onClick={triggerFileInput} disabled={isUploading}>
+          {isUploading ? 'Uploading...' : 'Upload Images'}
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 export default function OrganizedTravelManagementPage() {
   const [programs, setPrograms] = useState([]);
@@ -101,7 +178,7 @@ export default function OrganizedTravelManagementPage() {
   const ProgramForm = ({ program, onSave, onCancel }) => {
     const [formData, setFormData] = useState(
       program
-        ? { ...program, included: program.included.join(', '), gallery: program.gallery.join(', ') }
+        ? { ...program, included: program.included.join(', '), gallery: Array.isArray(program.gallery) ? program.gallery : [] }
         : {
             title: '',
             subtitle: '',
@@ -112,17 +189,54 @@ export default function OrganizedTravelManagementPage() {
             description: '',
             heroImage: '',
             included: '',
-            gallery: '',
+            gallery: [],
             isActive: true,
           }
     );
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleHeroImageUpload = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      setIsUploading(true);
+      try {
+        const response = await uploadAPI.uploadImage(file);
+        setFormData(prev => ({ ...prev, heroImage: response.data.data.url }));
+        toast.success("Hero image uploaded successfully.");
+      } catch (error) {
+        toast.error("Failed to upload hero image.");
+        console.error("Upload error:", error);
+      } finally {
+        setIsUploading(false);
+      }
+    };
+
+    const handleGalleryUpload = async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+
+      setIsUploading(true);
+      try {
+        const response = await uploadAPI.uploadImages(files);
+        const newImageUrls = response.data.data.map(file => file.url);
+        setFormData(prev => ({ ...prev, gallery: [...prev.gallery, ...newImageUrls] }));
+        toast.success(`${files.length} image(s) uploaded to gallery.`);
+      } catch (error) {
+        toast.error("Failed to upload gallery images.");
+        console.error("Gallery upload error:", error);
+      } finally {
+        setIsUploading(false);
+      }
+    };
 
     const handleSubmit = async (e) => {
       e.preventDefault();
       const dataToSend = {
         ...formData,
-        included: formData.included.split(',').map(item => item.trim()).filter(item => item),
-        gallery: formData.gallery.split(',').map(url => url.trim()).filter(url => url),
+        included: typeof formData.included === 'string'
+          ? formData.included.split(',').map(item => item.trim()).filter(item => item)
+          : formData.included,
       };
 
       try {
@@ -168,8 +282,12 @@ export default function OrganizedTravelManagementPage() {
             <Input id="maxGroupSize" type="number" value={formData.maxGroupSize} onChange={(e) => setFormData(prev => ({ ...prev, maxGroupSize: parseInt(e.target.value) || 1 }))} required />
           </div>
           <div className="md:col-span-2">
-            <Label htmlFor="heroImage">Hero Image URL *</Label>
-            <Input id="heroImage" value={formData.heroImage} onChange={(e) => setFormData(prev => ({ ...prev, heroImage: e.target.value }))} required />
+            <ImageUploader
+              value={formData.heroImage}
+              onChange={(value) => setFormData(prev => ({ ...prev, heroImage: value }))}
+              onUpload={handleHeroImageUpload}
+              isUploading={isUploading}
+            />
           </div>
           <div className="md:col-span-2">
             <Label htmlFor="description">Description *</Label>
@@ -180,8 +298,12 @@ export default function OrganizedTravelManagementPage() {
             <Textarea id="included" value={formData.included} onChange={(e) => setFormData(prev => ({ ...prev, included: e.target.value }))} rows={3} />
           </div>
           <div className="md:col-span-2">
-            <Label htmlFor="gallery">Image Gallery (comma-separated URLs)</Label>
-            <Textarea id="gallery" value={formData.gallery} onChange={(e) => setFormData(prev => ({ ...prev, gallery: e.target.value }))} rows={3} />
+            <GalleryUploader
+              gallery={formData.gallery}
+              onGalleryChange={(newGallery) => setFormData(prev => ({ ...prev, gallery: newGallery }))}
+              onUpload={handleGalleryUpload}
+              isUploading={isUploading}
+            />
           </div>
         </div>
         <div className="flex items-center space-x-2">

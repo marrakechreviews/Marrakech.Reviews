@@ -120,6 +120,13 @@ export const uploadAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  uploadImages: (files) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('images', file));
+    return api.post('/upload/images', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   uploadProductImages: (files) => {
     const formData = new FormData();
     files.forEach((file) => formData.append('images', file));
