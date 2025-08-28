@@ -49,7 +49,7 @@
   --card-foreground: oklch(0 0 0); /* Black text on cards */
   --popover: oklch(1 0 0); /* White popovers */
   --popover-foreground: oklch(0 0 0); /* Black text in popovers */
-  --primary: oklch(0.7 0.15 45); /* Vibrant orange #FF6B35 */
+  --primary: oklch(0.6 0.15 45); /* Vibrant orange #FF6B35 */
   --primary-foreground: oklch(1 0 0); /* White text on orange */
   --secondary: oklch(0.97 0 0); /* Light gray background */
   --secondary-foreground: oklch(0.1 0 0); /* Darker gray text */

@@ -74,6 +74,7 @@ const HeroSlideshow = () => {
             alt={slide.title}
             width="1600"
             height="900"
+            fetchpriority={index === 0 ? 'high' : 'low'}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
               index === currentSlide ? 'opacity-100' : 'opacity-0'
             }`}

@@ -94,6 +94,7 @@ export default function Header() {
               size="sm"
               className="relative"
               onClick={() => navigate('/cart')}
+              aria-label="Open cart"
             >
               <ShoppingCart className="h-5 w-5" />
               {itemsCount > 0 && (
