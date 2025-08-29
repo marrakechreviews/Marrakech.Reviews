@@ -8,7 +8,7 @@ import MapPin from 'lucide-react/dist/esm/icons/map-pin';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
 import TravelpayoutsHeroWidget from './TravelpayoutsHeroWidget';
-import { getOptimizedImageUrl } from '../lib/cloudflare-image-optimization.jsx';
+import { optimizeImage } from '../lib/image';
 
 const HeroSlideshow = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -67,31 +67,20 @@ const HeroSlideshow = () => {
     <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
       {/* Background Images */}
       {slides.map((slide, index) => (
-        <div
-          key={slide.id}
-          className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${
-            index === currentSlide ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <picture className="w-full h-full">
-            <source
-              media="(max-width: 768px)"
-              srcSet={getOptimizedImageUrl(slide.mobileImage || slide.image, { width: 768, height: 1024, quality: 85, format: 'webp' })}
-            />
-            <source
-              media="(min-width: 769px)"
-              srcSet={getOptimizedImageUrl(slide.image, { width: 1920, height: 1080, quality: 90, format: 'webp' })}
-            />
-            <img
-              src={getOptimizedImageUrl(slide.image, { width: 1920, height: 1080, quality: 90, format: 'jpeg' })}
-              alt={slide.title}
-              width="1920"
-              height="1080"
-              fetchpriority={index === 0 ? 'high' : 'auto'}
-              className="w-full h-full object-cover"
-            />
-          </picture>
-        </div>
+        <picture key={slide.id}>
+          <source media="(max-width: 768px)" srcSet={optimizeImage(slide.mobileImage || slide.image, 768)} />
+          <source media="(min-width: 769px)" srcSet={optimizeImage(slide.image, 1600)} />
+          <img
+            src={optimizeImage(slide.image, 1600)}
+            alt={slide.title}
+            width="1600"
+            height="900"
+            fetchpriority={index === 0 ? 'high' : 'low'}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </picture>
       ))}
       <div className="absolute inset-0 bg-black/60" />
 
