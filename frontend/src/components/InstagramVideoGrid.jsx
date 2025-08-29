@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, Grid, List } from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Filter from 'lucide-react/dist/esm/icons/filter';
+import Grid from 'lucide-react/dist/esm/icons/grid';
+import List from 'lucide-react/dist/esm/icons/list';
 
 const InstagramVideoGrid = ({ 
   title = "Our Instagram Videos",

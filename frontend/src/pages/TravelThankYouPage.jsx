@@ -1,19 +1,17 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import {
-  CheckCircle,
-  Calendar,
-  Users,
-  Mail,
-  MessageCircle,
-  Phone,
-  MapPin,
-  Plane,
-  ArrowRight,
-  Download,
-  Share2
-} from 'lucide-react';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Users from 'lucide-react/dist/esm/icons/users';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
+import Phone from 'lucide-react/dist/esm/icons/phone';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Plane from 'lucide-react/dist/esm/icons/plane';
+import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
+import Download from 'lucide-react/dist/esm/icons/download';
+import Share2 from 'lucide-react/dist/esm/icons/share-2';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import InstagramVideoGrid from './InstagramVideoGrid';
-import { Instagram, ExternalLink } from 'lucide-react';
+import Instagram from 'lucide-react/dist/esm/icons/instagram';
+import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 
 const InstagramSection = () => {
   const [settings, setSettings] = useState({

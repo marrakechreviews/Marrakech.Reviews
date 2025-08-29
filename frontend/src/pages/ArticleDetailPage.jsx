@@ -3,7 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
-import { Calendar, Clock, User, Tag, ArrowLeft, Share2, BookOpen } from 'lucide-react';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import User from 'lucide-react/dist/esm/icons/user';
+import Tag from 'lucide-react/dist/esm/icons/tag';
+import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
+import Share2 from 'lucide-react/dist/esm/icons/share-2';
+import BookOpen from 'lucide-react/dist/esm/icons/book-open';
 
 const ArticleDetailPage = () => {
   const { slug } = useParams();

@@ -1,11 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Heart, ShoppingCart, Eye } from 'lucide-react';
+import Star from 'lucide-react/dist/esm/icons/star';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+import ShoppingCart from 'lucide-react/dist/esm/icons/shopping-cart';
+import Eye from 'lucide-react/dist/esm/icons/eye';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
+import { optimizeImage } from '../lib/image';
 
 export default function ProductCard({ product }) {
   const {
@@ -70,7 +74,7 @@ export default function ProductCard({ product }) {
           <div className="aspect-square bg-gray-100 overflow-hidden">
             {productImage ? (
               <img
-                src={productImage}
+                src={optimizeImage(productImage, 400)}
                 alt={name}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 loading="lazy"

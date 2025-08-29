@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Play, ExternalLink } from 'lucide-react';
+import Play from 'lucide-react/dist/esm/icons/play';
+import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 
 const InstagramVideoEmbed = ({ video, showThumbnail = true, autoPlay = false }) => {
   const [isPlaying, setIsPlaying] = useState(autoPlay);

@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Star, TrendingUp, Activity, MapPin } from 'lucide-react';
+import ChevronLeft from 'lucide-react/dist/esm/icons/chevron-left';
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
+import Star from 'lucide-react/dist/esm/icons/star';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import Activity from 'lucide-react/dist/esm/icons/activity';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
 import TravelpayoutsHeroWidget from './TravelpayoutsHeroWidget';
+import { optimizeImage } from '../lib/image';
 import heroImage from '../assets/images/marrakech-architecture-hero.jpg';
 import desertImage from '../assets/images/marrakech-desert.jpg';
 import souksImage from '../assets/images/marrakech-souks.jpg';
@@ -67,10 +73,10 @@ const HeroSlideshow = () => {
       {/* Background Images */}
       {slides.map((slide, index) => (
         <picture key={slide.id}>
-          <source media="(max-width: 768px)" srcSet={slide.mobileImage || slide.image} />
-          <source media="(min-width: 769px)" srcSet={slide.image} />
+          <source media="(max-width: 768px)" srcSet={optimizeImage(slide.mobileImage || slide.image, 768)} />
+          <source media="(min-width: 769px)" srcSet={optimizeImage(slide.image, 1600)} />
           <img
-            src={slide.image}
+            src={optimizeImage(slide.image, 1600)}
             alt={slide.title}
             width="1600"
             height="900"

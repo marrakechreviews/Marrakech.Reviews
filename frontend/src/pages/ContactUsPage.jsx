@@ -6,7 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import Phone from 'lucide-react/dist/esm/icons/phone';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import Send from 'lucide-react/dist/esm/icons/send';
+import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
 
 const ContactUsPage = () => {
   const [formData, setFormData] = useState({

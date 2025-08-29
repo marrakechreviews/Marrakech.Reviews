@@ -2,25 +2,23 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useCart } from '../contexts/CartContext';
-import { 
-  Search, 
-  ShoppingBag, 
-  User, 
-  Heart, 
-  Menu, 
-  X,
-  Phone,
-  Mail,
-  MapPin,
-  Facebook,
-  Twitter,
-  Instagram,
-  Youtube,
-  Truck,
-  Shield,
-  RotateCcw,
-  Award
-} from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import ShoppingBag from 'lucide-react/dist/esm/icons/shopping-bag';
+import User from 'lucide-react/dist/esm/icons/user';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+import Menu from 'lucide-react/dist/esm/icons/menu';
+import X from 'lucide-react/dist/esm/icons/x';
+import Phone from 'lucide-react/dist/esm/icons/phone';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Facebook from 'lucide-react/dist/esm/icons/facebook';
+import Twitter from 'lucide-react/dist/esm/icons/twitter';
+import Instagram from 'lucide-react/dist/esm/icons/instagram';
+import Youtube from 'lucide-react/dist/esm/icons/youtube';
+import Truck from 'lucide-react/dist/esm/icons/truck';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import RotateCcw from 'lucide-react/dist/esm/icons/rotate-ccw';
+import Award from 'lucide-react/dist/esm/icons/award';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';

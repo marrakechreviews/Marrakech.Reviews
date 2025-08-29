@@ -7,7 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Badge } from './ui/badge';
-import { Plane, Calendar as CalendarIcon, Users, MapPin, Star, ExternalLink } from 'lucide-react';
+import Plane from 'lucide-react/dist/esm/icons/plane';
+import CalendarIcon from 'lucide-react/dist/esm/icons/calendar';
+import Users from 'lucide-react/dist/esm/icons/users';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Star from 'lucide-react/dist/esm/icons/star';
+import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 import { format } from 'date-fns';
 import { cn } from '../lib/utils';
 

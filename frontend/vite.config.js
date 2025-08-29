@@ -2,34 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
-import { visualizer } from 'rollup-plugin-visualizer'
-
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
   plugins: [
     react(),
     tailwindcss(),
-    visualizer({
-      filename: 'dist/stats.html',
-      open: true,
-      gzipSize: true,
-      brotliSize: true,
-    }),
-    // critical({
-    //   criticalUrl: './dist/',
-    //   criticalBase: 'dist',
-    //   criticalPages: [
-    //     { uri: 'index.html', template: 'index' },
-    //   ],
-    //   criticalConfig: {
-    //     inline: true,
-    //     base: 'dist',
-    //     extract: false,
-    //     width: 1300,
-    //     height: 900,
-    //   },
-    // }),
   ],
   resolve: {
     alias: {
@@ -64,13 +42,7 @@ export default defineConfig({
     // Optimize for modern browsers
     target: 'es2020',
     // Enable minification
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
   },
   server: {
     port: 5173,

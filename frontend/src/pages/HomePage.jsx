@@ -11,25 +11,23 @@ import {
 } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
-import {
-  Search,
-  Star,
-  MapPin,
-  Users,
-  BookOpen,
-  TrendingUp,
-  Utensils,
-  Building,
-  Camera,
-  ShoppingBag,
-  Sparkles,
-  Activity,
-  Package,
-  Truck,
-  Shield,
-  Award,
-  Compass
-} from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Star from 'lucide-react/dist/esm/icons/star';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Users from 'lucide-react/dist/esm/icons/users';
+import BookOpen from 'lucide-react/dist/esm/icons/book-open';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import Utensils from 'lucide-react/dist/esm/icons/utensils';
+import Building from 'lucide-react/dist/esm/icons/building';
+import Camera from 'lucide-react/dist/esm/icons/camera';
+import ShoppingBag from 'lucide-react/dist/esm/icons/shopping-bag';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import Activity from 'lucide-react/dist/esm/icons/activity';
+import Package from 'lucide-react/dist/esm/icons/package';
+import Truck from 'lucide-react/dist/esm/icons/truck';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import Award from 'lucide-react/dist/esm/icons/award';
+import Compass from 'lucide-react/dist/esm/icons/compass';
 import api from '../lib/api';
 import { animateOnScroll, staggerAnimation, createFloatingAnimation } from '../lib/animations';
 import HeroSlideshow from '../components/HeroSlideshow';

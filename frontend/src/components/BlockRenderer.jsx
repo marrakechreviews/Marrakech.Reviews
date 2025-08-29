@@ -1,7 +1,10 @@
 import React from 'react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
-import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import Play from 'lucide-react/dist/esm/icons/play';
+import Pause from 'lucide-react/dist/esm/icons/pause';
+import Volume2 from 'lucide-react/dist/esm/icons/volume-2';
+import VolumeX from 'lucide-react/dist/esm/icons/volume-x';
 
 const BlockRenderer = ({ content }) => {
   // If content is just HTML string, render it directly

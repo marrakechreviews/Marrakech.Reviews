@@ -26,6 +26,7 @@ import api, { productsAPI, reviewsAPI } from '../lib/api';
 import { useCart } from '../contexts/CartContext';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
+import { optimizeImage } from '../lib/image';
 
 export default function ProductDetailPage() {
   // Get the slug parameter from URL (changed from _id to slug)
@@ -314,7 +315,7 @@ export default function ProductDetailPage() {
             <div className="space-y-4">
               <div className="relative bg-white rounded-lg overflow-hidden aspect-square">
                 <img
-                  src={productImages[selectedImage]}
+                  src={optimizeImage(productImages[selectedImage], 800)}
                   alt={product.name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -363,7 +364,7 @@ export default function ProductDetailPage() {
                       }`}
                     >
                       <img
-                        src={image}
+                        src={optimizeImage(image, 160)}
                         alt={`${product.name} ${index + 1}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {

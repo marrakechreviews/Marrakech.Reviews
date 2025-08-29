@@ -2,7 +2,14 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Truck, Package, Clock, MapPin, Shield, CreditCard, Globe, AlertCircle } from 'lucide-react';
+import Truck from 'lucide-react/dist/esm/icons/truck';
+import Package from 'lucide-react/dist/esm/icons/package';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import CreditCard from 'lucide-react/dist/esm/icons/credit-card';
+import Globe from 'lucide-react/dist/esm/icons/globe';
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
 
 const ShippingInfoPage = () => {
   const shippingZones = [

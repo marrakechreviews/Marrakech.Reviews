@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Filter, Grid, List, ChevronDown, Star, Heart, ShoppingCart } from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Filter from 'lucide-react/dist/esm/icons/filter';
+import Grid from 'lucide-react/dist/esm/icons/grid';
+import List from 'lucide-react/dist/esm/icons/list';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import Star from 'lucide-react/dist/esm/icons/star';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+import ShoppingCart from 'lucide-react/dist/esm/icons/shopping-cart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
