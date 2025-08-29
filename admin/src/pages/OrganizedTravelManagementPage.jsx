@@ -110,7 +110,6 @@ export default function OrganizedTravelManagementPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [csvFile, setCsvFile] = useState(null);
 
   useEffect(() => {
     fetchPrograms();
@@ -132,30 +131,6 @@ export default function OrganizedTravelManagementPage() {
       toast.error("Failed to fetch travel programs.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleFileChange = (e) => {
-    setCsvFile(e.target.files[0]);
-  };
-
-  const handleBulkImport = async () => {
-    if (!csvFile) {
-      toast.error('Please select a CSV file to import');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', csvFile);
-
-    try {
-      await organizedTravelAPI.bulkImportPrograms(formData);
-      toast.success('Travel programs imported successfully!');
-      fetchPrograms();
-      setCsvFile(null);
-    } catch (error) {
-      console.error("Failed to import programs:", error);
-      toast.error("Failed to import programs. Please try again.");
     }
   };
 
@@ -356,38 +331,17 @@ export default function OrganizedTravelManagementPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex gap-4">
-              <Input
-                placeholder="Search by title or destination..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Bulk Import</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <Input type="file" accept=".csv" onChange={handleFileChange} />
-              <Button onClick={handleBulkImport} disabled={!csvFile}>
-                <Plus className="h-4 w-4 mr-2" />
-                Import
-              </Button>
-              <Button variant="outline" asChild>
-                <a href="/samples/organized-travels.csv" download>
-                  Download Sample
-                </a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex gap-4">
+            <Input
+              placeholder="Search by title or destination..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
