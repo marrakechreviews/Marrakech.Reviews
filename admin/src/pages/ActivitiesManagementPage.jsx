@@ -40,6 +40,7 @@ export default function ActivitiesManagementPage() {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
 
   const [categories, setCategories] = useState([
     "Desert Tours",
@@ -94,6 +95,29 @@ export default function ActivitiesManagementPage() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, filterCategory, filterStatus]);
 
+  const handleFileChange = (e) => {
+    setCsvFile(e.target.files[0]);
+  };
+
+  const handleBulkImport = async () => {
+    if (!csvFile) {
+      toast.error('Please select a CSV file to import');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', csvFile);
+
+    try {
+      await activitiesAPI.bulkImportActivities(formData);
+      toast.success('Activities imported successfully!');
+      fetchActivities();
+      setCsvFile(null);
+    } catch (error) {
+      console.error("Failed to import activities:", error);
+      toast.error("Failed to import activities. Please try again.");
+    }
+  };
 
   const handleToggleStatus = async (activityId, field) => {
     const activity = activities.find(a => a._id === activityId);
@@ -452,50 +476,75 @@ export default function ActivitiesManagementPage() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search activities..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      {/* Filters and Bulk Import */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search activities..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
+
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="featured">Featured</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="featured">Featured</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Bulk Import</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <Input type="file" accept=".csv" onChange={handleFileChange} />
+              <Button onClick={handleBulkImport} disabled={!csvFile}>
+                <Plus className="h-4 w-4 mr-2" />
+                Import
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/samples/activities.csv" download>
+                  Download Sample
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Activities Table */}
       <Card>

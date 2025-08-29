@@ -88,6 +88,9 @@ export const productsAPI = {
   deleteProduct: (id) => api.delete(`/products/${id}`),
   getTopProducts: (limit) => api.get(`/products/top?limit=${limit}`),
   getFeaturedProducts: (limit) => api.get(`/products/featured?limit=${limit}`),
+  bulkImportProducts: (formData) => api.post('/bulk/products', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
 };
 
 export const productGeneratorAPI = {
@@ -144,6 +147,9 @@ export const articlesAPI = {
   updateArticle: (id, data) => api.put(`/articles/${id}`, data),
   deleteArticle: (id) => api.delete(`/articles/${id}`),
   generateAIArticles: (data) => api.post('/articles/generate-ai', data),
+  bulkImportArticles: (formData) => api.post('/bulk/articles', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
 };
 
 // Activities API
@@ -158,6 +164,9 @@ export const activitiesAPI = {
   createReservation: (data) => api.post('/activities/reservations', data),
   updateReservation: (id, data) => api.put(`/activities/reservations/${id}`, data),
   deleteReservation: (id) => api.delete(`/activities/reservations/${id}`),
+  bulkImportActivities: (formData) => api.post('/bulk/activities', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
 };
 
 // Organized Travel API
@@ -170,6 +179,9 @@ export const organizedTravelAPI = {
   createReservation: (data) => api.post('/organized-travel/admin/reservations', data),
   updateReservation: (id, data) => api.put(`/organized-travel/admin/reservations/${id}`, data),
   deleteReservation: (id) => api.delete(`/organized-travel/admin/reservations/${id}`),
+  bulkImportPrograms: (formData) => api.post('/bulk/organized-travels', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
 };
 
 // Settings API

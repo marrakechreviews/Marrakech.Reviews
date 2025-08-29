@@ -24,6 +24,7 @@ const organizedTravelRoutes = require("./routes/organizedTravel");
 const contactRoutes = require("./routes/contact");
 const articleGeneratorRoutes = require("./routes/articleGenerator");
 const productGeneratorRoutes = require("./routes/productGenerator");
+const bulkRoutes = require("./routes/bulk");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -59,10 +60,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Static files
-app.use("/uploads", (req, res, next) => {
-  res.setHeader("Cache-Control", "public, max-age=31536000");
-  next();
-}, express.static(path.join(__dirname, "/uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -85,6 +83,7 @@ app.use("/api/organized-travel", organizedTravelRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api", articleGeneratorRoutes);
 app.use("/api", productGeneratorRoutes);
+app.use("/api/bulk", bulkRoutes);
 
 // Root route handler for token-based requests
 app.get("/", (req, res) => {
