@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
-import { optimizeImage } from '../lib/image';
+import { OptimizedImage } from '../lib/cloudflare-image-optimization.jsx';
 
 export default function ProductCard({ product }) {
   const {
@@ -73,11 +73,14 @@ export default function ProductCard({ product }) {
         <Link to={productUrl}>
           <div className="aspect-square bg-gray-100 overflow-hidden">
             {productImage ? (
-              <img
-                src={optimizeImage(productImage, 400)}
+              <OptimizedImage
+                src={productImage}
                 alt={name}
+                width={400}
+                height={400}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 loading="lazy"
+                sizes="(max-width: 768px) 100vw, 300px"
                 onError={(e) => {
                   e.target.src = '/placeholder-product.jpg';
                 }}
