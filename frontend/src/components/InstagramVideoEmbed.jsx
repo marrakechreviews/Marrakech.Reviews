@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Play from 'lucide-react/dist/esm/icons/play';
 import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
-import { OptimizedImage } from '../lib/cloudflare-image-optimization.jsx';
 
 const InstagramVideoEmbed = ({ video, showThumbnail = true, autoPlay = false }) => {
   const [isPlaying, setIsPlaying] = useState(autoPlay);
@@ -29,14 +28,11 @@ const InstagramVideoEmbed = ({ video, showThumbnail = true, autoPlay = false }) 
       <div className="relative w-full group cursor-pointer" onClick={handlePlay}>
         <div className="relative overflow-hidden rounded-lg bg-black">
           {video.thumbnailUrl ? (
-            <OptimizedImage
+            <img
               src={video.thumbnailUrl}
               alt={video.title}
-              width={400}
-              height={711}
               className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
               style={{ aspectRatio: '9/16' }}
-              sizes="(max-width: 768px) 50vw, 25vw"
             />
           ) : (
             <div
