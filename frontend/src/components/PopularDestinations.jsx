@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import { OptimizedImage } from '../lib/cloudflare-image-optimization.jsx';
 
 const PopularDestinations = () => {
   const destinations = [
@@ -69,10 +70,13 @@ const PopularDestinations = () => {
             <Card key={index} className="overflow-hidden group">
               <Link to={destination.link}>
                 <div className="relative">
-                  <img
+                  <OptimizedImage
                     src={destination.image}
                     alt={destination.name}
-                    className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                    width={600}
+                    height={400}
+                    className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <MapPin className="h-8 w-8 text-white" />
