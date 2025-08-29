@@ -59,7 +59,10 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Static files
-app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
+app.use("/uploads", (req, res, next) => {
+  res.setHeader("Cache-Control", "public, max-age=31536000");
+  next();
+}, express.static(path.join(__dirname, "/uploads")));
 
 // API routes
 app.use("/api/auth", authRoutes);
