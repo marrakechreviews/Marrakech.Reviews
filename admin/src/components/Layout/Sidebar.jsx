@@ -51,11 +51,11 @@ const navigation = [
     href: '/reservations',
     icon: Calendar,
   },
-  {
-    name: 'Activity Reservations',
-    href: '/activity-reservations',
-    icon: Calendar,
-  },
+  // {
+  //   name: 'Activity Reservations',
+  //   href: '/activity-reservations',
+  //   icon: Calendar,
+  // },
   {
     name: 'Flight Reservations',
     href: '/flights',
