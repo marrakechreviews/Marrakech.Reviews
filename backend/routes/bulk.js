@@ -4,7 +4,7 @@ const bulkController = require('../controllers/bulkController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const multer = require('multer');
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '/tmp/uploads/' });
 
 router.post('/articles', protect, admin, upload.single('file'), bulkController.importArticles);
 router.post('/products', protect, admin, upload.single('file'), bulkController.importProducts);
