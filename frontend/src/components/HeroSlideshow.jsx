@@ -9,11 +9,6 @@ import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
 import TravelpayoutsHeroWidget from './TravelpayoutsHeroWidget';
 import { optimizeImage } from '../lib/image';
-import heroImage from '../assets/images/marrakech-architecture-hero.jpg';
-import desertImage from '../assets/images/marrakech-desert.jpg';
-import souksImage from '../assets/images/marrakech-souks.jpg';
-import riadImage from '../assets/images/marrakech-riad.jpg';
-import foodImage from '../assets/images/marrakech-food.jpg';
 
 const HeroSlideshow = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -21,24 +16,24 @@ const HeroSlideshow = () => {
   const slides = [
     {
       id: 1,
-      image: heroImage,
-      mobileImage: riadImage,
+      image: '/images/hero/marrakech-architecture-hero.jpg',
+      mobileImage: '/images/hero/marrakech-riad.jpg',
       title: "Discover the Magic of",
       animatedWord: "Marrakech",
       subtitle: "Your trusted guide to the best restaurants, hotels, attractions, and hidden gems in Morocco's enchanting Red City",
     },
     {
       id: 2,
-      image: desertImage,
-      mobileImage: foodImage,
+      image: '/images/hero/marrakech-desert.jpg',
+      mobileImage: '/images/hero/marrakech-food.jpg',
       title: "Unforgettable Adventures in",
       animatedWord: "Morocco",
       subtitle: "From camel treks in the Sahara to cooking classes in traditional riads, discover authentic experiences that will create memories for a lifetime",
     },
     {
       id: 3,
-      image: souksImage,
-      mobileImage: riadImage,
+      image: '/images/hero/marrakech-souks.jpg',
+      mobileImage: '/images/hero/marrakech-riad.jpg',
       title: "Hidden Gems &",
       animatedWord: "Recommendations",
       subtitle: "Discover secret spots, local favorites, and must-visit places that only insiders know about. Let us guide you to the real Morocco",

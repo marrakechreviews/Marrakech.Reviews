@@ -36,10 +36,6 @@ import TravelpayoutsFourPartWidget from '../components/TravelpayoutsFourPartWidg
 import RecommendedPlacesInstagramCarousel from '../components/RecommendedPlacesInstagramCarousel';
 import InstagramSection from '../components/InstagramSection';
 import PopularDestinations from '../components/PopularDestinations';
-import souksImage from '../assets/images/marrakech-souks.jpg';
-import foodImage from '../assets/images/marrakech-food.jpg';
-import desertImage from '../assets/images/marrakech-desert.jpg';
-import riadImage from '../assets/images/marrakech-riad.jpg';
 import './HomePage.css';
 
 const HomePage = () => {
