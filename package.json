@@ -3,5 +3,9 @@
     "@shelf/jest-mongodb": "^5.2.2",
     "jest": "^30.0.5",
     "supertest": "^7.1.4"
+  },
+  "scripts": {
+    "install:frontend": "cd frontend && npm install react-day-picker@latest",
+    "build:frontend": "cd frontend && npm run build"
   }
 }
