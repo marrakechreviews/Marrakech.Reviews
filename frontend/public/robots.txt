@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
 
-Sitemap: https://marrakech.reviews/sitemap.xml
+Sitemap: https://www.marrakech.reviews/api/sitemap.xml

@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
-import { IntelligentOptimizedImage } from '../lib/image-optimization';
+import { optimizeImage } from '../lib/image';
 
 export default function ProductCard({ product }) {
   const {
@@ -73,13 +73,14 @@ export default function ProductCard({ product }) {
         <Link to={productUrl}>
           <div className="aspect-square bg-gray-100 overflow-hidden">
             {productImage ? (
-              <IntelligentOptimizedImage
-                src={productImage}
+              <img
+                src={optimizeImage(productImage, 400)}
                 alt={name}
-                width={400}
-                height={400}
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                loading="lazy"
+                onError={(e) => {
+                  e.target.src = '/placeholder-product.jpg';
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl">

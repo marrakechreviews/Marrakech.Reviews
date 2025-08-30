@@ -105,6 +105,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     maxlength: [160, "SEO description cannot be more than 160 characters"],
   },
+  seoKeywords: [{
+    type: String,
+    trim: true
+  }],
   slug: {
     type: String,
   },

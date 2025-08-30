@@ -10,6 +10,8 @@ import Tag from 'lucide-react/dist/esm/icons/tag';
 import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
 import Share2 from 'lucide-react/dist/esm/icons/share-2';
 import BookOpen from 'lucide-react/dist/esm/icons/book-open';
+import useSEO from '../hooks/useSEO';
+import JsonLd from '../components/JsonLd';
 
 const ArticleDetailPage = () => {
   const { slug } = useParams();
@@ -17,6 +19,16 @@ const ArticleDetailPage = () => {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  useSEO({
+    title: article ? article.metaTitle || article.title : 'Article',
+    description: article ? article.metaDescription || article.content.substring(0, 160) : 'Loading article...',
+    keywords: article && article.keywords ? article.keywords.join(', ') : '',
+    ogTitle: article ? article.title : '',
+    ogDescription: article ? article.metaDescription || article.content.substring(0, 160) : '',
+    ogImage: article ? article.image : '',
+    canonicalUrl: article ? `https://www.marrakech.reviews/articles/${article.slug}` : ''
+  });
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -118,8 +130,34 @@ const ArticleDetailPage = () => {
     );
   }
 
+  const articleSchema = article ? {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": article.title,
+    "image": article.image,
+    "author": {
+      "@type": "Person",
+      "name": article.author ? article.author.name : "Marrakech.Reviews"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Marrakech.Reviews",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.marrakech.reviews/logo.png"
+      }
+    },
+    "datePublished": article.createdAt,
+    "dateModified": article.updatedAt,
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://www.marrakech.reviews/articles/${article.slug}`
+    }
+  } : null;
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {article && <JsonLd data={articleSchema} />}
       {/* Back Button */}
       <Button
         variant="ghost"

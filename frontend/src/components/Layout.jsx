@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { settingsAPI } from '../lib/api';
+import JsonLd from './JsonLd';
 
 export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -63,8 +64,40 @@ export default function Layout({ children }) {
     { name: 'Guide', href: 'https://www.instagram.com/marrakechreviews/' },
   ];
 
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "url": "https://www.marrakech.reviews/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://www.marrakech.reviews/products?search={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Marrakech Reviews",
+    "url": "https://www.marrakech.reviews/",
+    "logo": "https://www.marrakech.reviews/logo.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": settings?.general?.contactPhone,
+      "contactType": "customer service"
+    },
+    "sameAs": [
+      settings?.social?.facebook,
+      settings?.social?.twitter,
+      settings?.social?.instagram,
+      settings?.social?.youtube
+    ].filter(Boolean)
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <JsonLd data={websiteSchema} />
+      <JsonLd data={organizationSchema} />
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
