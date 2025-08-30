@@ -85,7 +85,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api", articleGeneratorRoutes);
 app.use("/api", productGeneratorRoutes);
 app.use("/api/bulk", bulkRoutes);
-app.use("/api", sitemapRoutes);
+app.use("/", sitemapRoutes);
 
 // Root route handler for token-based requests
 app.get("/", (req, res) => {
