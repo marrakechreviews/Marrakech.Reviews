@@ -36,6 +36,7 @@ import TravelpayoutsFourPartWidget from '../components/TravelpayoutsFourPartWidg
 import RecommendedPlacesInstagramCarousel from '../components/RecommendedPlacesInstagramCarousel';
 import InstagramSection from '../components/InstagramSection';
 import PopularDestinations from '../components/PopularDestinations';
+import { OptimizedImage } from '../lib/cloudflare-image-optimization';
 import './HomePage.css';
 
 const HomePage = () => {
@@ -318,13 +319,13 @@ const HomePage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
                   <div className="relative overflow-hidden">
-                    <img
+                    <OptimizedImage
                       src="/images/accommodations/luxury-hotel.jpg"
                       alt="Luxury Hotels"
-                      width="400"
-                      height="300"
+                      width={400}
+                      height={300}
+                      sizes="(max-width: 768px) 100vw, 33vw"
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
                   </div>
@@ -340,13 +341,13 @@ const HomePage = () => {
                 </Card>
                 <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
                   <div className="relative overflow-hidden">
-                    <img
+                    <OptimizedImage
                       src="/images/accommodations/traditional-riad.jpg"
                       alt="Traditional Riads"
-                      width="400"
-                      height="300"
+                      width={400}
+                      height={300}
+                      sizes="(max-width: 768px) 100vw, 33vw"
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
                   </div>
@@ -362,13 +363,13 @@ const HomePage = () => {
                 </Card>
                 <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
                   <div className="relative overflow-hidden">
-                    <img
+                    <OptimizedImage
                       src="/images/accommodations/modern-apartment.jpg"
                       alt="Modern Apartments"
-                      width="400"
-                      height="300"
+                      width={400}
+                      height={300}
+                      sizes="(max-width: 768px) 100vw, 33vw"
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
                   </div>
@@ -406,7 +407,7 @@ const HomePage = () => {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 <Card className="p-6">
-                  <img src="/images/marrakechactivities/desert-tour.jpg" alt="Desert Tour" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
+                  <OptimizedImage src="/images/marrakechactivities/desert-tour.jpg" alt="Desert Tour" width={400} height={300} sizes="(max-width: 768px) 100vw, 33vw" className="w-full h-48 object-cover rounded-lg mb-4" />
                   <h3 className="text-xl font-bold mb-2">Desert Adventures</h3>
                   <p className="text-gray-600 mb-4">Camel treks, quad biking, and overnight stays under the stars.</p>
                   <Button asChild variant="outline">
@@ -416,7 +417,7 @@ const HomePage = () => {
                   </Button>
                 </Card>
                 <Card className="p-6">
-                  <img src="/images/marrakechactivities/traditional-food.jpg" alt="Cooking Class" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
+                  <OptimizedImage src="/images/marrakechactivities/traditional-food.jpg" alt="Cooking Class" width={400} height={300} sizes="(max-width: 768px) 100vw, 33vw" className="w-full h-48 object-cover rounded-lg mb-4" />
                   <h3 className="text-xl font-bold mb-2">Cooking Classes</h3>
                   <p className="text-gray-600 mb-4">Learn to prepare authentic Moroccan dishes with local chefs.</p>
                   <Button asChild variant="outline">
@@ -426,7 +427,7 @@ const HomePage = () => {
                   </Button>
                 </Card>
                 <Card className="p-6">
-                  <img src="/images/marrakechactivities/souks-shopping.jpg" alt="Souks Shopping" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
+                  <OptimizedImage src="/images/marrakechactivities/souks-shopping.jpg" alt="Souks Shopping" width={400} height={300} sizes="(max-width: 768px) 100vw, 33vw" className="w-full h-48 object-cover rounded-lg mb-4" />
                   <h3 className="text-xl font-bold mb-2">Cultural Immersion</h3>
                   <p className="text-gray-600 mb-4">Discover the bustling souks, historic sites, and vibrant culture.</p>
                   <Button asChild variant="outline">
