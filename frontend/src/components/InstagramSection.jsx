@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import InstagramVideoGrid from './InstagramVideoGrid';
 import Instagram from 'lucide-react/dist/esm/icons/instagram';
 import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
+import { OptimizedImage } from '../lib/image-optimization';
 
 const InstagramSection = () => {
   const [settings, setSettings] = useState({
@@ -36,7 +37,7 @@ const InstagramSection = () => {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-6">
             {settings.social.instagramLogoUrl ? (
-              <img src={settings.social.instagramLogoUrl} alt="Instagram" className="h-12 w-12 text-custom-orange" />
+              <OptimizedImage src={settings.social.instagramLogoUrl} alt="Instagram" width={48} height={48} className="h-12 w-12 text-custom-orange" />
             ) : (
               <Instagram className="h-12 w-12 text-custom-orange" />
             )}

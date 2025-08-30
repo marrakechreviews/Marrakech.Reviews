@@ -8,7 +8,7 @@ import MapPin from 'lucide-react/dist/esm/icons/map-pin';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
 import TravelpayoutsHeroWidget from './TravelpayoutsHeroWidget';
-import { optimizeImage } from '../lib/image';
+import { getOptimizedImageUrl } from '../lib/image-optimization';
 
 const HeroSlideshow = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -66,22 +66,51 @@ const HeroSlideshow = () => {
   return (
     <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
       {/* Background Images */}
-      {slides.map((slide, index) => (
-        <picture key={slide.id}>
-          <source media="(max-width: 768px)" srcSet={optimizeImage(slide.mobileImage || slide.image, 768)} />
-          <source media="(min-width: 769px)" srcSet={optimizeImage(slide.image, 1600)} />
-          <img
-            src={optimizeImage(slide.image, 1600)}
-            alt={slide.title}
-            width="1600"
-            height="900"
-            fetchpriority={index === 0 ? 'high' : 'low'}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-              index === currentSlide ? 'opacity-100' : 'opacity-0'
-            }`}
-          />
-        </picture>
-      ))}
+      {slides.map((slide, index) => {
+        const desktopSrc = slide.image;
+        const mobileSrc = slide.mobileImage || slide.image;
+
+        return (
+          <picture key={slide.id}>
+            {/* Mobile sources */}
+            <source
+              media="(max-width: 768px)"
+              type="image/avif"
+              srcSet={getOptimizedImageUrl(mobileSrc, { width: 768, format: 'avif' })}
+            />
+            <source
+              media="(max-width: 768px)"
+              type="image/webp"
+              srcSet={getOptimizedImageUrl(mobileSrc, { width: 768, format: 'webp' })}
+            />
+
+            {/* Desktop sources */}
+            <source
+              media="(min-width: 769px)"
+              type="image/avif"
+              srcSet={getOptimizedImageUrl(desktopSrc, { width: 1920, format: 'avif' })}
+            />
+            <source
+              media="(min-width: 769px)"
+              type="image/webp"
+              srcSet={getOptimizedImageUrl(desktopSrc, { width: 1920, format: 'webp' })}
+            />
+
+            <img
+              src={getOptimizedImageUrl(desktopSrc, { width: 1920 })} // Fallback
+              alt={slide.title}
+              width="1920"
+              height="1080" // Assuming 16:9 aspect ratio
+              loading={index === 0 ? 'eager' : 'lazy'}
+              fetchpriority={index === 0 ? 'high' : 'auto'}
+              decoding="async"
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                index === currentSlide ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          </picture>
+        );
+      })}
       <div className="absolute inset-0 bg-black/60" />
 
       {/* Navigation Arrows */}

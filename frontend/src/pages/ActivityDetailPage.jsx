@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import useSEO from '../hooks/useSEO';
-import JsonLd from '../components/JsonLd';
+import { Helmet } from 'react-helmet-async';
 import { 
   MapPin, 
   Clock, 
@@ -202,45 +201,14 @@ export default function ActivityDetailPage() {
     );
   }
 
-  const eventSchema = activity ? {
-    "@context": "https://schema.org",
-    "@type": "Event",
-    "name": activity.name,
-    "description": activity.shortDescription,
-    "image": activity.images,
-    "startDate": selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
-    "endDate": selectedDate ? new Date(new Date(selectedDate).getTime() + 3600000).toISOString() : new Date(new Date().getTime() + 3600000).toISOString(),
-    "location": {
-      "@type": "Place",
-      "name": activity.location,
-      "address": activity.location
-    },
-    "offers": {
-      "@type": "Offer",
-      "price": activity.price,
-      "priceCurrency": "USD",
-      "url": window.location.href,
-      "validFrom": new Date().toISOString()
-    },
-    "performer": {
-      "@type": "PerformingGroup",
-      "name": "Marrakech.Reviews"
-    }
-  } : null;
-
-  useSEO({
-    title: activity.seoTitle || `${activity.name} - Book Your Adventure`,
-    description: activity.seoDescription || activity.shortDescription,
-    keywords: activity.seoKeywords ? activity.seoKeywords.join(', ') : `${activity.category}, ${activity.location}, ${activity.tags.join(', ')}`,
-    ogTitle: activity.name,
-    ogDescription: activity.shortDescription,
-    ogImage: activity.images[0],
-    canonicalUrl: window.location.href
-  });
-
   return (
     <>
-      {activity && <JsonLd data={eventSchema} />}
+      <Helmet>
+        <title>{activity.name} - Book Your Adventure | E-Store</title>
+        <meta name="description" content={activity.shortDescription} />
+        <meta name="keywords" content={`${activity.category}, ${activity.location}, ${activity.tags.join(', ')}`} />
+      </Helmet>
+
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}

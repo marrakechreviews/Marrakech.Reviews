@@ -161,11 +161,7 @@ const activitySchema = new mongoose.Schema({
   seoDescription: {
     type: String,
     maxlength: [160, 'SEO description cannot be more than 160 characters']
-  },
-  seoKeywords: [{
-    type: String,
-    trim: true
-  }]
+  }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

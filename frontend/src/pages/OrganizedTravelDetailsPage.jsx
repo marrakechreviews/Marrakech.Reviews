@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import useSEO from '../hooks/useSEO';
-import JsonLd from '../components/JsonLd';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -126,42 +125,13 @@ const OrganizedTravelDetailsPage = () => {
     );
   }
 
-  const tripSchema = travelProgram ? {
-    "@context": "https://schema.org",
-    "@type": "TouristTrip",
-    "name": travelProgram.title,
-    "description": travelProgram.description,
-    "image": travelProgram.heroImage,
-    "touristType": "Organized Travel",
-    "offers": {
-      "@type": "Offer",
-      "price": travelProgram.price,
-      "priceCurrency": "USD"
-    },
-    "itinerary": travelProgram.itinerary?.map(day => ({
-      "@type": "ListItem",
-      "position": day.day,
-      "item": {
-        "@type": "TouristAttraction",
-        "name": day.title,
-        "description": day.description
-      }
-    }))
-  } : null;
-
-  useSEO({
-    title: travelProgram?.seoTitle || `${travelProgram?.title} - Organized Travel`,
-    description: travelProgram?.seoDescription || travelProgram?.description,
-    keywords: travelProgram?.seoKeywords ? travelProgram.seoKeywords.join(', ') : `${travelProgram?.destination}, organized travel`,
-    ogTitle: travelProgram?.title,
-    ogDescription: travelProgram?.description,
-    ogImage: travelProgram?.heroImage,
-    canonicalUrl: window.location.href
-  });
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {travelProgram && <JsonLd data={tripSchema} />}
+      <Helmet>
+        <title>{travelProgram?.title} - Organized Travel | Your Travel Site</title>
+        <meta name="description" content={travelProgram?.description} />
+      </Helmet>
+
       {/* Hero Section */}
       <div className="relative h-96 overflow-hidden">
         <img
