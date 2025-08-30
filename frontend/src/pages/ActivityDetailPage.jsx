@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
-import JsonLd from '../components/JsonLd';
 import { 
   MapPin, 
   Clock, 
@@ -228,19 +227,18 @@ export default function ActivityDetailPage() {
     }
   } : null;
 
-  useSEO({
+  const SEO = useSEO({
     title: activity.seoTitle || `${activity.name} - Book Your Adventure`,
     description: activity.seoDescription || activity.shortDescription,
     keywords: activity.seoKeywords ? activity.seoKeywords.join(', ') : `${activity.category}, ${activity.location}, ${activity.tags.join(', ')}`,
-    ogTitle: activity.name,
-    ogDescription: activity.shortDescription,
-    ogImage: activity.images[0],
-    canonicalUrl: window.location.href
+    image: activity.images[0],
+    url: window.location.href,
+    structuredData: eventSchema
   });
 
   return (
     <>
-      {activity && <JsonLd data={eventSchema} />}
+      {SEO}
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}

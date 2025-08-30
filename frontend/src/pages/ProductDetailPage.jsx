@@ -26,8 +26,7 @@ import api, { productsAPI, reviewsAPI } from '../lib/api';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
 import { optimizeImage } from '../lib/image';
-import { useSEO } from '../hooks/useSEO';
-import JsonLd from '../components/JsonLd';
+import { useSEO, generateProductStructuredData } from '../hooks/useSEO';
 
 export default function ProductDetailPage() {
   // Get the slug parameter from URL (changed from _id to slug)
@@ -268,19 +267,18 @@ export default function ProductDetailPage() {
       ? [product.image] 
       : ['/placeholder-product.jpg'];
 
-  useSEO({
+  const SEO = useSEO({
     title: product.seoTitle || product.name,
     description: product.seoDescription || product.description,
     keywords: product.seoKeywords ? product.seoKeywords.join(', ') : `${product.name}, ${product.category}, ${product.brand}`,
-    ogTitle: product.name,
-    ogDescription: product.description,
-    ogImage: productImages[0],
-    canonicalUrl: window.location.href
+    image: productImages[0],
+    url: window.location.href,
+    structuredData: generateProductStructuredData(product)
   });
 
   return (
     <>
-      <JsonLd data={generateStructuredData()} />
+      {SEO}
       <div className="min-h-screen bg-gray-50">
         {/* Breadcrumb */}
         <div className="bg-white border-b">

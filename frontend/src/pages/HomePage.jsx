@@ -320,7 +320,7 @@ const HomePage = () => {
                   <div className="relative overflow-hidden">
                     <img
                       src="/images/accommodations/luxury-hotel.jpg"
-                      alt="Luxury Hotels"
+                      alt="Luxury hotel in Marrakech"
                       width="400"
                       height="300"
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
@@ -342,7 +342,7 @@ const HomePage = () => {
                   <div className="relative overflow-hidden">
                     <img
                       src="/images/accommodations/traditional-riad.jpg"
-                      alt="Traditional Riads"
+                      alt="Traditional Riad in Marrakech"
                       width="400"
                       height="300"
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
@@ -364,7 +364,7 @@ const HomePage = () => {
                   <div className="relative overflow-hidden">
                     <img
                       src="/images/accommodations/modern-apartment.jpg"
-                      alt="Modern Apartments"
+                      alt="Modern Apartment in Marrakech"
                       width="400"
                       height="300"
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
@@ -406,7 +406,7 @@ const HomePage = () => {
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 <Card className="p-6">
-                  <img src="/images/marrakechactivities/desert-tour.jpg" alt="Desert Tour" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
+                  <img src="/images/marrakechactivities/desert-tour.jpg" alt="Camel ride in Marrakech desert tour" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
                   <h3 className="text-xl font-bold mb-2">Desert Adventures</h3>
                   <p className="text-gray-600 mb-4">Camel treks, quad biking, and overnight stays under the stars.</p>
                   <Button asChild variant="outline">
@@ -416,7 +416,7 @@ const HomePage = () => {
                   </Button>
                 </Card>
                 <Card className="p-6">
-                  <img src="/images/marrakechactivities/traditional-food.jpg" alt="Cooking Class" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
+                  <img src="/images/marrakechactivities/traditional-food.jpg" alt="Moroccan cooking class in Marrakech" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
                   <h3 className="text-xl font-bold mb-2">Cooking Classes</h3>
                   <p className="text-gray-600 mb-4">Learn to prepare authentic Moroccan dishes with local chefs.</p>
                   <Button asChild variant="outline">
@@ -426,7 +426,7 @@ const HomePage = () => {
                   </Button>
                 </Card>
                 <Card className="p-6">
-                  <img src="/images/marrakechactivities/souks-shopping.jpg" alt="Souks Shopping" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
+                  <img src="/images/marrakechactivities/souks-shopping.jpg" alt="Shopping in the souks of Marrakech" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
                   <h3 className="text-xl font-bold mb-2">Cultural Immersion</h3>
                   <p className="text-gray-600 mb-4">Discover the bustling souks, historic sites, and vibrant culture.</p>
                   <Button asChild variant="outline">
@@ -546,9 +546,9 @@ const HomePage = () => {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Your Store - Premium Online Shopping Experience</title>
-        <meta name="description" content="Discover amazing products with unbeatable prices. Shop Activities, fashion, home goods and more with fast shipping and excellent customer service." />
-        <meta name="keywords" content="online shopping, ecommerce, products, deals, fashion, Activities, home" />
+        <title>Marrakech Travel Guide | Book Activities, Tours & Stays</title>
+        <meta name="description" content="Your ultimate guide to Marrakech. Discover the best activities, tours, and stays in Marrakech. Book your dream Morocco vacation with Marrakech.Reviews and get the best deals." />
+        <meta name="keywords" content="marrakech travel, marrakech guide, marrakech activities, marrakech booking, marrakech tours, marrakech stays, morocco travel, travel to marrakech, marrakech vacation, marrakech holiday, marrakech sejours" />
       </Helmet>
 
       <div className="space-y-0">
