@@ -175,12 +175,12 @@ export default function ActivitiesPage() {
   return (
     <>
       <Helmet>
-        <title>Activities & Tours in Morocco - Book Your Adventure | E-Store</title>
+        <title>Marrakech Activities | Book Tours, Excursions & Things to Do</title>
         <meta
           name="description"
-          content="Discover amazing activities and tours in Morocco. From desert adventures to cooking classes, book your perfect experience with market prices and instant confirmation."
+          content="Find the best activities and things to do in Marrakech. Book tours, desert excursions, cooking classes, and more. Get the best prices and instant booking with Marrakech.Reviews."
         />
-        <meta name="keywords" content="morocco activities, desert tours, cooking classes, marrakech tours, adventure sports" />
+        <meta name="keywords" content="marrakech activities, things to do in marrakech, marrakech tours, marrakech excursions, marrakech desert trips, marrakech cooking class, book activities marrakech" />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50 py-8">

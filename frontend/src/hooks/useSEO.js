@@ -1,78 +1,38 @@
-import { useEffect } from 'react';
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
+import JsonLd from '../components/JsonLd';
 
-export const useSEO = ({ 
-  title, 
-  description, 
-  keywords, 
-  image, 
+export const useSEO = ({
+  title,
+  description,
+  keywords,
+  image,
   url,
   type = 'website',
-  structuredData 
+  structuredData
 }) => {
-  useEffect(() => {
-    // Update document title
-    if (title) {
-      document.title = title;
-    }
-
-    // Update meta tags
-    const updateMetaTag = (name, content, property = false) => {
-      if (!content) return;
+  return (
+    <Helmet>
+      {title && <title>{title}</title>}
+      {description && <meta name="description" content={description} />}
+      {keywords && <meta name="keywords" content={keywords} />}
+      {url && <link rel="canonical" href={url} />}
       
-      const selector = property ? `meta[property="${name}"]` : `meta[name="${name}"]`;
-      let meta = document.querySelector(selector);
+      {/* Open Graph tags */}
+      {url && <meta property="og:url" content={url} />}
+      {title && <meta property="og:title" content={title} />}
+      {description && <meta property="og:description" content={description} />}
+      {type && <meta property="og:type" content={type} />}
+      {image && <meta property="og:image" content={image} />}
       
-      if (!meta) {
-        meta = document.createElement('meta');
-        if (property) {
-          meta.setAttribute('property', name);
-        } else {
-          meta.setAttribute('name', name);
-        }
-        document.head.appendChild(meta);
-      }
-      
-      meta.setAttribute('content', content);
-    };
+      {/* Twitter Card tags */}
+      {title && <meta name="twitter:title" content={title} />}
+      {description && <meta name="twitter:description" content={description} />}
+      {image && <meta name="twitter:image" content={image} />}
 
-    // Basic meta tags
-    updateMetaTag('description', description);
-    updateMetaTag('keywords', keywords);
-
-    // Open Graph tags
-    updateMetaTag('og:title', title, true);
-    updateMetaTag('og:description', description, true);
-    updateMetaTag('og:type', type, true);
-    updateMetaTag('og:url', url, true);
-    updateMetaTag('og:image', image, true);
-
-    // Twitter Card tags
-    updateMetaTag('twitter:title', title);
-    updateMetaTag('twitter:description', description);
-    updateMetaTag('twitter:image', image);
-
-    // Canonical URL
-    if (url) {
-      let canonical = document.querySelector('link[rel="canonical"]');
-      if (!canonical) {
-        canonical = document.createElement('link');
-        canonical.setAttribute('rel', 'canonical');
-        document.head.appendChild(canonical);
-      }
-      canonical.setAttribute('href', url);
-    }
-
-    // Structured Data
-    if (structuredData) {
-      let script = document.querySelector('script[type="application/ld+json"]');
-      if (!script) {
-        script = document.createElement('script');
-        script.setAttribute('type', 'application/ld+json');
-        document.head.appendChild(script);
-      }
-      script.textContent = JSON.stringify(structuredData);
-    }
-  }, [title, description, keywords, image, url, type, structuredData]);
+      {structuredData && <JsonLd data={structuredData} />}
+    </Helmet>
+  );
 };
 
 export const generateProductStructuredData = (product, settings) => {
@@ -117,4 +77,3 @@ export const generateBreadcrumbStructuredData = (breadcrumbs) => {
     }))
   };
 };
-
