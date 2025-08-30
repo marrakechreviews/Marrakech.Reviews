@@ -22,7 +22,7 @@ export function getOptimizedImageUrl(src, options = {}) {
     ...options,
   };
   const validOptions = Object.keys(params)
-    .filter(key => !['src', 'alt', 'priority', 'className', 'sizes', 'loading', 'height', 'onError'].includes(key))
+    .filter(key => !['src', 'alt', 'priority', 'className', 'sizes', 'loading', 'height', 'onError', 'onLoad'].includes(key))
     .reduce((obj, key) => {
         obj[key] = params[key];
         return obj;
@@ -41,7 +41,7 @@ const generateSrcSet = (src, sizes, options) => {
         .join(', ');
 };
 
-export const OptimizedImage = ({ src, alt, width, height, sizes, className, loading = 'lazy', priority = false, fit = 'cover', onError, ...rest }) => {
+export const OptimizedImage = ({ src, alt, width, height, sizes, className, loading = 'lazy', priority = false, fit = 'cover', onError, onLoad, ...rest }) => {
   const [hasError, setHasError] = useState(false);
 
   if (!src) {
@@ -49,7 +49,6 @@ export const OptimizedImage = ({ src, alt, width, height, sizes, className, load
   }
 
   const handleError = (e) => {
-    // Avoids a loop if the fallback image itself is broken
     if (!hasError) {
       setHasError(true);
       if (onError) onError(e);
@@ -57,8 +56,7 @@ export const OptimizedImage = ({ src, alt, width, height, sizes, className, load
   };
 
   if (hasError) {
-    // Fallback to original, un-optimized image
-    return <img src={src} alt={alt} width={width} height={height} className={className} />;
+    return <img src={src} alt={alt} width={width} height={height} className={className} onLoad={onLoad} />;
   }
 
   const options = { width, fit, ...rest };
@@ -70,7 +68,7 @@ export const OptimizedImage = ({ src, alt, width, height, sizes, className, load
     <picture>
       {avifSrcSet && <source srcSet={avifSrcSet} type="image/avif" sizes={sizes} onError={handleError} />}
       {webpSrcSet && <source srcSet={webpSrcSet} type="image/webp" sizes={sizes} onError={handleError} />}
-      <img src={fallbackSrc} alt={alt} width={width} height={height} className={className} loading={priority ? 'eager' : loading} fetchpriority={priority ? 'high' : 'auto'} decoding="async" onError={handleError} />
+      <img src={fallbackSrc} alt={alt} width={width} height={height} className={className} loading={priority ? 'eager' : loading} fetchpriority={priority ? 'high' : 'auto'} decoding="async" onError={handleError} onLoad={onLoad} />
     </picture>
   );
 };
