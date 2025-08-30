@@ -74,6 +74,7 @@ exports.importProducts = async (req, res) => {
           sku: item.sku,
           seoTitle: item.seoTitle,
           seoDescription: item.seoDescription,
+          seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
         }));
 
         await Product.insertMany(products);
@@ -117,6 +118,9 @@ exports.importActivities = async (req, res) => {
           isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
           tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
           difficulty: item.difficulty,
+          seoTitle: item.seoTitle,
+          seoDescription: item.seoDescription,
+          seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
         }));
 
         await Activity.insertMany(activities);
@@ -159,6 +163,9 @@ exports.importOrganizedTravels = async (req, res) => {
           isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
           featured: item.featured ? item.featured.toLowerCase() === 'true' : false,
           tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+          seoTitle: item.seoTitle,
+          seoDescription: item.seoDescription,
+          seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
         }));
 
         await OrganizedTravel.insertMany(travels);

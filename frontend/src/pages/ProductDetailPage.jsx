@@ -24,9 +24,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ProductCard from '../components/ProductCard';
 import api, { productsAPI, reviewsAPI } from '../lib/api';
 import { useCart } from '../contexts/CartContext';
-import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import { optimizeImage } from '../lib/image';
+import useSEO from '../hooks/useSEO';
+import JsonLd from '../components/JsonLd';
 
 export default function ProductDetailPage() {
   // Get the slug parameter from URL (changed from _id to slug)
@@ -267,26 +268,19 @@ export default function ProductDetailPage() {
       ? [product.image] 
       : ['/placeholder-product.jpg'];
 
+  useSEO({
+    title: product.seoTitle || product.name,
+    description: product.seoDescription || product.description,
+    keywords: product.seoKeywords ? product.seoKeywords.join(', ') : `${product.name}, ${product.category}, ${product.brand}`,
+    ogTitle: product.name,
+    ogDescription: product.description,
+    ogImage: productImages[0],
+    canonicalUrl: window.location.href
+  });
+
   return (
     <>
-      <Helmet>
-        <title>{product.name} | Your Store</title>
-        <meta name="description" content={product.description} />
-        <meta name="keywords" content={`${product.name}, ${product.category}, ${product.brand}, buy online, ecommerce`} />
-        <meta property="og:title" content={product.name} />
-        <meta property="og:description" content={product.description} />
-        <meta property="og:image" content={productImages[0]} />
-        <meta property="og:type" content="product" />
-        <meta property="og:url" content={window.location.href} />
-        <meta property="product:price:amount" content={product.price} />
-        <meta property="product:price:currency" content="USD" />
-        <link rel="canonical" href={window.location.href} />
-        
-        <script type="application/ld+json">
-          {JSON.stringify(generateStructuredData())}
-        </script>
-      </Helmet>
-
+      <JsonLd data={generateStructuredData()} />
       <div className="min-h-screen bg-gray-50">
         {/* Breadcrumb */}
         <div className="bg-white border-b">
