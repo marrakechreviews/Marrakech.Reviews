@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import useSEO from '../hooks/useSEO';
+import { useSEO } from '../hooks/useSEO';
 import JsonLd from '../components/JsonLd';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';

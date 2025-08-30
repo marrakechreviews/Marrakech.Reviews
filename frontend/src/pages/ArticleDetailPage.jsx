@@ -10,7 +10,7 @@ import Tag from 'lucide-react/dist/esm/icons/tag';
 import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
 import Share2 from 'lucide-react/dist/esm/icons/share-2';
 import BookOpen from 'lucide-react/dist/esm/icons/book-open';
-import useSEO from '../hooks/useSEO';
+import { useSEO } from '../hooks/useSEO';
 import JsonLd from '../components/JsonLd';
 
 const ArticleDetailPage = () => {

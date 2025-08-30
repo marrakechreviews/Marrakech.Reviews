@@ -26,7 +26,7 @@ import api, { productsAPI, reviewsAPI } from '../lib/api';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
 import { optimizeImage } from '../lib/image';
-import useSEO from '../hooks/useSEO';
+import { useSEO } from '../hooks/useSEO';
 import JsonLd from '../components/JsonLd';
 
 export default function ProductDetailPage() {
