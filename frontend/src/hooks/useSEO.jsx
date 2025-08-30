@@ -17,14 +17,14 @@ export const useSEO = ({
       {description && <meta name="description" content={description} />}
       {keywords && <meta name="keywords" content={keywords} />}
       {url && <link rel="canonical" href={url} />}
-      
+
       {/* Open Graph tags */}
       {url && <meta property="og:url" content={url} />}
       {title && <meta property="og:title" content={title} />}
       {description && <meta property="og:description" content={description} />}
       {type && <meta property="og:type" content={type} />}
       {image && <meta property="og:image" content={image} />}
-      
+
       {/* Twitter Card tags */}
       {title && <meta name="twitter:title" content={title} />}
       {description && <meta name="twitter:description" content={description} />}
