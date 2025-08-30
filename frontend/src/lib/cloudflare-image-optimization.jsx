@@ -44,14 +44,22 @@ const generateSrcSet = (src, sizes, options) => {
 export const OptimizedImage = ({ src, alt, width, height, sizes, className, loading = 'lazy', priority = false, fit = 'cover', onError, ...rest }) => {
   const [hasError, setHasError] = useState(false);
 
-  if (!src || hasError) {
+  if (!src) {
     return <img src={CLOUDFLARE_CONFIG.placeholderImage} alt={alt || 'Placeholder image'} width={width} height={height} className={className} />;
   }
 
   const handleError = (e) => {
-    setHasError(true);
-    if (onError) onError(e);
+    // Avoids a loop if the fallback image itself is broken
+    if (!hasError) {
+      setHasError(true);
+      if (onError) onError(e);
+    }
   };
+
+  if (hasError) {
+    // Fallback to original, un-optimized image
+    return <img src={src} alt={alt} width={width} height={height} className={className} />;
+  }
 
   const options = { width, fit, ...rest };
   const webpSrcSet = generateSrcSet(src, sizes, { ...options, format: 'webp' });
