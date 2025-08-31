@@ -13,8 +13,7 @@
     {
       "source": "/sitemap.xml",
       "destination": "https://marrakech-reviews-backend.vercel.app/sitemap.xml"
-    },
-    { "source": "/(.*)", "destination": "/index.html" }
+    }
   ]
 }
 

@@ -439,44 +439,9 @@ const searchProducts = async (req, res) => {
   }
 };
 
-// @desc    Get single product by slug
-// @route   GET /api/products/slug/:slug
-// @access  Public
-const getProductBySlug = async (req, res) => {
-  try {
-    const product = await Product.findOne({ slug: req.params.slug }).select('-__v');
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
-    }
-
-    if (!product.isActive) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not available'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: product
-    });
-  } catch (error) {
-    console.error('Get product by slug error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching product'
-    });
-  }
-};
-
 module.exports = {
   getProducts,
   getProduct,
-  getProductBySlug,
   createProduct,
   updateProduct,
   deleteProduct,

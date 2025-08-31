@@ -22,8 +22,8 @@ import Award from 'lucide-react/dist/esm/icons/award';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Helmet } from 'react-helmet-async';
 import { settingsAPI } from '../lib/api';
+import JsonLd from './JsonLd';
 
 export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -96,14 +96,8 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <script type="application/ld+json">
-          {JSON.stringify(websiteSchema)}
-        </script>
-        <script type="application/ld+json">
-          {JSON.stringify(organizationSchema)}
-        </script>
-      </Helmet>
+      <JsonLd data={websiteSchema} />
+      <JsonLd data={organizationSchema} />
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

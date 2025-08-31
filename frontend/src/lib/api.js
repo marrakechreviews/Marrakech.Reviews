@@ -31,10 +31,6 @@ export const productsAPI = {
     return api.get(`/products/${id}`);
   },
 
-  getProductBySlug: (slug) => {
-    return api.get(`/products/slug/${slug}`);
-  },
-
   getFeaturedProducts: (limit = 8) => {
     return api.get(`/products/featured?limit=${limit}`);
   },
@@ -86,26 +82,5 @@ export const activitiesAPI = {
   },
   createReservation: (activityId, reservationData) => {
     return api.post(`/activities/${activityId}/reserve`, reservationData);
-  },
-};
-
-// Articles API
-export const articlesAPI = {
-  getArticles: (params = {}) => {
-    const queryParams = new URLSearchParams(params);
-    return api.get(`/articles?${queryParams.toString()}`);
-  },
-  getArticleBySlug: (slug) => {
-    return api.get(`/articles/slug/${slug}`);
-  },
-};
-
-// Organized Travel API
-export const organizedTravelAPI = {
-  getTravelProgramByDestination: (destination) => {
-    return api.get(`/organized-travel/${destination}`);
-  },
-  createReservation: (reservationData) => {
-    return api.post('/organized-travel/reservations', reservationData);
   },
 };

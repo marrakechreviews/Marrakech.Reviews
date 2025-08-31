@@ -1,19 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { settingsAPI } from '../lib/api';
 import { Button } from './ui/button';
 import InstagramVideoGrid from './InstagramVideoGrid';
 import Instagram from 'lucide-react/dist/esm/icons/instagram';
 import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 
 const InstagramSection = () => {
-  const { data: settings } = useQuery({
-    queryKey: ['publicSettings'],
-    queryFn: () => settingsAPI.getPublicSettings(),
-    select: (response) => response.data.data,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+  const [settings, setSettings] = useState({
+    social: {
+      instagramLogoUrl: ''
+    }
   });
+
+  useEffect(() => {
+    // Fetch settings from API
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/settings/public`);
+        if (response.ok) {
+          const data = await response.json();
+          setSettings(data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings:', error);
+      }
+    };
+
+    fetchSettings();
+  }, []);
 
   return (
     <section className="py-16 bg-gradient-to-br from-purple-50 to-pink-50">
@@ -21,7 +35,7 @@ const InstagramSection = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-6">
-            {settings?.social.instagramLogoUrl ? (
+            {settings.social.instagramLogoUrl ? (
               <img src={settings.social.instagramLogoUrl} alt="Instagram" className="h-12 w-12 text-custom-orange" />
             ) : (
               <Instagram className="h-12 w-12 text-custom-orange" />

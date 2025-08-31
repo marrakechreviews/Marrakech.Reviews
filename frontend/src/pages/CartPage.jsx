@@ -42,7 +42,7 @@ const CartPage = () => {
     return (
       <>
         <Helmet>
-          <title>Shopping Cart - Marrakech Reviews</title>
+          <title>{`Shopping Cart - Marrakech Reviews`}</title>
           <meta name="description" content="Your shopping cart is empty. Browse our products and add items to your cart." />
         </Helmet>
         
@@ -70,7 +70,7 @@ const CartPage = () => {
   return (
     <>
       <Helmet>
-        <title>Shopping Cart ({itemsCount} items) - Marrakech Reviews</title>
+        <title>{`Shopping Cart (${itemsCount} items) - Marrakech Reviews`}</title>
         <meta name="description" content="Review your cart items and proceed to checkout." />
       </Helmet>
       
