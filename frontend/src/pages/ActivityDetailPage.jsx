@@ -218,10 +218,10 @@ export default function ActivityDetailPage() {
     }
   } : null;
 
-  const title = activity.seoTitle || `${activity.name} - Book Your Adventure`;
-  const description = activity.seoDescription || activity.shortDescription;
-  const keywords = activity.seoKeywords ? activity.seoKeywords.join(', ') : `${activity.category}, ${activity.location}, ${activity.tags.join(', ')}`;
-  const image = activity.images[0];
+  const title = activity?.seoTitle || `${activity?.name} - Book Your Adventure`;
+  const description = activity?.seoDescription || activity?.shortDescription;
+  const keywords = activity?.seoKeywords ? activity?.seoKeywords.join(', ') : `${activity?.category}, ${activity?.location}, ${activity?.tags.join(', ')}`;
+  const image = activity?.images[0];
   const url = window.location.href;
 
   return (

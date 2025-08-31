@@ -100,13 +100,13 @@ const OrganizedTravelDetailsPage = () => {
     );
   }
 
-  if (error) {
+  if (error || !travelProgram) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Program Not Found</h2>
-          <p className="text-gray-600">{error.message || 'Failed to load travel program details'}</p>
+          <p className="text-gray-600">{error?.message || 'Failed to load travel program details'}</p>
         </div>
       </div>
     );

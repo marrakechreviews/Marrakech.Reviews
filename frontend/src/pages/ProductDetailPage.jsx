@@ -91,9 +91,9 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (error) {
+  if (error || !product) {
     console.error('❌ Product detail page error:', error);
-    const errorMessage = error.response?.data?.message || "The product you're looking for doesn't exist or may have been removed.";
+    const errorMessage = error?.response?.data?.message || "The product you're looking for doesn't exist or may have been removed.";
     
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
