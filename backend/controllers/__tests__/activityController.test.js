@@ -81,16 +81,16 @@ describe('Activity Controller', () => {
     const response = await request(app)
       .put(`/api/activities/reservations/${reservation._id}`)
       .set('Authorization', 'Bearer bypass-token')
-      .send({ status: 'Confirmed' });
+      .send({ status: 'confirmed' });
 
     expect(response.status).toBe(200);
-    expect(response.body.status).toBe('Confirmed');
+    expect(response.body.status).toBe('confirmed');
 
     // Check if email function was called
     expect(emailService.sendReservationUpdateNotification).toHaveBeenCalledTimes(1);
 
     // Check if the reservation was updated in the database
     const updatedReservation = await ActivityReservation.findById(reservation._id);
-    expect(updatedReservation.status).toBe('Confirmed');
+    expect(updatedReservation.status).toBe('confirmed');
   });
 });
