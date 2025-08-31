@@ -10,7 +10,8 @@ import Tag from 'lucide-react/dist/esm/icons/tag';
 import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
 import Share2 from 'lucide-react/dist/esm/icons/share-2';
 import BookOpen from 'lucide-react/dist/esm/icons/book-open';
-import { useSEO } from '../hooks/useSEO';
+import { Helmet } from 'react-helmet-async';
+import JsonLd from '../components/JsonLd';
 
 const ArticleDetailPage = () => {
   const { slug } = useParams();
@@ -144,18 +145,34 @@ const ArticleDetailPage = () => {
     }
   } : null;
 
-  const SEO = useSEO({
-    title: article ? article.metaTitle || article.title : 'Article',
-    description: article ? article.metaDescription || article.content.substring(0, 160) : 'Loading article...',
-    keywords: article && article.keywords ? article.keywords.join(', ') : '',
-    image: article ? article.image : '',
-    url: article ? `https://www.marrakech.reviews/articles/${article.slug}` : '',
-    structuredData: articleSchema
-  });
+  const title = article ? article.metaTitle || article.title : 'Article';
+  const description = article ? article.metaDescription || article.content.substring(0, 160) : 'Loading article...';
+  const keywords = article && article.keywords ? article.keywords.join(', ') : '';
+  const image = article ? article.image : '';
+  const url = article ? `https://www.marrakech.reviews/articles/${article.slug}` : '';
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {SEO}
+      <Helmet>
+        {title && <title>{title}</title>}
+        {description && <meta name="description" content={description} />}
+        {keywords && <meta name="keywords" content={keywords} />}
+        {url && <link rel="canonical" href={url} />}
+
+        {/* Open Graph tags */}
+        {url && <meta property="og:url" content={url} />}
+        {title && <meta property="og:title" content={title} />}
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:type" content="article" />
+        {image && <meta property="og:image" content={image} />}
+
+        {/* Twitter Card tags */}
+        {title && <meta name="twitter:title" content={title} />}
+        {description && <meta name="twitter:description" content={description} />}
+        {image && <meta name="twitter:image" content={image} />}
+
+        {articleSchema && <JsonLd data={articleSchema} />}
+      </Helmet>
       <Button
         variant="ghost"
         onClick={() => navigate('/articles')}
