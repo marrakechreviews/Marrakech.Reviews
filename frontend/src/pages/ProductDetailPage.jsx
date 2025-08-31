@@ -26,7 +26,8 @@ import api, { productsAPI, reviewsAPI } from '../lib/api';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
 import { optimizeImage } from '../lib/image';
-import { useSEO, generateProductStructuredData } from '../hooks/useSEO';
+import { Helmet } from 'react-helmet-async';
+import JsonLd from '../components/JsonLd';
 
 export default function ProductDetailPage() {
   // Get the slug parameter from URL (changed from _id to slug)
@@ -267,18 +268,34 @@ export default function ProductDetailPage() {
       ? [product.image] 
       : ['/placeholder-product.jpg'];
 
-  const SEO = useSEO({
-    title: product.seoTitle || product.name,
-    description: product.seoDescription || product.description,
-    keywords: product.seoKeywords ? product.seoKeywords.join(', ') : `${product.name}, ${product.category}, ${product.brand}`,
-    image: productImages[0],
-    url: window.location.href,
-    structuredData: generateProductStructuredData(product)
-  });
+  const title = product.seoTitle || product.name;
+  const description = product.seoDescription || product.description;
+  const keywords = product.seoKeywords ? product.seoKeywords.join(', ') : `${product.name}, ${product.category}, ${product.brand}`;
+  const image = productImages[0];
+  const url = window.location.href;
 
   return (
     <>
-      {SEO}
+      <Helmet>
+        {title && <title>{title}</title>}
+        {description && <meta name="description" content={description} />}
+        {keywords && <meta name="keywords" content={keywords} />}
+        {url && <link rel="canonical" href={url} />}
+
+        {/* Open Graph tags */}
+        {url && <meta property="og:url" content={url} />}
+        {title && <meta property="og:title" content={title} />}
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:type" content="product" />
+        {image && <meta property="og:image" content={image} />}
+
+        {/* Twitter Card tags */}
+        {title && <meta name="twitter:title" content={title} />}
+        {description && <meta name="twitter:description" content={description} />}
+        {image && <meta name="twitter:image" content={image} />}
+
+        {product && <JsonLd data={generateStructuredData(product)} />}
+      </Helmet>
       <div className="min-h-screen bg-gray-50">
         {/* Breadcrumb */}
         <div className="bg-white border-b">

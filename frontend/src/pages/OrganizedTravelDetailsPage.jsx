@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSEO } from '../hooks/useSEO';
+import { Helmet } from 'react-helmet-async';
+import JsonLd from '../components/JsonLd';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -148,18 +149,34 @@ const OrganizedTravelDetailsPage = () => {
     }))
   } : null;
 
-  const SEO = useSEO({
-    title: travelProgram?.seoTitle || `${travelProgram?.title} - Organized Travel`,
-    description: travelProgram?.seoDescription || travelProgram?.description,
-    keywords: travelProgram?.seoKeywords ? travelProgram.seoKeywords.join(', ') : `${travelProgram?.destination}, organized travel`,
-    image: travelProgram?.heroImage,
-    url: window.location.href,
-    structuredData: tripSchema
-  });
+  const title = travelProgram?.seoTitle || `${travelProgram?.title} - Organized Travel`;
+  const description = travelProgram?.seoDescription || travelProgram?.description;
+  const keywords = travelProgram?.seoKeywords ? travelProgram.seoKeywords.join(', ') : `${travelProgram?.destination}, organized travel`;
+  const image = travelProgram?.heroImage;
+  const url = window.location.href;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {SEO}
+      <Helmet>
+        {title && <title>{title}</title>}
+        {description && <meta name="description" content={description} />}
+        {keywords && <meta name="keywords" content={keywords} />}
+        {url && <link rel="canonical" href={url} />}
+
+        {/* Open Graph tags */}
+        {url && <meta property="og:url" content={url} />}
+        {title && <meta property="og:title" content={title} />}
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:type" content="website" />
+        {image && <meta property="og:image" content={image} />}
+
+        {/* Twitter Card tags */}
+        {title && <meta name="twitter:title" content={title} />}
+        {description && <meta name="twitter:description" content={description} />}
+        {image && <meta name="twitter:image" content={image} />}
+
+        {tripSchema && <JsonLd data={tripSchema} />}
+      </Helmet>
       <div className="relative h-96 overflow-hidden">
         <img
           src={travelProgram?.heroImage || `/images/destinations/${destination}.png`}

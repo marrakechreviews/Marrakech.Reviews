@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSEO } from '../hooks/useSEO';
+import { Helmet } from 'react-helmet-async';
+import JsonLd from '../components/JsonLd';
 import { 
   MapPin, 
   Clock, 
@@ -227,18 +228,34 @@ export default function ActivityDetailPage() {
     }
   } : null;
 
-  const SEO = useSEO({
-    title: activity.seoTitle || `${activity.name} - Book Your Adventure`,
-    description: activity.seoDescription || activity.shortDescription,
-    keywords: activity.seoKeywords ? activity.seoKeywords.join(', ') : `${activity.category}, ${activity.location}, ${activity.tags.join(', ')}`,
-    image: activity.images[0],
-    url: window.location.href,
-    structuredData: eventSchema
-  });
+  const title = activity.seoTitle || `${activity.name} - Book Your Adventure`;
+  const description = activity.seoDescription || activity.shortDescription;
+  const keywords = activity.seoKeywords ? activity.seoKeywords.join(', ') : `${activity.category}, ${activity.location}, ${activity.tags.join(', ')}`;
+  const image = activity.images[0];
+  const url = window.location.href;
 
   return (
     <>
-      {SEO}
+      <Helmet>
+        {title && <title>{title}</title>}
+        {description && <meta name="description" content={description} />}
+        {keywords && <meta name="keywords" content={keywords} />}
+        {url && <link rel="canonical" href={url} />}
+
+        {/* Open Graph tags */}
+        {url && <meta property="og:url" content={url} />}
+        {title && <meta property="og:title" content={title} />}
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:type" content="website" />
+        {image && <meta property="og:image" content={image} />}
+
+        {/* Twitter Card tags */}
+        {title && <meta name="twitter:title" content={title} />}
+        {description && <meta name="twitter:description" content={description} />}
+        {image && <meta name="twitter:image" content={image} />}
+
+        {eventSchema && <JsonLd data={eventSchema} />}
+      </Helmet>
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
