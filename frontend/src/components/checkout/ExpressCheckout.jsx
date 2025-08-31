@@ -1,5 +1,5 @@
 import React from 'react';
-import PayPalButton from './PayPalButton';
+import PayPalButton from '../PayPalButton';
 
 const ExpressCheckout = ({ orderData, onPaymentSuccess, onPaymentError }) => {
   return (

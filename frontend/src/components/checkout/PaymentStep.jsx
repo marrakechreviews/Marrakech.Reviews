@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { CreditCard } from 'lucide-react';
-import PayPalButton from './PayPalButton';
+import PayPalButton from '../PayPalButton';
 
 const PaymentStep = ({ onBack, orderData, onPaymentSuccess, onPaymentError, validateForm }) => {
   const [paymentMethod, setPaymentMethod] = useState('stripe');
