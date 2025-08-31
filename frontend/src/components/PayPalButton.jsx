@@ -3,14 +3,24 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { toast } from 'sonner';
 import api from '../lib/api';
 
-const PayPalButton = ({ orderId, onPaymentSuccess, onPaymentError }) => {
+const PayPalButton = ({ orderData, onPaymentSuccess, onPaymentError, isExpress = false, disabled = false, reservationId = null }) => {
+  const [orderId, setOrderId] = useState(null);
 
-  const createPayPalOrder = async () => {
+  const createOrder = async () => {
     try {
-      const response = await api.post(`/api/orders/${orderId}/create-paypal-order`);
-      return response.data.orderID;
+      let createdOrder;
+      if (reservationId) {
+        const { data } = await api.post('/api/orders/from-reservation', { reservationId });
+        createdOrder = data.data;
+      } else {
+        const { data } = await api.post('/api/orders', orderData);
+        createdOrder = data.data;
+      }
+      setOrderId(createdOrder._id);
+      const paypalOrder = await api.post(`/api/orders/${createdOrder._id}/create-paypal-order`);
+      return paypalOrder.data.orderID;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create PayPal order.');
+      toast.error(error.response?.data?.message || 'Failed to create order.');
       onPaymentError();
       return null;
     }
@@ -22,7 +32,7 @@ const PayPalButton = ({ orderId, onPaymentSuccess, onPaymentError }) => {
         paypalOrderID: data.orderID,
       });
       toast.success('Payment successful!');
-      onPaymentSuccess(response.data.data);
+      onPaymentSuccess(response.data);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Payment failed.');
       onPaymentError();
@@ -37,9 +47,11 @@ const PayPalButton = ({ orderId, onPaymentSuccess, onPaymentError }) => {
 
   return (
     <PayPalButtons
-      createOrder={createPayPalOrder}
+      style={{ layout: isExpress ? 'horizontal' : 'vertical' }}
+      createOrder={createOrder}
       onApprove={onApprove}
       onError={onError}
+      disabled={disabled}
     />
   );
 };

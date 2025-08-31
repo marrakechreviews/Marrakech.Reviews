@@ -76,7 +76,7 @@ app.options("/api/articles", cors());
 app.use("/api/articles", articleRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/activities", activityRoutes);
-app.use("/api/reservations", reservationRoutes); // Corrected route
+app.use("/api/reservations", reservationRoutes);
 app.use("/api/homepage-sections", homepageSectionsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/enhanced-reviews", enhancedReviewsRoutes);

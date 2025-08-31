@@ -12,7 +12,6 @@ const ReservationPaymentPage = () => {
   const [reservation, setReservation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [orderId, setOrderId] = useState(null);
 
   useEffect(() => {
     const fetchReservation = async () => {
@@ -41,17 +40,6 @@ const ReservationPaymentPage = () => {
 
   const onPaymentError = () => {
     setError('Payment failed. Please try again.');
-  };
-
-  const handleCreateOrder = async () => {
-    try {
-      const { data } = await api.post('/api/orders/from-reservation', { reservationId: reservation._id });
-      setOrderId(data.data._id);
-      return data.data._id;
-    } catch (error) {
-      setError('Failed to create order. Please try again.');
-      return null;
-    }
   };
 
   if (loading) {
@@ -85,15 +73,11 @@ const ReservationPaymentPage = () => {
                 <p><strong>Guests:</strong> {reservation.numberOfPersons}</p>
                 <p><strong>Total:</strong> ${reservation.totalPrice}</p>
                 <div className="mt-4">
-                  {!orderId ? (
-                    <Button onClick={handleCreateOrder}>Proceed to Payment</Button>
-                  ) : (
-                    <PayPalButton
-                      orderId={orderId}
-                      onPaymentSuccess={onPaymentSuccess}
-                      onPaymentError={onPaymentError}
-                    />
-                  )}
+                  <PayPalButton
+                    reservationId={reservation._id}
+                    onPaymentSuccess={onPaymentSuccess}
+                    onPaymentError={onPaymentError}
+                  />
                 </div>
               </div>
             )}
