@@ -8,6 +8,12 @@
       "config": { "outputDirectory": "dist" }
     }
   ],
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install",
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://marrakech-reviews-backend.vercel.app/sitemap.xml"
+    }
+  ]
 }
 
