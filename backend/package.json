@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@paypal/paypal-server-sdk": "^1.1.0",
     "@sparticuz/chromium": "^111.0.0",
     "axios": "^1.11.0",
     "bcryptjs": "^3.0.2",
@@ -28,6 +29,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.5",
+    "pdfkit": "^0.17.2",
     "selenium-webdriver": "^4.22.0",
     "uuid": "^11.1.0"
   },

@@ -91,6 +91,12 @@ const activityReservationSchema = new mongoose.Schema({
   },
   confirmedAt: {
     type: Date
+  },
+  paymentToken: {
+    type: String,
+  },
+  paymentTokenExpires: {
+    type: Date,
   }
 }, {
   timestamps: true,

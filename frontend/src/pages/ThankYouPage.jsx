@@ -1,41 +1,139 @@
-import React, { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import Calendar from 'lucide-react/dist/esm/icons/calendar';
-import Users from 'lucide-react/dist/esm/icons/users';
-import Mail from 'lucide-react/dist/esm/icons/mail';
-import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
-import Phone from 'lucide-react/dist/esm/icons/phone';
-import MapPin from 'lucide-react/dist/esm/icons/map-pin';
-import Clock from 'lucide-react/dist/esm/icons/clock';
-import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
-import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import Download from 'lucide-react/dist/esm/icons/download';
-import Share2 from 'lucide-react/dist/esm/icons/share-2';
+import { CheckCircle, ShoppingCart, ArrowLeft, Calendar, Mail, MessageCircle, Phone, Download, Share2, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
+import api from '../lib/api';
 
-export default function ThankYouPage() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const reservationData = location.state?.reservationData;
-  const reservationType = location.state?.type || 'activity';
+const OrderThankYou = ({ orderId, orderNumber }) => {
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // If no reservation data, redirect to home
-    if (!reservationData) {
-      navigate('/', { replace: true });
-    }
-  }, [reservationData, navigate]);
+    const fetchOrder = async () => {
+      try {
+        const { data } = await api.get(`/api/orders/${orderId}`);
+        setOrder(data.data);
+      } catch (err) {
+        setError('Failed to fetch order details.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!reservationData) {
+    fetchOrder();
+  }, [orderId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading your order details...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-center">
+        <h1 className="text-2xl font-bold mb-4">Oops! Something went wrong.</h1>
+        <p className="text-red-500 mb-4">{error}</p>
+        <Button asChild>
+          <Link to="/">Go to Homepage</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (!order) {
     return null;
   }
+
+  return (
+    <>
+      <Helmet>
+        <title>Thank You for Your Order! - Marrakech Reviews</title>
+        <meta name="description" content="Your order has been placed successfully." />
+      </Helmet>
+
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <h1 className="text-3xl font-bold text-gray-900">Thank You for Your Order!</h1>
+            <p className="text-lg text-gray-600 mt-2">
+              Your order <span className="font-semibold text-primary">{orderNumber}</span> has been placed successfully.
+            </p>
+            <p className="text-sm text-gray-500 mt-1">
+              We've sent a confirmation email to {order.user.email}.
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {order.orderItems.map((item) => (
+                  <div key={item._id} className="flex justify-between items-center">
+                    <div>
+                      <p className="font-semibold">{item.name}</p>
+                      <p className="text-sm text-gray-500">Quantity: {item.qty}</p>
+                    </div>
+                    <p className="font-semibold">${(item.price * item.qty).toFixed(2)}</p>
+                  </div>
+                ))}
+                <Separator />
+                <div className="flex justify-between">
+                  <p>Subtotal</p>
+                  <p>${order.itemsPrice.toFixed(2)}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p>Shipping</p>
+                  <p>${order.shippingPrice.toFixed(2)}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p>Tax</p>
+                  <p>${order.taxPrice.toFixed(2)}</p>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-lg">
+                  <p>Total</p>
+                  <p>${order.totalPrice.toFixed(2)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="mt-8 text-center">
+            <Button asChild className="mr-4">
+              <Link to="/my-orders">
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                View My Orders
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/products">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Continue Shopping
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+const ReservationThankYou = ({ reservationData, reservationType }) => {
+  const navigate = useNavigate();
 
   const generateReservationId = () => {
     const timestamp = Date.now().toString(36);
@@ -304,37 +402,32 @@ export default function ThankYouPage() {
               </Button>
             </div>
           </div>
-
-          {/* Contact Information */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>Need Help?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div>
-                  <Phone className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <h4 className="font-medium mb-1">Call Us</h4>
-                  <p className="text-sm text-gray-600">+212 708-040530</p>
-                </div>
-                
-                <div>
-                  <MessageCircle className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <h4 className="font-medium mb-1">WhatsApp</h4>
-                  <p className="text-sm text-gray-600">+212 708-040530</p>
-                </div>
-                
-                <div>
-                  <Mail className="h-6 w-6 mx-auto mb-2 text-primary" />
-                  <h4 className="font-medium mb-1">Email</h4>
-                  <p className="text-sm text-gray-600">Hello@marrakech.reviews</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </>
   );
-}
+};
 
+const ThankYouPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { orderId, orderNumber, reservationData, type } = location.state || {};
+
+  useEffect(() => {
+    if (!orderId && !reservationData) {
+      navigate('/', { replace: true });
+    }
+  }, [orderId, reservationData, navigate]);
+
+  if (orderId) {
+    return <OrderThankYou orderId={orderId} orderNumber={orderNumber} />;
+  }
+
+  if (reservationData) {
+    return <ReservationThankYou reservationData={reservationData} reservationType={type || 'activity'} />;
+  }
+
+  return null;
+};
+
+export default ThankYouPage;

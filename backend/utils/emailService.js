@@ -15,6 +15,7 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
+const { generateInvoicePdf } = require('./pdfGenerator');
 
 /**
  * Retrieves an email template from the file system and populates it with data.
@@ -682,7 +683,95 @@ const sendReservationUpdateNotification = async (reservationData) => {
 };
 
 
+const sendReservationPendingEmail = async (reservationData) => {
+  try {
+    const transporter = createTransporter();
+    const paymentLink = `${process.env.WEBSITE_URL}/payment/reservation/${reservationData.paymentToken}`;
+
+    const emailData = {
+      customerName: reservationData.customerInfo.name,
+      activityName: reservationData.activity.name,
+      reservationId: reservationData.reservationId,
+      reservationDate: new Date(reservationData.reservationDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      numberOfPersons: reservationData.numberOfPersons,
+      totalPrice: reservationData.totalPrice,
+      paymentLink,
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'MARRAKECH REVIEWS',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: reservationData.customerInfo.email,
+      subject: `Your Reservation is Pending Payment - ${reservationData.reservationId}`,
+      html: getEmailTemplate('reservationPending', emailData),
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Reservation pending email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending reservation pending email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendReservationConfirmationWithInvoice = async (order, reservation) => {
+  try {
+    const transporter = createTransporter();
+    const pdfBuffer = await generateInvoicePdf(order);
+
+    const emailData = {
+      customerName: reservation.customerInfo.name,
+      activityName: reservation.activity.name,
+      reservationId: reservation.reservationId,
+      reservationDate: new Date(reservation.reservationDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      numberOfPersons: reservation.numberOfPersons,
+      totalPrice: reservation.totalPrice,
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'MARRAKECH REVIEWS',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: reservation.customerInfo.email,
+      subject: `Reservation Confirmed - ${reservation.reservationId}`,
+      html: getEmailTemplate('reservationConfirmation', emailData),
+      attachments: [
+        {
+          filename: `invoice-${reservation.reservationId}.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf',
+        },
+      ],
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Reservation confirmation with invoice email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending reservation confirmation with invoice email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
+  sendReservationConfirmationWithInvoice,
+  sendReservationPendingEmail,
   sendReservationConfirmation,
   sendAdminNotification,
   sendFlightReservationConfirmation,

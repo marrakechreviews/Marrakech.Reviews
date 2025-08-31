@@ -1,7 +1,8 @@
 const Activity = require('../models/Activity');
 const ActivityReservation = require('../models/ActivityReservation');
-const { sendReservationConfirmation, sendAdminNotification, sendReservationUpdateNotification } = require('../utils/emailService');
+const { sendReservationConfirmation, sendAdminNotification, sendReservationUpdateNotification, sendReservationPendingEmail } = require('../utils/emailService');
 const asyncHandler = require('express-async-handler');
+const crypto = require('crypto');
 
 // @desc    Get all activities
 // @route   GET /api/activities
@@ -257,6 +258,10 @@ const createReservation = asyncHandler(async (req, res) => {
     const random = Math.random().toString(36).substr(2, 5);
     const reservationId = `ACT-${timestamp}-${random}`.toUpperCase();
 
+    // Create payment token
+    const paymentToken = crypto.randomBytes(32).toString('hex');
+    const paymentTokenExpires = Date.now() + 3600000; // 1 hour
+
     // Create reservation
     const reservation = new ActivityReservation({
       reservationId,
@@ -265,7 +270,10 @@ const createReservation = asyncHandler(async (req, res) => {
       reservationDate: new Date(reservationDate),
       numberOfPersons,
       totalPrice,
-      notes
+      notes,
+      paymentMethod: 'PayPal',
+      paymentToken,
+      paymentTokenExpires,
     });
 
     const createdReservation = await reservation.save();
@@ -275,12 +283,8 @@ const createReservation = asyncHandler(async (req, res) => {
      * Send email notifications when a new reservation is created.
      */
     try {
-      // Send confirmation email to customer
-      const confirmationResult = await sendReservationConfirmation(createdReservation);
-      if (confirmationResult.success) {
-        createdReservation.confirmationSent = true;
-        await createdReservation.save();
-      }
+      // Send pending email to customer with payment link
+      await sendReservationPendingEmail(createdReservation);
 
       // Send notification email to admin
       await sendAdminNotification(createdReservation);

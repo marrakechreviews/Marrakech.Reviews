@@ -26,6 +26,7 @@ const articleGeneratorRoutes = require("./routes/articleGenerator");
 const productGeneratorRoutes = require("./routes/productGenerator");
 const bulkRoutes = require("./routes/bulk");
 const sitemapRoutes = require("./routes/sitemap");
+const reservationRoutes = require("./routes/reservations");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -75,7 +76,7 @@ app.options("/api/articles", cors());
 app.use("/api/articles", articleRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/activities", activityRoutes);
-app.use("/api/reservations", activityRoutes); // Add reservations route
+app.use("/api/reservations", reservationRoutes); // Corrected route
 app.use("/api/homepage-sections", homepageSectionsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/enhanced-reviews", enhancedReviewsRoutes);
@@ -147,10 +148,7 @@ const startServer = async () => {
 
 startServer();
 
-module.exports = app;
-
-
-
-
 // Handle favicon.png requests to prevent 404 errors
 app.get("/favicon.png", (req, res) => res.status(204).send());
+
+module.exports = app;

@@ -8,11 +8,26 @@ const {
   getMyOrders,
   getOrders,
   updateOrderStatus,
-  getOrderStats
+  getOrderStats,
+  createPayPalOrder,
+  capturePayPalOrder,
+  createOrderFromReservation
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 const router = express.Router();
+
+// @desc    Get PayPal Client ID
+// @route   GET /api/orders/config/paypal
+// @access  Public
+router.get('/config/paypal', (req, res) => {
+  res.json({ clientId: process.env.PAYPAL_CLIENT_ID || 'sb' });
+});
+
+// @desc    Create order from reservation
+// @route   POST /api/orders/from-reservation
+// @access  Private
+router.post('/from-reservation', protect, createOrderFromReservation);
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -97,6 +112,16 @@ router.put('/:id/pay', [
   body('update_time').notEmpty().withMessage('Update time is required'),
   body('email_address').optional().isEmail().withMessage('Valid email is required')
 ], updateOrderToPaid);
+
+// @desc    Create PayPal order
+// @route   POST /api/orders/:id/create-paypal-order
+// @access  Private
+router.post('/:id/create-paypal-order', protect, createPayPalOrder);
+
+// @desc    Capture PayPal order
+// @route   PUT /api/orders/:id/capture-paypal-order
+// @access  Private
+router.put('/:id/capture-paypal-order', protect, capturePayPalOrder);
 
 // @desc    Update order to delivered (Admin only)
 // @route   PUT /api/orders/:id/deliver
