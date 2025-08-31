@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import JsonLd from '../components/JsonLd';
 import { Button } from '../components/ui/button';
@@ -25,16 +26,20 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import api from '../lib/api';
+import { organizedTravelAPI } from '../lib/api';
 
 const OrganizedTravelDetailsPage = () => {
   const { destination } = useParams();
   const navigate = useNavigate();
-  const [travelProgram, setTravelProgram] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
   
+  const { data: travelProgram, isLoading: loading, error } = useQuery({
+    queryKey: ['organizedTravel', destination],
+    queryFn: () => organizedTravelAPI.getTravelProgramByDestination(destination),
+    select: (response) => response.data,
+    enabled: !!destination,
+  });
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -47,24 +52,6 @@ const OrganizedTravelDetailsPage = () => {
     emergencyPhone: ''
   });
 
-  useEffect(() => {
-    const fetchTravelProgram = async () => {
-      try {
-        const response = await api.get(`organized-travel/${destination}`);
-        setTravelProgram(response.data);
-      } catch (error) {
-        console.error('Error fetching travel program:', error);
-        setError('Failed to load travel program details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (destination) {
-      fetchTravelProgram();
-    }
-  }, [destination]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -76,7 +63,6 @@ const OrganizedTravelDetailsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setError('');
 
     try {
       const reservationData = {
@@ -87,7 +73,7 @@ const OrganizedTravelDetailsPage = () => {
         totalPrice: travelProgram?.price * formData.numberOfTravelers
       };
 
-      const response = await api.post("organized-travel/reservations", reservationData);
+      const response = await organizedTravelAPI.createReservation(reservationData);
 
       // Pass the response data to the thank you page
       navigate('/travel/thank-you', {
@@ -95,9 +81,10 @@ const OrganizedTravelDetailsPage = () => {
           reservationData: { ...reservationData, reservationId: response.data.reservation.reservationId }
         }
       });
-    } catch (error) {
-      console.error('Error submitting reservation:', error);
-      setError('Failed to submit reservation. Please try again.');
+    } catch (err) {
+      console.error('Error submitting reservation:', err);
+      // You might want to use a toast notification here instead of an alert
+      alert('Failed to submit reservation. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -114,13 +101,13 @@ const OrganizedTravelDetailsPage = () => {
     );
   }
 
-  if (error && !travelProgram) {
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Program Not Found</h2>
-          <p className="text-gray-600">{error}</p>
+          <p className="text-gray-600">{error.message || 'Failed to load travel program details'}</p>
         </div>
       </div>
     );
