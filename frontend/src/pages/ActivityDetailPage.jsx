@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import JsonLd from '../components/JsonLd';
 import { 
@@ -37,8 +38,13 @@ export default function ActivityDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
   
-  const [activity, setActivity] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: activity, isLoading: loading, error } = useQuery({
+    queryKey: ['activity', slug],
+    queryFn: () => activitiesAPI.getActivityBySlug(slug),
+    select: (response) => response.data,
+    enabled: !!slug,
+  });
+
   const [selectedDate, setSelectedDate] = useState(null);
   const [numberOfPersons, setNumberOfPersons] = useState(2);
   const [formData, setFormData] = useState({
@@ -50,23 +56,6 @@ export default function ActivityDetailPage() {
   });
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    const fetchActivity = async () => {
-      setLoading(true);
-      try {
-        const response = await activitiesAPI.getActivityBySlug(slug);
-        setActivity(response.data);
-      } catch (error) {
-        console.error("Failed to fetch activity:", error);
-        setActivity(null); // Set activity to null on error
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchActivity();
-  }, [slug]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -187,12 +176,14 @@ export default function ActivityDetailPage() {
     );
   }
 
-  if (!activity) {
+  if (error || !activity) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Activity Not Found</h1>
-          <p className="text-gray-600 mb-6">The activity you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-600 mb-6">
+            {error?.response?.data?.message || "The activity you're looking for doesn't exist or has been removed."}
+          </p>
           <Button onClick={() => navigate('/activities')}>
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Activities
