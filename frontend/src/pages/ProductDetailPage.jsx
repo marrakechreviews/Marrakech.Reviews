@@ -27,7 +27,6 @@ import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
 import { optimizeImage } from '../lib/image';
 import { Helmet } from 'react-helmet-async';
-import JsonLd from '../components/JsonLd';
 
 export default function ProductDetailPage() {
   // Get the slug parameter from URL (changed from _id to slug)
@@ -217,7 +216,11 @@ export default function ProductDetailPage() {
         {description && <meta name="twitter:description" content={description} />}
         {image && <meta name="twitter:image" content={image} />}
 
-        {product && <JsonLd data={generateStructuredData(product)} />}
+        {product && (
+          <script type="application/ld+json">
+            {JSON.stringify(generateStructuredData(product))}
+          </script>
+        )}
       </Helmet>
       <div className="min-h-screen bg-gray-50">
         {/* Breadcrumb */}

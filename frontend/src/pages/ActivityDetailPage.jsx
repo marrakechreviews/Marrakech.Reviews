@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import JsonLd from '../components/JsonLd';
 import { 
   MapPin, 
   Clock, 
@@ -245,7 +244,11 @@ export default function ActivityDetailPage() {
         {description && <meta name="twitter:description" content={description} />}
         {image && <meta name="twitter:image" content={image} />}
 
-        {eventSchema && <JsonLd data={eventSchema} />}
+        {eventSchema && (
+          <script type="application/ld+json">
+            {JSON.stringify(eventSchema)}
+          </script>
+        )}
       </Helmet>
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

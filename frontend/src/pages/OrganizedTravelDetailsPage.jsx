@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import JsonLd from '../components/JsonLd';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -162,7 +161,11 @@ const OrganizedTravelDetailsPage = () => {
         {description && <meta name="twitter:description" content={description} />}
         {image && <meta name="twitter:image" content={image} />}
 
-        {tripSchema && <JsonLd data={tripSchema} />}
+        {tripSchema && (
+          <script type="application/ld+json">
+            {JSON.stringify(tripSchema)}
+          </script>
+        )}
       </Helmet>
       <div className="relative h-96 overflow-hidden">
         <img

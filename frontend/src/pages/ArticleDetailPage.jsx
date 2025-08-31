@@ -13,7 +13,6 @@ import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
 import Share2 from 'lucide-react/dist/esm/icons/share-2';
 import BookOpen from 'lucide-react/dist/esm/icons/book-open';
 import { Helmet } from 'react-helmet-async';
-import JsonLd from '../components/JsonLd';
 
 const ArticleDetailPage = () => {
   const { slug } = useParams();
@@ -147,7 +146,11 @@ const ArticleDetailPage = () => {
         {description && <meta name="twitter:description" content={description} />}
         {image && <meta name="twitter:image" content={image} />}
 
-        {articleSchema && <JsonLd data={articleSchema} />}
+        {articleSchema && (
+          <script type="application/ld+json">
+            {JSON.stringify(articleSchema)}
+          </script>
+        )}
       </Helmet>
       <Button
         variant="ghost"
