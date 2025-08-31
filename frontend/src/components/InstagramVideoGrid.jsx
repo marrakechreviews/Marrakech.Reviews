@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import api from '../lib/api';
 import InstagramVideoEmbed from './InstagramVideoEmbed';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,14 +20,10 @@ const InstagramVideoGrid = ({
   featured = null,
   className = ""
 }) => {
-  const [videos, setVideos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState(category || 'all');
   const [viewMode, setViewMode] = useState('grid');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -38,53 +36,32 @@ const InstagramVideoGrid = ({
     { value: 'other', label: 'Other' }
   ];
 
-  useEffect(() => {
-    fetchVideos();
-  }, [currentPage, categoryFilter, searchTerm, featured]);
-
-  const fetchVideos = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const params = new URLSearchParams({
+  const { data, error, isLoading, isFetching } = useQuery({
+    queryKey: ['instagramVideos', currentPage, categoryFilter, searchTerm, featured, limit],
+    queryFn: async () => {
+      const params = {
         page: currentPage,
-        limit: limit,
-        active: 'true', // Only fetch active videos for frontend
+        limit,
+        active: 'true',
         ...(categoryFilter !== 'all' && { category: categoryFilter }),
         ...(featured !== null && { featured: featured.toString() }),
-        ...(searchTerm && { search: searchTerm })
-      });
+        ...(searchTerm && { search: searchTerm }),
+      };
+      const response = await api.get('/instagram', { params });
+      return response.data;
+    },
+    keepPreviousData: true,
+  });
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/instagram?${params}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch videos');
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setVideos(data.data);
-        setTotalPages(data.pagination.pages);
-      } else {
-        throw new Error(data.message || 'Failed to fetch videos');
-      }
-    } catch (error) {
-      console.error('Error fetching Instagram videos:', error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const videos = data?.data || [];
+  const totalPages = data?.pagination?.pages || 1;
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setCurrentPage(1);
-    fetchVideos();
+    setCurrentPage(1); // Reset to first page on new search
   };
 
-  if (loading && videos.length === 0) {
+  if (isLoading) {
     return (
       <div className={`space-y-6 ${className}`}>
         <div className="text-center">
@@ -102,21 +79,14 @@ const InstagramVideoGrid = ({
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">{title}</h2>
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <p className="text-red-600">Error loading videos: {error}</p>
-            <Button
-              onClick={fetchVideos}
-              className="mt-4"
-              variant="outline"
-            >
-              Try Again
-            </Button>
+            <p className="text-red-600">Error loading videos: {error.message}</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (videos.length === 0) {
+  if (!isLoading && videos.length === 0) {
     return (
       <div className={`space-y-6 ${className}`}>
         <div className="text-center">
@@ -271,7 +241,7 @@ const InstagramVideoGrid = ({
           <Button
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1 || loading}
+            disabled={currentPage === 1 || isFetching}
           >
             Previous
           </Button>
@@ -283,7 +253,7 @@ const InstagramVideoGrid = ({
           <Button
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages || loading}
+            disabled={currentPage === totalPages || isFetching}
           >
             Next
           </Button>

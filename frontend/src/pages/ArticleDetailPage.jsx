@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { articlesAPI } from '../lib/api';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
@@ -10,46 +12,20 @@ import Tag from 'lucide-react/dist/esm/icons/tag';
 import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
 import Share2 from 'lucide-react/dist/esm/icons/share-2';
 import BookOpen from 'lucide-react/dist/esm/icons/book-open';
-import { useSEO } from '../hooks/useSEO';
+import { Helmet } from 'react-helmet-async';
 
 const ArticleDetailPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const [article, setArticle] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-  useEffect(() => {
-    fetchArticle();
-  }, [slug]);
-
-  const fetchArticle = async () => {
-    try {
-      setLoading(true);
-      // First try to find by slug using the dedicated slug endpoint
-      let response = await fetch(`${API_BASE_URL}/articles/slug/${slug}`);
-
-      if (response.ok) {
-        const foundArticle = await response.json();
-        setArticle(foundArticle);
-      } else {
-        // If slug doesn't work, try by ID
-        response = await fetch(`${API_BASE_URL}/articles/${slug}`);
-        if (response.ok) {
-          const foundArticle = await response.json();
-          setArticle(foundArticle);
-        } else {
-          setError('Article not found');
-        }
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  const { data: article, isLoading, error } = useQuery({
+    queryKey: ['article', slug],
+    queryFn: () => articlesAPI.getArticleBySlug(slug),
+    select: (response) => response.data,
+    retry: (failureCount, error) => {
+      return error.response?.status !== 404 && failureCount < 2;
     }
-  };
+  });
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -85,7 +61,7 @@ const ArticleDetailPage = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-pulse">
@@ -144,18 +120,38 @@ const ArticleDetailPage = () => {
     }
   } : null;
 
-  const SEO = useSEO({
-    title: article ? article.metaTitle || article.title : 'Article',
-    description: article ? article.metaDescription || article.content.substring(0, 160) : 'Loading article...',
-    keywords: article && article.keywords ? article.keywords.join(', ') : '',
-    image: article ? article.image : '',
-    url: article ? `https://www.marrakech.reviews/articles/${article.slug}` : '',
-    structuredData: articleSchema
-  });
+  const title = article ? article.metaTitle || article.title : 'Article';
+  const description = article ? article.metaDescription || article.content.substring(0, 160) : 'Loading article...';
+  const keywords = article && article.keywords ? article.keywords.join(', ') : '';
+  const image = article ? article.image : '';
+  const url = article ? `https://www.marrakech.reviews/articles/${article.slug}` : '';
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {SEO}
+      <Helmet>
+        {title && <title>{title}</title>}
+        {description && <meta name="description" content={description} />}
+        {keywords && <meta name="keywords" content={keywords} />}
+        {url && <link rel="canonical" href={url} />}
+
+        {/* Open Graph tags */}
+        {url && <meta property="og:url" content={url} />}
+        {title && <meta property="og:title" content={title} />}
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:type" content="article" />
+        {image && <meta property="og:image" content={image} />}
+
+        {/* Twitter Card tags */}
+        {title && <meta name="twitter:title" content={title} />}
+        {description && <meta name="twitter:description" content={description} />}
+        {image && <meta name="twitter:image" content={image} />}
+
+        {articleSchema && (
+          <script type="application/ld+json">
+            {JSON.stringify(articleSchema)}
+          </script>
+        )}
+      </Helmet>
       <Button
         variant="ghost"
         onClick={() => navigate('/articles')}

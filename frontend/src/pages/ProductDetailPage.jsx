@@ -26,7 +26,7 @@ import api, { productsAPI, reviewsAPI } from '../lib/api';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
 import { optimizeImage } from '../lib/image';
-import { useSEO, generateProductStructuredData } from '../hooks/useSEO';
+import { Helmet } from 'react-helmet-async';
 
 export default function ProductDetailPage() {
   // Get the slug parameter from URL (changed from _id to slug)
@@ -36,73 +36,14 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const { addToCart, isInCart } = useCart();
 
-  // Enhanced product fetching with proper limit validation
-  const { data: product, isLoading, error } = useQuery({
-    queryKey: ["product", slug],
-    queryFn: async () => {
-      console.log('🔍 Fetching product with slug:', slug);
-
-      try {
-        // First try to get product by ID (if slug is actually an ID)
-        if (slug && slug.match(/^[0-9a-fA-F]{24}$/)) {
-          console.log('📋 Slug appears to be an ID, fetching by ID...');
-          const response = await productsAPI.getProductById(slug);
-          console.log('✅ Product fetched by ID:', response.data);
-          return response.data.data;
-        }
-
-        // If not an ID, try to find by slug in the products list
-        // Use limit=50 (backend maximum) instead of 100
-        console.log('📋 Fetching products to find by slug (limit=50)...');
-        const productsResponse = await productsAPI.getProducts({ limit: 50 });
-        const products = productsResponse.data.data || [];
-
-        console.log('📦 Available products:', products.length);
-
-        // Find product by slug
-        let product = products.find(p => p.slug === slug);
-
-        // If not found in first 50, try fetching more pages
-        if (!product && productsResponse.data.pagination?.hasNext) {
-          console.log('📋 Product not found in first page, checking additional pages...');
-
-          let currentPage = 2;
-          const maxPages = Math.min(productsResponse.data.pagination.totalPages, 5); // Limit to 5 pages max
-
-          while (!product && currentPage <= maxPages) {
-            console.log(`📋 Fetching page ${currentPage}...`);
-            const pageResponse = await productsAPI.getProducts({
-              limit: 50,
-              page: currentPage
-            });
-            const pageProducts = pageResponse.data.data || [];
-            product = pageProducts.find(p => p.slug === slug);
-            currentPage++;
-          }
-        }
-
-        if (!product) {
-          console.error('❌ Product not found with slug:', slug);
-          throw new Error('Product not found');
-        }
-
-        console.log('✅ Product found by slug:', product);
-        return product;
-
-      } catch (error) {
-        console.error('❌ Error fetching product:', error);
-
-        // Enhanced error logging
-        if (error?.response?.data) {
-          console.error('📋 Server response:', error.response.data);
-        }
-
-        throw error;
-      }
-    },
+  const { data: productData, isLoading, error } = useQuery({
+    queryKey: ['product', slug],
+    queryFn: () => productsAPI.getProductBySlug(slug),
+    select: (response) => response.data.data,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+  const product = productData;
 
   const { data: relatedProducts } = useQuery({
     queryKey: ['relatedProducts', product?.category],
@@ -150,19 +91,9 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (error || !product) {
+  if (error) {
     console.error('❌ Product detail page error:', error);
-
-    // Enhanced error message based on error type
-    let errorMessage = "The product you're looking for doesn't exist or may have been removed.";
-    let errorDetails = null;
-
-    if (error?.response?.data) {
-      errorDetails = error.response.data;
-      if (error.response.data.message) {
-        errorMessage = error.response.data.message;
-      }
-    }
+    const errorMessage = error.response?.data?.message || "The product you're looking for doesn't exist or may have been removed.";
     
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -173,14 +104,6 @@ export default function ProductDetailPage() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h1>
             <p className="text-gray-600 mb-4">{errorMessage}</p>
-
-            {errorDetails && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-red-600">
-                  <strong>Error Details:</strong> {JSON.stringify(errorDetails, null, 2)}
-                </p>
-              </div>
-            )}
           </div>
           
           <div className="space-y-3">
@@ -267,18 +190,38 @@ export default function ProductDetailPage() {
       ? [product.image] 
       : ['/placeholder-product.jpg'];
 
-  const SEO = useSEO({
-    title: product.seoTitle || product.name,
-    description: product.seoDescription || product.description,
-    keywords: product.seoKeywords ? product.seoKeywords.join(', ') : `${product.name}, ${product.category}, ${product.brand}`,
-    image: productImages[0],
-    url: window.location.href,
-    structuredData: generateProductStructuredData(product)
-  });
+  const title = product.seoTitle || product.name;
+  const description = product.seoDescription || product.description;
+  const keywords = product.seoKeywords ? product.seoKeywords.join(', ') : `${product.name}, ${product.category}, ${product.brand}`;
+  const image = productImages[0];
+  const url = window.location.href;
 
   return (
     <>
-      {SEO}
+      <Helmet>
+        {title && <title>{title}</title>}
+        {description && <meta name="description" content={description} />}
+        {keywords && <meta name="keywords" content={keywords} />}
+        {url && <link rel="canonical" href={url} />}
+
+        {/* Open Graph tags */}
+        {url && <meta property="og:url" content={url} />}
+        {title && <meta property="og:title" content={title} />}
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:type" content="product" />
+        {image && <meta property="og:image" content={image} />}
+
+        {/* Twitter Card tags */}
+        {title && <meta name="twitter:title" content={title} />}
+        {description && <meta name="twitter:description" content={description} />}
+        {image && <meta name="twitter:image" content={image} />}
+
+        {product && (
+          <script type="application/ld+json">
+            {JSON.stringify(generateStructuredData(product))}
+          </script>
+        )}
+      </Helmet>
       <div className="min-h-screen bg-gray-50">
         {/* Breadcrumb */}
         <div className="bg-white border-b">

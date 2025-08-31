@@ -3,6 +3,7 @@ const { body, query } = require('express-validator');
 const {
   getProducts,
   getProduct,
+  getProductBySlug,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -61,6 +62,11 @@ router.get('/category/:category', [
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
   query('sort').optional().isIn(['name', '-name', 'price', '-price', 'rating', '-rating']).withMessage('Invalid sort field')
 ], getProductsByCategory);
+
+// @desc    Get single product by slug
+// @route   GET /api/products/slug/:slug
+// @access  Public
+router.get('/slug/:slug', getProductBySlug);
 
 // @desc    Get single product
 // @route   GET /api/products/:id

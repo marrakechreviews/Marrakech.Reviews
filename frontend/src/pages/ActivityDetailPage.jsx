@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSEO } from '../hooks/useSEO';
+import { useQuery } from '@tanstack/react-query';
+import { Helmet } from 'react-helmet-async';
 import { 
   MapPin, 
   Clock, 
@@ -36,8 +37,13 @@ export default function ActivityDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
   
-  const [activity, setActivity] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: activity, isLoading: loading, error } = useQuery({
+    queryKey: ['activity', slug],
+    queryFn: () => activitiesAPI.getActivityBySlug(slug),
+    select: (response) => response.data,
+    enabled: !!slug,
+  });
+
   const [selectedDate, setSelectedDate] = useState(null);
   const [numberOfPersons, setNumberOfPersons] = useState(2);
   const [formData, setFormData] = useState({
@@ -49,23 +55,6 @@ export default function ActivityDetailPage() {
   });
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    const fetchActivity = async () => {
-      setLoading(true);
-      try {
-        const response = await activitiesAPI.getActivityBySlug(slug);
-        setActivity(response.data);
-      } catch (error) {
-        console.error("Failed to fetch activity:", error);
-        setActivity(null); // Set activity to null on error
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchActivity();
-  }, [slug]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -186,12 +175,14 @@ export default function ActivityDetailPage() {
     );
   }
 
-  if (!activity) {
+  if (error || !activity) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Activity Not Found</h1>
-          <p className="text-gray-600 mb-6">The activity you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-600 mb-6">
+            {error?.response?.data?.message || "The activity you're looking for doesn't exist or has been removed."}
+          </p>
           <Button onClick={() => navigate('/activities')}>
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Activities
@@ -227,18 +218,38 @@ export default function ActivityDetailPage() {
     }
   } : null;
 
-  const SEO = useSEO({
-    title: activity.seoTitle || `${activity.name} - Book Your Adventure`,
-    description: activity.seoDescription || activity.shortDescription,
-    keywords: activity.seoKeywords ? activity.seoKeywords.join(', ') : `${activity.category}, ${activity.location}, ${activity.tags.join(', ')}`,
-    image: activity.images[0],
-    url: window.location.href,
-    structuredData: eventSchema
-  });
+  const title = activity.seoTitle || `${activity.name} - Book Your Adventure`;
+  const description = activity.seoDescription || activity.shortDescription;
+  const keywords = activity.seoKeywords ? activity.seoKeywords.join(', ') : `${activity.category}, ${activity.location}, ${activity.tags.join(', ')}`;
+  const image = activity.images[0];
+  const url = window.location.href;
 
   return (
     <>
-      {SEO}
+      <Helmet>
+        {title && <title>{title}</title>}
+        {description && <meta name="description" content={description} />}
+        {keywords && <meta name="keywords" content={keywords} />}
+        {url && <link rel="canonical" href={url} />}
+
+        {/* Open Graph tags */}
+        {url && <meta property="og:url" content={url} />}
+        {title && <meta property="og:title" content={title} />}
+        {description && <meta property="og:description" content={description} />}
+        <meta property="og:type" content="website" />
+        {image && <meta property="og:image" content={image} />}
+
+        {/* Twitter Card tags */}
+        {title && <meta name="twitter:title" content={title} />}
+        {description && <meta name="twitter:description" content={description} />}
+        {image && <meta name="twitter:image" content={image} />}
+
+        {eventSchema && (
+          <script type="application/ld+json">
+            {JSON.stringify(eventSchema)}
+          </script>
+        )}
+      </Helmet>
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
