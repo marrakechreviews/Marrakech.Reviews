@@ -88,29 +88,6 @@ app.use("/api", productGeneratorRoutes);
 app.use("/api/bulk", bulkRoutes);
 app.use("/", sitemapRoutes);
 
-// Root route handler for token-based requests
-app.get("/", (req, res) => {
-  const { token } = req.query;
-  
-  if (token) {
-    // Handle token-based access
-    res.status(200).json({
-      success: true,
-      message: "Token received successfully",
-      token: token,
-      timestamp: new Date().toISOString()
-    });
-  } else {
-    // Default root response
-    res.status(200).json({
-      success: true,
-      message: "Enhanced E-commerce Backend API",
-      version: "1.0.0",
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -118,6 +95,13 @@ app.get("/health", (req, res) => {
     message: "Server is running",
     timestamp: new Date().toISOString()
   });
+});
+
+// Serve frontend assets and handle client-side routing
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../frontend/dist', 'index.html'));
 });
 
 // Error handling middleware
