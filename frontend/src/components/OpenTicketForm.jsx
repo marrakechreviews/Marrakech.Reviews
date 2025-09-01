@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { api } from '../lib/api';
+import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Input } from './ui/input';
