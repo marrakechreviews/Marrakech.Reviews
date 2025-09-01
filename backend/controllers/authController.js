@@ -1,6 +1,62 @@
 const { validationResult } = require('express-validator');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// @desc    Authenticate user with Google
+// @route   POST /api/auth/google
+// @access  Public
+const googleLogin = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    const { token } = req.body;
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const { name, email, picture } = ticket.getPayload();
+
+        let user = await User.findOne({ email });
+
+        if (user) {
+            if (user.authProvider !== 'google') {
+                return res.status(400).json({ success: false, message: 'User already exists with a different sign-in method.' });
+            }
+        } else {
+            user = new User({
+                name,
+                email,
+                image: picture,
+                authProvider: 'google',
+                isEmailVerified: true,
+            });
+            await user.save();
+        }
+
+        const jwtToken = generateToken(user._id);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                image: user.image,
+                token: jwtToken,
+            },
+        });
+    } catch (error) {
+        console.error('Google login error:', error);
+        res.status(400).json({ success: false, message: 'Google login failed. Invalid token.' });
+    }
+};
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -391,6 +447,7 @@ const resetPassword = async (req, res) => {
 };
 
 module.exports = {
+  googleLogin,
   register,
   login,
   getMe,

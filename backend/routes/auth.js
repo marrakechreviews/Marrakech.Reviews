@@ -7,11 +7,19 @@ const {
   updateProfile,
   changePassword,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  googleLogin
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
+
+// @desc    Authenticate user with Google
+// @route   POST /api/auth/google
+// @access  Public
+router.post('/google', [
+    body('token').notEmpty().withMessage('Google token is required')
+], googleLogin);
 
 // @desc    Register user
 // @route   POST /api/auth/register

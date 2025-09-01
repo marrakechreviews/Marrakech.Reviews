@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -31,7 +32,9 @@ import PayPalButton from '../components/PayPalButton';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { items, total, itemsCount, clearCart } = useCart();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('Stripe');
@@ -59,10 +62,19 @@ const CheckoutPage = () => {
   const [createdOrderId, setCreatedOrderId] = useState(null);
 
   useEffect(() => {
-    if (items.length === 0) {
+    if (isLoading) {
+      // Wait for authentication status to be determined
+      return;
+    }
+
+    if (!isAuthenticated) {
+      // Redirect to login page, but save the location they were trying to go to
+      navigate('/login', { state: { from: location }, replace: true });
+    } else if (items.length === 0) {
+      // If authenticated but cart is empty, redirect to cart
       navigate('/cart');
     }
-  }, [items, navigate]);
+  }, [isAuthenticated, isLoading, items, navigate, location]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({

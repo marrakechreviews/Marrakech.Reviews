@@ -21,6 +21,8 @@ import CheckoutPage from './pages/CheckoutPage';
 import ThankYouPage from './pages/ThankYouPage';
 import TravelThankYouPage from './pages/TravelThankYouPage';
 import ReservationPaymentPage from './pages/ReservationPaymentPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import AboutUsPage from './pages/AboutUsPage';
 import ContactUsPage from './pages/ContactUsPage';
 import FAQPage from './pages/FAQPage';
@@ -64,6 +66,8 @@ function App() {
                 <Route path="/instagram" element={<InstagramPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />
                 <Route path="/payment/reservation/:token" element={<ReservationPaymentPage />} />
                 <Route path="/travel/thank-you" element={<TravelThankYouPage />} />
