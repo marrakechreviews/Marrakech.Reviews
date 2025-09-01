@@ -264,6 +264,31 @@ const CheckoutPage = () => {
                 </CardContent>
               </Card>
 
+              {/* Agreements */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Agreements</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="agreeTerms"
+                      checked={formData.agreeTerms}
+                      onCheckedChange={(checked) => handleInputChange('agreeTerms', checked)}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="agreeTerms"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        I agree to the <a href="/policies" target="_blank" className="text-blue-600 hover:underline">terms and conditions</a>
+                      </label>
+                    </div>
+                  </div>
+                  {errors.agreeTerms && <p className="text-red-500 text-sm mt-2">{errors.agreeTerms}</p>}
+                </CardContent>
+              </Card>
+
               {/* Payment Method */}
               <Card>
                 <CardHeader>
