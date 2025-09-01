@@ -70,7 +70,7 @@ const CartPage = () => {
   return (
     <>
       <Helmet>
-        <title>Shopping Cart ({itemsCount} items) - Marrakech Reviews</title>
+        <title>{`Shopping Cart (${itemsCount} items) - Marrakech Reviews`}</title>
         <meta name="description" content="Review your cart items and proceed to checkout." />
       </Helmet>
       
