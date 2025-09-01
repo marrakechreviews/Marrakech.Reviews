@@ -23,11 +23,20 @@ const generateInvoicePdf = (order) => {
       .text(`Total Paid: $${order.totalPrice.toFixed(2)}`, 50, 140);
 
     // Customer
-    doc
-      .text('Bill to:', 300, 100)
-      .text(order.shippingAddress.fullName, 300, 120)
-      .text(order.shippingAddress.address, 300, 140)
-      .text(`${order.shippingAddress.city}, ${order.shippingAddress.postalCode}`, 300, 160);
+    doc.text('Bill to:', 300, 100);
+    if (order.reservation && order.reservation.customerInfo) {
+      const customerInfo = order.reservation.customerInfo;
+      doc.text(customerInfo.name, 300, 120);
+      doc.text(customerInfo.email, 300, 140);
+      if (customerInfo.phone) {
+        doc.text(customerInfo.phone, 300, 160);
+      }
+    } else {
+      doc
+        .text(order.shippingAddress.fullName, 300, 120)
+        .text(order.shippingAddress.address, 300, 140)
+        .text(`${order.shippingAddress.city}, ${order.shippingAddress.postalCode}`, 300, 160);
+    }
 
     // Table Header
     doc
@@ -58,11 +67,21 @@ const generateInvoicePdf = (order) => {
       .lineTo(550, y)
       .stroke();
 
+    let footerY = y + 10;
     doc
       .fontSize(10)
-      .text(`Subtotal: $${order.itemsPrice.toFixed(2)}`, 450, y + 10, { align: 'right' })
-      .text(`Tax: $${order.taxPrice.toFixed(2)}`, 450, y + 30, { align: 'right' })
-      .text(`Shipping: $${order.shippingPrice.toFixed(2)}`, 450, y + 50, { align: 'right' });
+      .text(`Subtotal: $${order.itemsPrice.toFixed(2)}`, 450, footerY, { align: 'right' });
+    footerY += 20;
+
+    if (order.taxPrice > 0) {
+      doc.text(`Tax: $${order.taxPrice.toFixed(2)}`, 450, footerY, { align: 'right' });
+      footerY += 20;
+    }
+
+    if (order.shippingPrice > 0) {
+      doc.text(`Service/Shipping Fee: $${order.shippingPrice.toFixed(2)}`, 450, footerY, { align: 'right' });
+      footerY += 20;
+    }
 
     doc
       .fontSize(12)
