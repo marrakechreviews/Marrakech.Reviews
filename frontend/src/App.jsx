@@ -23,6 +23,7 @@ import TravelThankYouPage from './pages/TravelThankYouPage';
 import ReservationPaymentPage from './pages/ReservationPaymentPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AccountPage from './pages/AccountPage';
 import AboutUsPage from './pages/AboutUsPage';
 import ContactUsPage from './pages/ContactUsPage';
 import FAQPage from './pages/FAQPage';
@@ -68,6 +69,7 @@ function App() {
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/account" element={<AccountPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />
                 <Route path="/payment/reservation/:token" element={<ReservationPaymentPage />} />
                 <Route path="/travel/thank-you" element={<TravelThankYouPage />} />

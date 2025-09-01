@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -10,7 +11,7 @@ import { toast } from 'sonner';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { register, isAuthenticated } = useAuth();
+  const { register, googleLogin, isAuthenticated } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,6 +23,16 @@ const RegisterPage = () => {
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    const result = await googleLogin(credentialResponse.credential);
+    setLoading(false);
+    if (!result.success) {
+        toast.error(result.message || 'Google registration failed.');
+    }
+    // The useEffect hook will handle the redirect on success
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -86,6 +97,22 @@ const RegisterPage = () => {
                 {loading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or register with
+                </span>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => toast.error('Google registration failed.')}
+              />
+            </div>
           </CardContent>
           <CardFooter className="flex justify-center text-sm">
             <p>Already have an account? <Link to="/login" className="font-semibold text-blue-600 hover:underline">Sign in</Link></p>

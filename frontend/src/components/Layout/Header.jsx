@@ -127,8 +127,8 @@ export default function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    Profile
+                  <DropdownMenuItem onClick={() => navigate('/account')}>
+                    My Account
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/orders')}>
                     My Orders
