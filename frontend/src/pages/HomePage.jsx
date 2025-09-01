@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '../components/ui/button';
@@ -12,25 +11,23 @@ import {
 } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
-import {
-  Search,
-  Star,
-  MapPin,
-  Users,
-  BookOpen,
-  TrendingUp,
-  Utensils,
-  Building,
-  Camera,
-  ShoppingBag,
-  Sparkles,
-  Activity,
-  Package,
-  Truck,
-  Shield,
-  Award,
-  Compass
-} from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Star from 'lucide-react/dist/esm/icons/star';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Users from 'lucide-react/dist/esm/icons/users';
+import BookOpen from 'lucide-react/dist/esm/icons/book-open';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import Utensils from 'lucide-react/dist/esm/icons/utensils';
+import Building from 'lucide-react/dist/esm/icons/building';
+import Camera from 'lucide-react/dist/esm/icons/camera';
+import ShoppingBag from 'lucide-react/dist/esm/icons/shopping-bag';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
+import Activity from 'lucide-react/dist/esm/icons/activity';
+import Package from 'lucide-react/dist/esm/icons/package';
+import Truck from 'lucide-react/dist/esm/icons/truck';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import Award from 'lucide-react/dist/esm/icons/award';
+import Compass from 'lucide-react/dist/esm/icons/compass';
 import api from '../lib/api';
 import { animateOnScroll, staggerAnimation, createFloatingAnimation } from '../lib/animations';
 import HeroSlideshow from '../components/HeroSlideshow';
@@ -39,14 +36,9 @@ import TravelpayoutsFourPartWidget from '../components/TravelpayoutsFourPartWidg
 import RecommendedPlacesInstagramCarousel from '../components/RecommendedPlacesInstagramCarousel';
 import InstagramSection from '../components/InstagramSection';
 import PopularDestinations from '../components/PopularDestinations';
-import souksImage from '../assets/images/marrakech-souks.jpg';
-import foodImage from '../assets/images/marrakech-food.jpg';
-import desertImage from '../assets/images/marrakech-desert.jpg';
-import riadImage from '../assets/images/marrakech-riad.jpg';
 import './HomePage.css';
 
 const HomePage = () => {
-  const { t } = useTranslation();
   const [products, setProducts] = useState([]);
   const [homepageSections, setHomepageSections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -117,35 +109,35 @@ const HomePage = () => {
       icon: Utensils,
       count: '280+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?category=fashion',
+      href: '/articles',
     },
     {
       name: 'hosting',
       icon: MapPin,
       count: '120+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?category=home-garden',
+      href: 'https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574&journey_id=NRRMDQb20Kvmwopr_QsXi&trace_id=Zz4316d516ceaa4115959b1df-666986&promo_kind=tp_long&page_url=http%3A%2F%2Flocalhost%3A3000%2F&product_type=tp_manual&install_type=partner',
     },
     {
       name: 'hidden gems',
       icon: Star,
       count: '90+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?category=sports',
+      href: 'https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574&journey_id=NRRMDQb20Kvmwopr_QsXi&trace_id=Zz4316d516ceaa4115959b1df-666986&promo_kind=tp_long&page_url=http%3A%2F%2Flocalhost%3A3000%2F&product_type=tp_manual&install_type=partner',
     },
     {
       name: 'fast food',
       icon: Utensils,
       count: '200+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?category=books',
+      href: '/articles',
     },
     {
       name: 'guide',
       icon: BookOpen,
       count: '45+',
       color: 'bg-red-100 text-red-600',
-      href: '/products?sale=true',
+      href: 'https://www.instagram.com/marrakechreviews/',
     },
   ];
 
@@ -181,7 +173,6 @@ const HomePage = () => {
   const renderSections = () => {
     const sections = [
       { name: 'hero', component: <HeroSlideshow key="hero" /> },
-      { name: 'instagram', component: <InstagramSection key="instagram" /> },
       {
         name: 'categories',
         component: (
@@ -189,7 +180,7 @@ const HomePage = () => {
             <div className="container mx-auto px-4">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                  {t('shopByCategory')}
+                  Shop by Category
                 </h2>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                   Find exactly what you're looking for in our carefully curated categories
@@ -222,224 +213,8 @@ const HomePage = () => {
           </section>
         )
       },
-      { 
-        name: 'google-reviews', 
-        component: (
-          <section key="google-reviews" className="py-16 bg-gray-100">
-            <div className="container mx-auto px-4 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                What Our Customers Say
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                Hear from those who have experienced the magic of Marrakech with us.
-              </p>
-              <div className="flex items-center justify-center gap-4 mb-6">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-6 w-6 ${i < 4.8 ? 'text-red-600 fill-current' : 'text-gray-300'}`}
-                    />
-                  ))}
-                </div>
-                <span className="text-2xl font-bold text-gray-900">4.8 / 5</span>
-                <span className="text-lg text-gray-600">(Based on 247 reviews)</span>
-              </div>
-              <Button asChild size="lg">
-                <Link to="/reviews">
-                  <Star className="mr-2 h-5 w-5 text-red-600" />
-                  Read All Reviews
-                </Link>
-              </Button>
-            </div>
-          </section>
-        )
-      },
-      {
-        name: 'hosting',
-        component: (
-          <section key="hosting" className="py-16 bg-white">
-            <div className="container mx-auto px-4 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Find Your Perfect Stay
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                Discover unique accommodations and book your unforgettable experience in Marrakech.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src="/images/accommodations/luxury-hotel.jpg" 
-                      alt="Luxury Hotels" 
-                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-2xl font-bold mb-3">Luxury Hotels</h3>
-                    <p className="text-gray-600 mb-4">Experience world-class comfort and service in our premium hotel selections.</p>
-                    <Button asChild variant="outline" className="w-full">
-                      <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
-                        Explore Hotels
-                      </a>
-                    </Button>
-                  </div>
-                </Card>
-                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src="/images/accommodations/traditional-riad.jpg" 
-                      alt="Traditional Riads" 
-                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-2xl font-bold mb-3">Traditional Riads</h3>
-                    <p className="text-gray-600 mb-4">Experience authentic Moroccan hospitality in our hand-picked luxury riads.</p>
-                    <Button asChild variant="outline" className="w-full">
-                      <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
-                        Explore Riads
-                      </a>
-                    </Button>
-                  </div>
-                </Card>
-                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src="/images/accommodations/modern-apartment.jpg" 
-                      alt="Modern Apartments" 
-                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" 
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-2xl font-bold mb-3">Modern Apartments</h3>
-                    <p className="text-gray-600 mb-4">Enjoy the comfort of home with our stylish apartment rentals.</p>
-                    <Button asChild variant="outline" className="w-full">
-                      <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
-                        Discover Apartments
-                      </a>
-                    </Button>
-                  </div>
-                </Card>
-              </div>
-              <Button asChild size="lg">
-                <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
-                  <MapPin className="mr-2 h-5 w-5 text-red-600" />
-                  View All Hosting Options
-                </a>
-              </Button>
-            </div>
-          </section>
-        )
-      },
-      {
-        name: 'activities',
-        component: (
-          <section key="activities" className="py-16 bg-gray-100">
-            <div className="container mx-auto px-4 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Explore Marrakech Activities
-              </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                Dive into the vibrant culture and breathtaking landscapes of Marrakech with our curated activities.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                <Card className="p-6">
-                  <img src="/images/marrakechactivities/desert-tour.jpg" alt="Desert Tour" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
-                  <h3 className="text-xl font-bold mb-2">Desert Adventures</h3>
-                  <p className="text-gray-600 mb-4">Camel treks, quad biking, and overnight stays under the stars.</p>
-                  <Button asChild variant="outline">
-                    <Link to="/activities">
-                      Explore Desert Tours
-                    </Link>
-                  </Button>
-                </Card>
-                <Card className="p-6">
-                  <img src="/images/marrakechactivities/traditional-food.jpg" alt="Cooking Class" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
-                  <h3 className="text-xl font-bold mb-2">Cooking Classes</h3>
-                  <p className="text-gray-600 mb-4">Learn to prepare authentic Moroccan dishes with local chefs.</p>
-                  <Button asChild variant="outline">
-                    <Link to="/activities">
-                      Book a Class
-                    </Link>
-                  </Button>
-                </Card>
-                <Card className="p-6">
-                  <img src="/images/marrakechactivities/souks-shopping.jpg" alt="Souks Shopping" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
-                  <h3 className="text-xl font-bold mb-2">Cultural Immersion</h3>
-                  <p className="text-gray-600 mb-4">Discover the bustling souks, historic sites, and vibrant culture.</p>
-                  <Button asChild variant="outline">
-                    <Link to="/activities">
-                      Discover Culture
-                    </Link>
-                  </Button>
-                </Card>
-              </div>
-              <Button asChild size="lg">
-                <Link to="/activities">
-                  <Activity className="mr-2 h-5 w-5 text-red-600" />
-                  View All Activities
-                </Link>
-              </Button>
-            </div>
-          </section>
-        )
-      },
-      {
-        name: 'stats',
-        component: (
-          <section key="stats" className="py-16 bg-muted/30">
-            <div className="container mx-auto px-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {stats.map((stat, index) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={index} className="text-center">
-                      <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4">
-                        <Icon className="h-6 w-6 text-red-600" />
-                      </div>
-                      <div className="text-3xl font-bold text-foreground mb-2">
-                        {stat.value}
-                      </div>
-                      <div className="text-muted-foreground">{stat.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )
-      },
-      {
-        name: 'flights',
-        component: (
-          <section key="flights" className="py-16 flex justify-center">
-            <div className="text-center space-y-8">
-              <h2 className="text-3xl md:text-4xl font-bold">Find Your Flight</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Search and compare the best flight deals for your trip.
-              </p>
-              <TravelpayoutsFlightsWidget />
-            </div>
-          </section>
-        )
-      },
-      {
-        name: 'four-part-widget',
-        component: (
-          <section key="four-part-widget" className="py-16">
-            <div className="container mx-auto px-4">
-              <TravelpayoutsFourPartWidget />
-            </div>
-          </section>
-        )
-      },
+      { name: 'instagram', component: <InstagramSection key="instagram" /> },
+
       {
         name: 'features',
         component: (
@@ -496,6 +271,231 @@ const HomePage = () => {
           </section>
         )
       },
+      { 
+        name: 'google-reviews', 
+        component: (
+          <section key="google-reviews" className="py-16 bg-gray-100">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                What Our Customers Say
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                Hear from those who have experienced the magic of Marrakech with us.
+              </p>
+              <div className="flex items-center justify-center gap-4 mb-6">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-6 w-6 ${i < 4.8 ? 'text-red-600 fill-current' : 'text-gray-300'}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-2xl font-bold text-gray-900">4.8 / 5</span>
+                <span className="text-lg text-gray-600">(Based on 247 reviews)</span>
+              </div>
+              <Button asChild size="lg">
+                <Link to="/reviews">
+                  <Star className="mr-2 h-5 w-5 text-red-600" />
+                  Read All Reviews
+                </Link>
+              </Button>
+            </div>
+          </section>
+        )
+      },
+      {
+        name: 'hosting',
+        component: (
+          <section key="hosting" className="py-16 bg-white">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Find Your Perfect Stay
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                Discover unique accommodations and book your unforgettable experience in Marrakech.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className="relative overflow-hidden">
+                    <img
+                      src="/images/accommodations/luxury-hotel.jpg"
+                      alt="Luxury hotel in Marrakech"
+                      width="400"
+                      height="300"
+                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-2xl font-bold mb-3">Luxury Hotels</h3>
+                    <p className="text-gray-600 mb-4">Experience world-class comfort and service in our premium hotel selections.</p>
+                    <Button asChild variant="outline" className="w-full">
+                      <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
+                        Explore Hotels
+                      </a>
+                    </Button>
+                  </div>
+                </Card>
+                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className="relative overflow-hidden">
+                    <img
+                      src="/images/accommodations/traditional-riad.jpg"
+                      alt="Traditional Riad in Marrakech"
+                      width="400"
+                      height="300"
+                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-2xl font-bold mb-3">Traditional Riads</h3>
+                    <p className="text-gray-600 mb-4">Experience authentic Moroccan hospitality in our hand-picked luxury riads.</p>
+                    <Button asChild variant="outline" className="w-full">
+                      <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
+                        Explore Riads
+                      </a>
+                    </Button>
+                  </div>
+                </Card>
+                <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
+                  <div className="relative overflow-hidden">
+                    <img
+                      src="/images/accommodations/modern-apartment.jpg"
+                      alt="Modern Apartment in Marrakech"
+                      width="400"
+                      height="300"
+                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-300"></div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-2xl font-bold mb-3">Modern Apartments</h3>
+                    <p className="text-gray-600 mb-4">Enjoy the comfort of home with our stylish apartment rentals.</p>
+                    <Button asChild variant="outline" className="w-full">
+                      <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
+                        Discover Apartments
+                      </a>
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+              <Button asChild size="lg">
+                <a href="https://tp.media/click?shmarker=666986&promo_id=7523&source_type=link&type=click&campaign_id=101&trs=451574" target="_blank" rel="noopener noreferrer">
+                  <MapPin className="mr-2 h-5 w-5 text-red-600" />
+                  View All Hosting Options
+                </a>
+              </Button>
+            </div>
+          </section>
+        )
+      },
+      {
+        name: 'activities',
+        component: (
+          <section key="activities" className="py-16 bg-gray-100">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Explore Marrakech Activities
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                Dive into the vibrant culture and breathtaking landscapes of Marrakech with our curated activities.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <Card className="p-6">
+                  <img src="/images/marrakechactivities/desert-tour.jpg" alt="Camel ride in Marrakech desert tour" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
+                  <h3 className="text-xl font-bold mb-2">Desert Adventures</h3>
+                  <p className="text-gray-600 mb-4">Camel treks, quad biking, and overnight stays under the stars.</p>
+                  <Button asChild variant="outline">
+                    <Link to="/activities">
+                      Explore Desert Tours
+                    </Link>
+                  </Button>
+                </Card>
+                <Card className="p-6">
+                  <img src="/images/marrakechactivities/traditional-food.jpg" alt="Moroccan cooking class in Marrakech" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
+                  <h3 className="text-xl font-bold mb-2">Cooking Classes</h3>
+                  <p className="text-gray-600 mb-4">Learn to prepare authentic Moroccan dishes with local chefs.</p>
+                  <Button asChild variant="outline">
+                    <Link to="/activities">
+                      Book a Class
+                    </Link>
+                  </Button>
+                </Card>
+                <Card className="p-6">
+                  <img src="/images/marrakechactivities/souks-shopping.jpg" alt="Shopping in the souks of Marrakech" width="400" height="300" className="w-full h-48 object-cover rounded-lg mb-4" loading="lazy" />
+                  <h3 className="text-xl font-bold mb-2">Cultural Immersion</h3>
+                  <p className="text-gray-600 mb-4">Discover the bustling souks, historic sites, and vibrant culture.</p>
+                  <Button asChild variant="outline">
+                    <Link to="/activities">
+                      Discover Culture
+                    </Link>
+                  </Button>
+                </Card>
+              </div>
+              <Button asChild size="lg">
+                <Link to="/activities">
+                  <Activity className="mr-2 h-5 w-5 text-red-600" />
+                  View All Activities
+                </Link>
+              </Button>
+            </div>
+          </section>
+        )
+      },
+      {
+        name: 'flights',
+        component: (
+          <section key="flights" className="py-16 flex justify-center">
+            <div className="text-center space-y-8">
+              <h2 className="text-3xl md:text-4xl font-bold">Find Your Flight</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Search and compare the best flight deals for your trip.
+              </p>
+              <TravelpayoutsFlightsWidget />
+            </div>
+          </section>
+        )
+      },
+      {
+        name: 'four-part-widget',
+        component: (
+          <section key="four-part-widget" className="py-16">
+            <div className="container mx-auto px-4">
+              <TravelpayoutsFourPartWidget />
+            </div>
+          </section>
+        )
+      },
+
+      {
+        name: 'stats',
+        component: (
+          <section key="stats" className="py-16 bg-muted/30">
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                {stats.map((stat, index) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div key={index} className="text-center">
+                      <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-4">
+                        <Icon className="h-6 w-6 text-red-600" />
+                      </div>
+                      <div className="text-3xl font-bold text-foreground mb-2">
+                        {stat.value}
+                      </div>
+                      <div className="text-muted-foreground">{stat.label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )
+      },
       // {
       //   name: 'instagram',
       //   component: <InstagramSection key="instagram" />
@@ -546,9 +546,9 @@ const HomePage = () => {
   return (
     <div className="min-h-screen">
       <Helmet>
-        <title>Your Store - Premium Online Shopping Experience</title>
-        <meta name="description" content="Discover amazing products with unbeatable prices. Shop Activities, fashion, home goods and more with fast shipping and excellent customer service." />
-        <meta name="keywords" content="online shopping, ecommerce, products, deals, fashion, Activities, home" />
+        <title>Marrakech Travel Guide | Book Activities, Tours & Stays</title>
+        <meta name="description" content="Your ultimate guide to Marrakech. Discover the best activities, tours, and stays in Marrakech. Book your dream Morocco vacation with Marrakech.Reviews and get the best deals." />
+        <meta name="keywords" content="marrakech travel, marrakech guide, marrakech activities, marrakech booking, marrakech tours, marrakech stays, morocco travel, travel to marrakech, marrakech vacation, marrakech holiday, marrakech sejours" />
       </Helmet>
 
       <div className="space-y-0">

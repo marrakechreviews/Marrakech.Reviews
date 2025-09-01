@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reservation Pending</title>
+</head>
+<body>
+  <h1>Your Reservation is Pending Payment</h1>
+  <p>Dear {{customerName}},</p>
+  <p>Thank you for your reservation for {{activityName}}. Your reservation is pending payment.</p>
+  <p>Please complete your payment within 1 hour to confirm your reservation.</p>
+  <a href="{{paymentLink}}">Pay Now</a>
+  <p>Reservation Details:</p>
+  <ul>
+    <li>Reservation ID: {{reservationId}}</li>
+    <li>Activity: {{activityName}}</li>
+    <li>Date: {{reservationDate}}</li>
+    <li>Number of Persons: {{numberOfPersons}}</li>
+    <li>Total Price: ${{totalPrice}}</li>
+  </ul>
+</body>
+</html>

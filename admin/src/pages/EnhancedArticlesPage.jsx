@@ -859,7 +859,7 @@ const EnhancedArticlesPage = () => {
                         {article.author && (
                           <div className="flex items-center gap-1">
                             <User className="h-3 w-3" />
-                            <span>{article.author.name || 'Anonymous'}</span>
+                            <span>{article.author.name || 'Marrakech.Reviews'}</span>
                           </div>
                         )}
                         {article.tags && article.tags.length > 0 && (

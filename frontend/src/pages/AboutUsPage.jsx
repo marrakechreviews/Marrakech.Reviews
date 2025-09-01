@@ -2,7 +2,12 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Users, Heart, Star, Award, Globe } from 'lucide-react';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Users from 'lucide-react/dist/esm/icons/users';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+import Star from 'lucide-react/dist/esm/icons/star';
+import Award from 'lucide-react/dist/esm/icons/award';
+import Globe from 'lucide-react/dist/esm/icons/globe';
 
 const AboutUsPage = () => {
   return (

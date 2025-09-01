@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Grid, List, SlidersHorizontal } from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import Filter from 'lucide-react/dist/esm/icons/filter';
+import Grid from 'lucide-react/dist/esm/icons/grid';
+import List from 'lucide-react/dist/esm/icons/list';
+import SlidersHorizontal from 'lucide-react/dist/esm/icons/sliders-horizontal';
 
 const ProductGrid = ({ products = [], loading = false, error = null }) => {
   const [filteredProducts, setFilteredProducts] = useState(products);

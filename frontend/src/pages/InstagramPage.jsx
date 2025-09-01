@@ -80,7 +80,7 @@ const InstagramPage = () => {
 
         {/* Featured Videos Section */}
         <div className="container mx-auto px-4 py-16">
-          <div className="mb-16">
+          {/* <div className="mb-16">
             <InstagramVideoGrid
               title="Featured Videos"
               featured={true}
@@ -89,7 +89,7 @@ const InstagramPage = () => {
               showSearch={false}
               className="mb-16"
             />
-          </div>
+          </div> */}
 
           {/* All Videos Section */}
           <InstagramVideoGrid

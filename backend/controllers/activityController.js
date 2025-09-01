@@ -1,7 +1,8 @@
 const Activity = require('../models/Activity');
 const ActivityReservation = require('../models/ActivityReservation');
-const { sendReservationConfirmation, sendAdminNotification } = require('../utils/emailService');
+const { sendReservationConfirmation, sendAdminNotification, sendReservationUpdateNotification, sendReservationPendingEmail } = require('../utils/emailService');
 const asyncHandler = require('express-async-handler');
+const crypto = require('crypto');
 
 // @desc    Get all activities
 // @route   GET /api/activities
@@ -12,7 +13,18 @@ const getActivities = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   // Build query
-  let query = { isActive: true };
+  let query = {};
+
+  // isActive filter
+  if (req.query.isActive) {
+    // Allow fetching all (active and inactive) activities with ?isActive=all
+    if (req.query.isActive !== 'all') {
+      query.isActive = req.query.isActive === 'true';
+    }
+  } else {
+    // By default, only fetch active activities for public view
+    query.isActive = true;
+  }
 
   // Category filter
   if (req.query.category) {
@@ -140,9 +152,29 @@ const checkAvailability = asyncHandler(async (req, res) => {
 // @route   POST /api/activities
 // @access  Private/Admin
 const createActivity = asyncHandler(async (req, res) => {
-  const activity = new Activity(req.body);
-  const createdActivity = await activity.save();
-  res.status(201).json(createdActivity);
+  try {
+    const { name } = req.body;
+    if (!name) {
+      res.status(400).json({ message: 'Activity name is required to generate a slug.' });
+      return;
+    }
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .trim('-'); // Remove leading/trailing hyphens
+
+    const activity = new Activity({
+      ...req.body,
+      slug,
+    });
+
+    const createdActivity = await activity.save();
+    res.status(201).json(createdActivity);
+  } catch (error) {
+    res.status(400).json({ message: error.message, errors: error.errors });
+  }
 });
 
 // @desc    Update activity
@@ -184,72 +216,87 @@ const deleteActivity = asyncHandler(async (req, res) => {
 // @route   POST /api/activities/:id/reserve
 // @access  Public
 const createReservation = asyncHandler(async (req, res) => {
-  const activity = await Activity.findById(req.params.id);
-
-  if (!activity || !activity.isActive) {
-    res.status(404);
-    throw new Error('Activity not found or not available');
-  }
-
-  const { customerInfo, reservationDate, numberOfPersons, notes } = req.body;
-
-  // Validate required fields
-  if (!customerInfo || !customerInfo.name || !customerInfo.email || !customerInfo.whatsapp) {
-    res.status(400);
-    throw new Error('Customer name, email, and WhatsApp are required');
-  }
-
-  if (!reservationDate || !numberOfPersons) {
-    res.status(400);
-    throw new Error('Reservation date and number of persons are required');
-  }
-
-  // Check if number of persons is within limits
-  if (numberOfPersons < activity.minParticipants || numberOfPersons > activity.maxParticipants) {
-    res.status(400);
-    throw new Error(`Number of persons must be between ${activity.minParticipants} and ${activity.maxParticipants}`);
-  }
-
-  // Check availability for the date
-  const isAvailable = await Activity.checkAvailability(activity._id, reservationDate);
-  if (!isAvailable) {
-    res.status(400);
-    throw new Error('Activity is not available on the selected date');
-  }
-
-  // Calculate total price
-  const totalPrice = activity.price * numberOfPersons;
-
-  // Create reservation
-  const reservation = new ActivityReservation({
-    activity: activity._id,
-    customerInfo,
-    reservationDate: new Date(reservationDate),
-    numberOfPersons,
-    totalPrice,
-    notes
-  });
-
-  const createdReservation = await reservation.save();
-  await createdReservation.populate('activity', 'name location duration');
-
-  // Send email notifications
   try {
-    // Send confirmation email to customer
-    const confirmationResult = await sendReservationConfirmation(createdReservation);
-    if (confirmationResult.success) {
-      createdReservation.confirmationSent = true;
-      await createdReservation.save();
+    const activity = await Activity.findById(req.params.id);
+
+    if (!activity || !activity.isActive) {
+      res.status(404).json({ message: 'Activity not found or not available' });
+      return;
     }
 
-    // Send notification email to admin
-    await sendAdminNotification(createdReservation);
-  } catch (emailError) {
-    console.error('Email sending error:', emailError);
-    // Don't fail the reservation if email fails
-  }
+    const { customerInfo, reservationDate, numberOfPersons, notes } = req.body;
 
-  res.status(201).json(createdReservation);
+    // Validate required fields
+    if (!customerInfo || !customerInfo.name || !customerInfo.email || !customerInfo.whatsapp) {
+      res.status(400).json({ message: 'Customer name, email, and WhatsApp are required' });
+      return;
+    }
+
+    if (!reservationDate || !numberOfPersons) {
+      res.status(400).json({ message: 'Reservation date and number of persons are required' });
+      return;
+    }
+
+    // Check if number of persons is within limits
+    if (numberOfPersons < activity.minParticipants || numberOfPersons > activity.maxParticipants) {
+      res.status(400).json({ message: `Number of persons must be between ${activity.minParticipants} and ${activity.maxParticipants}` });
+      return;
+    }
+
+    // Check availability for the date
+    const isAvailable = await Activity.checkAvailability(activity._id, reservationDate);
+    if (!isAvailable) {
+      res.status(400).json({ message: 'Activity is not available on the selected date' });
+      return;
+    }
+
+    // Calculate total price
+    const totalPrice = activity.price * numberOfPersons;
+
+    // Generate reservation ID
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 5);
+    const reservationId = `ACT-${timestamp}-${random}`.toUpperCase();
+
+    // Create payment token
+    const paymentToken = crypto.randomBytes(32).toString('hex');
+    const paymentTokenExpires = Date.now() + 3600000; // 1 hour
+
+    // Create reservation
+    const reservation = new ActivityReservation({
+      reservationId,
+      activity: activity._id,
+      customerInfo,
+      reservationDate: new Date(reservationDate),
+      numberOfPersons,
+      totalPrice,
+      notes,
+      paymentMethod: 'PayPal',
+      paymentToken,
+      paymentTokenExpires,
+    });
+
+    const createdReservation = await reservation.save();
+    await createdReservation.populate('activity', 'name location duration');
+
+    /**
+     * Send email notifications when a new reservation is created.
+     */
+    try {
+      // Send pending email to customer with payment link
+      await sendReservationPendingEmail(createdReservation);
+
+      // Send notification email to admin
+      await sendAdminNotification(createdReservation);
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      // Don't fail the reservation if email fails
+    }
+
+    res.status(201).json(createdReservation);
+  } catch (error) {
+    res.status(400).json({ message: error.message, errors: error.errors });
+  }
 });
 
 // @desc    Get activity reservations
@@ -263,8 +310,13 @@ const getReservations = asyncHandler(async (req, res) => {
   let query = {};
 
   // Status filter
-  if (req.query.status) {
+  if (req.query.status && req.query.status !== 'all') {
     query.status = req.query.status;
+  }
+
+  // Payment status filter
+  if (req.query.paymentStatus && req.query.paymentStatus !== 'all') {
+    query.paymentStatus = req.query.paymentStatus;
   }
 
   // Date range filter
@@ -277,6 +329,22 @@ const getReservations = asyncHandler(async (req, res) => {
   // Activity filter
   if (req.query.activity) {
     query.activity = req.query.activity;
+  }
+
+  // Search filter
+  if (req.query.search && req.query.search.trim() !== '') {
+    const searchTerm = req.query.search;
+    const regex = new RegExp(searchTerm, 'i');
+
+    // Find activities that match the search term
+    const matchingActivities = await Activity.find({ name: regex }).select('_id');
+    const activityIds = matchingActivities.map(a => a._id);
+
+    query.$or = [
+      { 'customerInfo.name': regex },
+      { 'customerInfo.email': regex },
+      { 'activity': { $in: activityIds } }
+    ];
   }
 
   const reservations = await ActivityReservation.find(query)
@@ -313,26 +381,75 @@ const getReservation = asyncHandler(async (req, res) => {
   res.json(reservation);
 });
 
-// @desc    Update reservation status
-// @route   PUT /api/activities/reservations/:id/status
+// @desc    Admin Create activity reservation
+// @route   POST /api/activities/reservations
 // @access  Private/Admin
-const updateReservationStatus = asyncHandler(async (req, res) => {
-  const { status, adminNotes } = req.body;
+const createReservationAdmin = asyncHandler(async (req, res) => {
+  try {
+    const { activity, customerInfo, reservationDate, numberOfPersons, totalPrice, status, paymentStatus, notes } = req.body;
 
-  const reservation = await ActivityReservation.findById(req.params.id);
+    if (!activity || !customerInfo || !reservationDate || !numberOfPersons) {
+      return res.status(400).json({ message: 'Missing required fields for reservation.' });
+    }
+
+    // Generate reservation ID
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substr(2, 5);
+    const reservationId = `ACT-ADM-${timestamp}-${random}`.toUpperCase();
+
+    const reservation = new ActivityReservation({
+      reservationId,
+      activity,
+      customerInfo,
+      reservationDate: new Date(reservationDate),
+      numberOfPersons,
+      totalPrice,
+      status: status || 'confirmed',
+      paymentStatus: paymentStatus || 'pending',
+      notes,
+      createdBy: req.user._id, // Track who created it
+    });
+
+    const createdReservation = await reservation.save();
+    await createdReservation.populate('activity', 'name');
+    res.status(201).json(createdReservation);
+  } catch (error) {
+    res.status(400).json({ message: error.message, errors: error.errors });
+  }
+});
+
+// @desc    Update reservation
+// @route   PUT /api/activities/reservations/:id
+// @access  Private/Admin
+const updateReservation = asyncHandler(async (req, res) => {
+  const reservation = await ActivityReservation.findById(req.params.id).populate('activity');
 
   if (!reservation) {
     res.status(404);
     throw new Error('Reservation not found');
   }
 
-  reservation.status = status;
-  if (adminNotes) {
-    reservation.adminNotes = adminNotes;
+  // Selectively update fields from the request body
+  // This is safer than Object.assign for partial updates, as it avoids validation errors on required fields.
+  for (const key in req.body) {
+    if (Object.hasOwnProperty.call(req.body, key)) {
+      // Use set to handle nested objects like customerInfo
+      reservation.set(key, req.body[key]);
+    }
   }
 
   const updatedReservation = await reservation.save();
   await updatedReservation.populate('activity', 'name category location');
+
+  /**
+   * Send a generic update notification email.
+   */
+  try {
+    await sendReservationUpdateNotification(updatedReservation);
+  } catch (emailError) {
+    console.error('Failed to send update notification email:', emailError);
+    // Do not fail the request if email sending fails
+  }
 
   res.json(updatedReservation);
 });
@@ -354,6 +471,22 @@ const getActivityStats = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Delete reservation
+// @route   DELETE /api/activities/reservations/:id
+// @access  Private/Admin
+const deleteReservation = asyncHandler(async (req, res) => {
+  const reservation = await ActivityReservation.findById(req.params.id);
+
+  if (!reservation) {
+    res.status(404);
+    throw new Error('Reservation not found');
+  }
+
+  await reservation.deleteOne();
+
+  res.json({ message: 'Reservation removed' });
+});
+
 module.exports = {
   getActivities,
   getActivity,
@@ -366,7 +499,8 @@ module.exports = {
   createReservation,
   getReservations,
   getReservation,
-  updateReservationStatus,
+  updateReservation,
+  deleteReservation,
+  createReservationAdmin,
   getActivityStats
 };
-

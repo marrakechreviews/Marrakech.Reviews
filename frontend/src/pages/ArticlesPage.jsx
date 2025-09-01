@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -96,8 +97,13 @@ const ArticlesPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
+    <>
+      <Helmet>
+        <title>Marrakech Guide | Travel Articles, Tips & Stories</title>
+        <meta name="description" content="Your ultimate travel guide to Marrakech. Read our articles for the best tips, stories, and insights on what to do, where to go, and what to see in Marrakech." />
+        <meta name="keywords" content="marrakech guide, marrakech travel guide, marrakech blog, marrakech tips, marrakech articles, travel to marrakech, what to do in marrakech, marrakech stories" />
+      </Helmet>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">Articles & Blog</h1>
         <p className="text-lg text-muted-foreground">
@@ -164,7 +170,7 @@ const ArticlesPage = () => {
                     {article.author && (
                       <>
                         <User className="h-4 w-4 ml-2" />
-                        <span>{article.author.name || 'Anonymous'}</span>
+                        <span>{article.author.name || 'Marrakech.Reviews'}</span>
                       </>
                     )}
                   </div>
@@ -262,6 +268,7 @@ const ArticlesPage = () => {
         </>
       )}
     </div>
+    </>
   );
 };
 

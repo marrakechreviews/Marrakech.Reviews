@@ -8,22 +8,13 @@
       "config": { "outputDirectory": "dist" }
     }
   ],
-  "routes": [
+  "installCommand": "pnpm install",
+  "rewrites": [
     {
-      "src": "/assets/(.*)",
-      "headers": { "cache-control": "public, max-age=31536000, immutable" },
-      "continue": true
+      "source": "/sitemap.xml",
+      "destination": "https://marrakech-reviews-backend.vercel.app/sitemap.xml"
     },
-    {
-      "src": "/(.*\\.js|.*\\.css|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.webp|.*\\.gif|.*\\.svg|.*\\.ico|.*\\.woff|.*\\.woff2|.*\\.ttf|.*\\.eot)",
-      "dest": "/$1",
-      "headers": { "cache-control": "public, max-age=31536000, immutable" }
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "installCommand": "pnpm install"
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
 

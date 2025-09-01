@@ -6,32 +6,31 @@ import { Card, CardContent } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
 import { Separator } from '../components/ui/separator';
 import BlockRenderer from '../components/BlockRenderer';
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Tag, 
-  ArrowLeft, 
-  Share2, 
-  BookOpen, 
-  Heart,
-  MessageCircle,
-  Bookmark,
-  Twitter,
-  Facebook,
-  Linkedin,
-  Link2,
-  ChevronUp,
-  Eye,
-  TrendingUp,
-  Coffee,
-  Lightbulb,
-  Quote,
-  Palette,
-  Layout,
-  Zap
-} from 'lucide-react';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import User from 'lucide-react/dist/esm/icons/user';
+import Tag from 'lucide-react/dist/esm/icons/tag';
+import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
+import Share2 from 'lucide-react/dist/esm/icons/share-2';
+import BookOpen from 'lucide-react/dist/esm/icons/book-open';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
+import Bookmark from 'lucide-react/dist/esm/icons/bookmark';
+import Twitter from 'lucide-react/dist/esm/icons/twitter';
+import Facebook from 'lucide-react/dist/esm/icons/facebook';
+import Linkedin from 'lucide-react/dist/esm/icons/linkedin';
+import Link2 from 'lucide-react/dist/esm/icons/link-2';
+import ChevronUp from 'lucide-react/dist/esm/icons/chevron-up';
+import Eye from 'lucide-react/dist/esm/icons/eye';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import Coffee from 'lucide-react/dist/esm/icons/coffee';
+import Lightbulb from 'lucide-react/dist/esm/icons/lightbulb';
+import Quote from 'lucide-react/dist/esm/icons/quote';
+import Palette from 'lucide-react/dist/esm/icons/palette';
+import Layout from 'lucide-react/dist/esm/icons/layout';
+import Zap from 'lucide-react/dist/esm/icons/zap';
 import { toast } from 'sonner';
+import { optimizeImage } from '../lib/image';
 
 const EnhancedArticleDetailPage = () => {
   const { slug } = useParams();
@@ -371,7 +370,7 @@ const EnhancedArticleDetailPage = () => {
             {article.author && (
               <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
                 <User className="h-4 w-4 text-green-500" />
-                <span className="font-medium">{article.author.name || 'Anonymous'}</span>
+                <span className="font-medium">{article.author.name || 'Marrakech.Reviews'}</span>
               </div>
             )}
             
@@ -438,7 +437,7 @@ const EnhancedArticleDetailPage = () => {
           <div className="mb-12">
             <div className="relative overflow-hidden rounded-2xl shadow-2xl group">
               <img
-                src={article.image}
+                src={optimizeImage(article.image, 800)}
                 alt={article.title}
                 className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -528,7 +527,7 @@ const EnhancedArticleDetailPage = () => {
                       {relatedArticle.image && (
                         <div className="relative overflow-hidden rounded-lg mb-4">
                           <img 
-                            src={relatedArticle.image} 
+                            src={optimizeImage(relatedArticle.image, 400)}
                             alt={relatedArticle.title}
                             className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-110"
                           />

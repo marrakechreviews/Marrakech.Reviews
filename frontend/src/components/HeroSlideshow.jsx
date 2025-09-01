@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Star, TrendingUp, Activity, MapPin } from 'lucide-react';
+import ChevronLeft from 'lucide-react/dist/esm/icons/chevron-left';
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
+import Star from 'lucide-react/dist/esm/icons/star';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import Activity from 'lucide-react/dist/esm/icons/activity';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
 import TravelpayoutsHeroWidget from './TravelpayoutsHeroWidget';
-import heroImage from '../assets/images/marrakech-architecture-hero.jpg';
-import desertImage from '../assets/images/marrakech-desert.jpg';
-import souksImage from '../assets/images/marrakech-souks.jpg';
+import { optimizeImage } from '../lib/image';
 
 const HeroSlideshow = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -13,69 +16,27 @@ const HeroSlideshow = () => {
   const slides = [
     {
       id: 1,
-      image: heroImage,
+      image: '/images/hero/marrakech-architecture-hero.jpg',
+      mobileImage: '/images/hero/marrakech-riad.jpg',
       title: "Discover the Magic of",
       animatedWord: "Marrakech",
       subtitle: "Your trusted guide to the best restaurants, hotels, attractions, and hidden gems in Morocco's enchanting Red City",
-      searchPlaceholder: "Search for restaurants, hotels, attractions...",
-      buttons: [
-        {
-          text: "Browse Reviews",
-          icon: Star,
-          link: "/reviews",
-          variant: "primary"
-        },
-        {
-          text: "Share Your Experience",
-          icon: TrendingUp,
-          link: "/add-review",
-          variant: "outline"
-        }
-      ]
     },
     {
       id: 2,
-      image: desertImage,
+      image: '/images/hero/marrakech-desert.jpg',
+      mobileImage: '/images/hero/marrakech-food.jpg',
       title: "Unforgettable Adventures in",
       animatedWord: "Morocco",
       subtitle: "From camel treks in the Sahara to cooking classes in traditional riads, discover authentic experiences that will create memories for a lifetime",
-      searchPlaceholder: "Search for desert tours, cooking classes, hiking...",
-      buttons: [
-        {
-          text: "Explore Activities",
-          icon: Activity,
-          link: "/activities",
-          variant: "primary"
-        },
-        {
-          text: "Book Adventure",
-          icon: MapPin,
-          link: "/activities",
-          variant: "outline"
-        }
-      ]
     },
     {
       id: 3,
-      image: souksImage,
+      image: '/images/hero/marrakech-souks.jpg',
+      mobileImage: '/images/hero/marrakech-riad.jpg',
       title: "Hidden Gems &",
       animatedWord: "Recommendations",
       subtitle: "Discover secret spots, local favorites, and must-visit places that only insiders know about. Let us guide you to the real Morocco",
-      searchPlaceholder: "Search for hidden gems, local spots, recommendations...",
-      buttons: [
-        {
-          text: "View Recommendations",
-          icon: Star,
-          link: "/recommendations",
-          variant: "primary"
-        },
-        {
-          text: "Explore Places",
-          icon: MapPin,
-          link: "/places",
-          variant: "outline"
-        }
-      ]
     }
   ];
 
@@ -106,21 +67,27 @@ const HeroSlideshow = () => {
     <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
       {/* Background Images */}
       {slides.map((slide, index) => (
-        <div
-          key={slide.id}
-          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ${
-            index === currentSlide ? 'opacity-100' : 'opacity-0'
-          }`}
-          style={{ backgroundImage: `url(${slide.image})` }}
-        >
-          <div className="absolute inset-0 bg-black/40" />
-        </div>
+        <picture key={slide.id}>
+          <source media="(max-width: 768px)" srcSet={optimizeImage(slide.mobileImage || slide.image, 768)} />
+          <source media="(min-width: 769px)" srcSet={optimizeImage(slide.image, 1600)} />
+          <img
+            src={optimizeImage(slide.image, 1600)}
+            alt={slide.title}
+            width="1600"
+            height="900"
+            fetchPriority={index === 0 ? 'high' : 'low'}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </picture>
       ))}
+      <div className="absolute inset-0 bg-black/60" />
 
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-all duration-200"
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 rounded-full p-3 transition-all duration-200"
         aria-label="Previous slide"
       >
         <ChevronLeft className="h-6 w-6 text-white" />
@@ -128,7 +95,7 @@ const HeroSlideshow = () => {
       
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-all duration-200"
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 rounded-full p-3 transition-all duration-200"
         aria-label="Next slide"
       >
         <ChevronRight className="h-6 w-6 text-white" />
@@ -167,53 +134,9 @@ const HeroSlideshow = () => {
         <div className="max-w-4xl mx-auto mb-8">
           <TravelpayoutsHeroWidget />
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          {currentSlideData.buttons.map((button, index) => {
-            const Icon = button.icon;
-            return (
-              <Button
-                key={index}
-                asChild
-                size="lg"
-                variant={button.variant === 'primary' ? 'default' : 'outline'}
-                className={
-                  button.variant === 'primary'
-                    ? 'bg-primary hover:bg-primary/90'
-                    : 'border-white text-black bg-white hover:bg-gray-100 hover:text-black'
-                }
-              >
-                <Link to={button.link}>
-                  <Icon className="mr-2 h-5 w-5" />
-                  {button.text}
-                </Link>
-              </Button>
-            );
-          })}
-        </div>
       </div>
-
-      {/* Custom CSS for animations */}
-      <style>{`
-        @keyframes pulse-glow {
-          0%, 100% {
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-            transform: scale(1);
-          }
-          50% {
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 30px rgba(255, 255, 255, 0.6);
-            transform: scale(1.02);
-          }
-        }
-        
-        .animate-pulse-glow {
-          animation: pulse-glow 3s ease-in-out infinite;
-        }
-      `}</style>
     </section>
   );
 };
 
 export default HeroSlideshow;
-

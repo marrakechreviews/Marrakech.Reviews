@@ -14,7 +14,7 @@ const TravelpayoutsThreePartWidget = () => {
       scripts.forEach((src, index) => {
         const script = document.createElement('script');
         script.src = src;
-        script.async = true;
+        script.defer = true;
         script.charset = "utf-8";
         
         const container = document.getElementById(`widget-part-${index}`);

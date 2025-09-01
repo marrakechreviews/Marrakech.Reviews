@@ -1,32 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { settingsAPI } from '../lib/api';
 import { Button } from './ui/button';
 import InstagramVideoGrid from './InstagramVideoGrid';
-import { Instagram, ExternalLink } from 'lucide-react';
+import Instagram from 'lucide-react/dist/esm/icons/instagram';
+import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 
 const InstagramSection = () => {
-  const [settings, setSettings] = useState({
-    social: {
-      instagramLogoUrl: ''
-    }
+  const { data: settings } = useQuery({
+    queryKey: ['publicSettings'],
+    queryFn: () => settingsAPI.getPublicSettings(),
+    select: (response) => response.data.data,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-
-  useEffect(() => {
-    // Fetch settings from API
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/settings/public`);
-        if (response.ok) {
-          const data = await response.json();
-          setSettings(data.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch settings:', error);
-      }
-    };
-    
-    fetchSettings();
-  }, []);
 
   return (
     <section className="py-16 bg-gradient-to-br from-purple-50 to-pink-50">
@@ -34,10 +21,10 @@ const InstagramSection = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-6">
-            {settings.social.instagramLogoUrl ? (
-              <img src={settings.social.instagramLogoUrl} alt="Instagram" className="h-12 w-12 text-pink-500" />
+            {settings?.social.instagramLogoUrl ? (
+              <img src={settings.social.instagramLogoUrl} alt="Instagram" className="h-12 w-12 text-custom-orange" />
             ) : (
-              <Instagram className="h-12 w-12 text-pink-500" />
+              <Instagram className="h-12 w-12 text-custom-orange" />
             )}
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -48,7 +35,7 @@ const InstagramSection = () => {
             hidden gems, and authentic experiences.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700">
+            <Button asChild className="bg-gradient-to-r from-custom-orange to-orange-500 hover:from-orange-500 hover:to-custom-orange">
               <Link to="/instagram" className="inline-flex items-center">
                 <Instagram className="mr-2 h-5 w-5" />
                 See All Videos
@@ -57,7 +44,7 @@ const InstagramSection = () => {
             <Button 
               variant="outline" 
               asChild
-              className="border-pink-500 text-pink-500 hover:bg-pink-50"
+              className="border-custom-orange text-custom-orange hover:bg-orange-50"
             >
               <a 
                 href="https://www.instagram.com/marrakechreviews/" 

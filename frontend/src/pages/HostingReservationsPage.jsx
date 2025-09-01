@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { 
-  Calendar, 
-  Users, 
-  MapPin, 
-  Star, 
-  Wifi, 
-  Car, 
-  Coffee, 
-  Shield,
-  ExternalLink,
-  Heart,
-  Share2,
-  Phone,
-  Mail
-} from 'lucide-react';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Users from 'lucide-react/dist/esm/icons/users';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Star from 'lucide-react/dist/esm/icons/star';
+import Wifi from 'lucide-react/dist/esm/icons/wifi';
+import Car from 'lucide-react/dist/esm/icons/car';
+import Coffee from 'lucide-react/dist/esm/icons/coffee';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+import Share2 from 'lucide-react/dist/esm/icons/share-2';
+import Phone from 'lucide-react/dist/esm/icons/phone';
+import Mail from 'lucide-react/dist/esm/icons/mail';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

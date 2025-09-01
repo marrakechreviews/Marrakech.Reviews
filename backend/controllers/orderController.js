@@ -1,7 +1,10 @@
 const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
-const { sendOrderConfirmation, sendOrderNotification } = require('../utils/emailService');
+const ActivityReservation = require('../models/ActivityReservation');
+const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice } = require('../utils/emailService');
+const paypal = require('@paypal/paypal-server-sdk');
+const { client } = require('../utils/paypal');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -46,7 +49,7 @@ const createOrder = async (req, res) => {
     const updatedOrderItems = [];
     for (const item of orderItems) {
       const product = products.find(p => p._id.toString() === item.product);
-      
+
       if (!product) {
         return res.status(400).json({
           success: false,
@@ -504,7 +507,112 @@ const getOrderStats = async (req, res) => {
   }
 };
 
+const createPayPalOrder = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (order) {
+    const request = new paypal.orders.OrdersCreateRequest();
+    request.prefer("return=representation");
+    request.requestBody({
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'USD',
+          value: order.totalPrice,
+        },
+      }],
+    });
+
+    try {
+      const payPalOrder = await client().execute(request);
+      res.json({ orderID: payPalOrder.result.id });
+    } catch (e) {
+      res.status(500).send({ message: "Something went wrong", error: e.message });
+    }
+  } else {
+    res.status(404).send({ message: 'Order Not Found' });
+  }
+};
+
+const capturePayPalOrder = async (req, res) => {
+  const { paypalOrderID } = req.body;
+  const request = new paypal.orders.OrdersCaptureRequest(paypalOrderID);
+  request.requestBody({});
+
+  try {
+    const capture = await client().execute(request);
+    const order = await Order.findById(req.params.id).populate('reservation');
+    if (order) {
+      order.isPaid = true;
+      order.paidAt = Date.now();
+      order.paymentResult = {
+        id: capture.result.id,
+        status: capture.result.status,
+        update_time: capture.result.update_time,
+        email_address: capture.result.payer.email_address,
+      };
+      if (order.status === 'pending') {
+        order.status = 'processing';
+      }
+      const updatedOrder = await order.save();
+
+      if (order.reservation) {
+        const reservation = await ActivityReservation.findById(order.reservation._id);
+        reservation.status = 'confirmed';
+        reservation.paymentStatus = 'paid';
+        await reservation.save();
+        await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
+      } else {
+        await sendOrderConfirmation(updatedOrder);
+      }
+
+      res.send({ message: 'Order Paid', order: updatedOrder });
+    } else {
+      res.status(404).send({ message: 'Order Not Found' });
+    }
+  } catch (e) {
+    res.status(500).send({ message: "Something went wrong", error: e.message });
+  }
+};
+
+const createOrderFromReservation = async (req, res) => {
+  const { reservationId } = req.body;
+  const reservation = await ActivityReservation.findById(reservationId);
+
+  if (reservation) {
+    const order = new Order({
+      user: req.user._id, // This assumes the user is logged in. This might need to be adjusted.
+      reservation: reservation._id,
+      orderItems: [{
+        name: reservation.activity.name,
+        qty: reservation.numberOfPersons,
+        image: reservation.activity.image, // This needs to be added to the activity model
+        price: reservation.totalPrice / reservation.numberOfPersons,
+        product: reservation.activity._id, // Using activity as a product
+      }],
+      shippingAddress: { // This is a bit of a hack, as reservations don't have shipping addresses.
+        fullName: reservation.customerInfo.name,
+        address: 'N/A',
+        city: 'N/A',
+        postalCode: 'N/A',
+        country: 'N/A',
+      },
+      paymentMethod: 'PayPal',
+      itemsPrice: reservation.totalPrice,
+      taxPrice: 0,
+      shippingPrice: 0,
+      totalPrice: reservation.totalPrice,
+    });
+
+    const createdOrder = await order.save();
+    res.status(201).json({ success: true, data: createdOrder });
+  } else {
+    res.status(404).send({ message: 'Reservation Not Found' });
+  }
+};
+
 module.exports = {
+  createOrderFromReservation,
   createOrder,
   getOrderById,
   updateOrderToPaid,
@@ -512,6 +620,8 @@ module.exports = {
   getMyOrders,
   getOrders,
   updateOrderStatus,
-  getOrderStats
+  getOrderStats,
+  createPayPalOrder,
+  capturePayPalOrder,
 };
 

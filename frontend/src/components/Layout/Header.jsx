@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, X, Store } from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import ShoppingCart from 'lucide-react/dist/esm/icons/shopping-cart';
+import User from 'lucide-react/dist/esm/icons/user';
+import Menu from 'lucide-react/dist/esm/icons/menu';
+import X from 'lucide-react/dist/esm/icons/x';
+import Store from 'lucide-react/dist/esm/icons/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +19,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
 import LanguageSwitcher from '../LanguageSwitcher';
+import { optimizeImage } from '../../lib/image';
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,6 +45,7 @@ export default function Header() {
     { name: 'Home', href: '/' },
     { name: 'Products', href: '/products' },
     { name: 'Activities', href: '/activities' },
+    { name: 'Travel', href: '/travels' },
     { name: 'Articles', href: '/articles' },
     { name: 'AI Generator', href: '/article-generator' },
     { name: 'Instagram', href: '/instagram' },
@@ -54,7 +61,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 gap-8">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src="\Marrakech-Reviews3.png" alt="Marrakech Reviews Logo" className="h-10" />
+            <img src={optimizeImage("/Marrakech-Reviews3.png", 80)} alt="Marrakech Reviews Logo" className="h-10" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -93,6 +100,7 @@ export default function Header() {
               size="sm"
               className="relative"
               onClick={() => navigate('/cart')}
+              aria-label="Open cart"
             >
               <ShoppingCart className="h-5 w-5" />
               {itemsCount > 0 && (
@@ -119,8 +127,8 @@ export default function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
-                    Profile
+                  <DropdownMenuItem onClick={() => navigate('/account')}>
+                    My Account
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/orders')}>
                     My Orders

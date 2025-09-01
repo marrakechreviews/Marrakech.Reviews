@@ -24,6 +24,9 @@ const organizedTravelRoutes = require("./routes/organizedTravel");
 const contactRoutes = require("./routes/contact");
 const articleGeneratorRoutes = require("./routes/articleGenerator");
 const productGeneratorRoutes = require("./routes/productGenerator");
+const bulkRoutes = require("./routes/bulk");
+const sitemapRoutes = require("./routes/sitemap");
+const reservationRoutes = require("./routes/reservations");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -36,7 +39,7 @@ app.use(helmet());
 // Rate limiting disabled for development
 
 // CORS configuration - More permissive for development
-const corsOrigins = process.env.CORS_ORIGIN 
+let corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ["https://www.marrakech.reviews", "http://localhost:5000", "http://localhost:3000", "http://localhost:5173", "https://marrakech-reviews-sigma.vercel.app", "https://marrakech-reviews-backend.vercel.app/", "https://admin.marrakech.reviews"];
 
@@ -73,7 +76,7 @@ app.options("/api/articles", cors());
 app.use("/api/articles", articleRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/activities", activityRoutes);
-app.use("/api/reservations", activityRoutes); // Add reservations route
+app.use("/api/reservations", reservationRoutes); // Corrected route
 app.use("/api/homepage-sections", homepageSectionsRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/enhanced-reviews", enhancedReviewsRoutes);
@@ -82,37 +85,23 @@ app.use("/api/organized-travel", organizedTravelRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api", articleGeneratorRoutes);
 app.use("/api", productGeneratorRoutes);
-
-// Root route handler for token-based requests
-app.get("/", (req, res) => {
-  const { token } = req.query;
-  
-  if (token) {
-    // Handle token-based access
-    res.status(200).json({
-      success: true,
-      message: "Token received successfully",
-      token: token,
-      timestamp: new Date().toISOString()
-    });
-  } else {
-    // Default root response
-    res.status(200).json({
-      success: true,
-      message: "Enhanced E-commerce Backend API",
-      version: "1.0.0",
-      timestamp: new Date().toISOString()
-    });
-  }
-});
+app.use("/api/bulk", bulkRoutes);
+app.use("/", sitemapRoutes);
 
 // Health check endpoint
-app.get("/api/health", (req, res) => {
+app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "Server is running",
     timestamp: new Date().toISOString()
   });
+});
+
+// Serve frontend assets and handle client-side routing
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../frontend/dist', 'index.html'));
 });
 
 // Error handling middleware
@@ -143,14 +132,7 @@ const startServer = async () => {
 
 startServer();
 
+// Handle favicon.png requests to prevent 404 errors
+app.get("/favicon.png", (req, res) => res.status(204).send());
+
 module.exports = app;
-
-
-
-
-// Handle favicon.ico requests to prevent 404 errors
-app.get("/favicon.ico", (req, res) => res.status(204).send());
-
-
-
-

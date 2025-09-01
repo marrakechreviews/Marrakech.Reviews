@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order Alert</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            border-left: 5px solid #28a745;
+        }
+        .header {
+            color: #28a745;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .alert-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .detail-table th,
+        .detail-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-table th {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+        }
+        .order-items {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="alert-badge">NEW ORDER</div>
+        <h1 class="header">🛒 New Order Alert</h1>
+
+        <p><strong>A new order has been placed and requires processing!</strong></p>
+
+        <table class="detail-table">
+            <tr>
+                <th>Order ID</th>
+                <td>{{orderId}}</td>
+            </tr>
+            <tr>
+                <th>Customer</th>
+                <td>{{customerName}}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{customerEmail}}</td>
+            </tr>
+            <tr>
+                <th>Total Amount</th>
+                <td><strong>${{totalPrice}}</strong></td>
+            </tr>
+            <tr>
+                <th>Payment Method</th>
+                <td>{{paymentMethod}}</td>
+            </tr>
+            <tr>
+                <th>Order Date</th>
+                <td>{{orderDate}}</td>
+            </tr>
+        </table>
+
+        <div class="order-items">
+            <h4>Order Items:</h4>
+            {{#each orderItems}}
+            <div class="item">
+                <strong>{{name}}</strong> - Qty: {{qty}} - ${{price}}
+            </div>
+            {{/each}}
+        </div>
+
+        <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h4>Shipping Address:</h4>
+            <p><strong>{{shippingAddress.fullName}}</strong></p>
+            <p>{{shippingAddress.address}}</p>
+            <p>{{shippingAddress.city}}, {{shippingAddress.postalCode}}</p>
+            <p>{{shippingAddress.country}}</p>
+        </div>
+
+        <hr>
+        <p style="font-size: 12px; color: #6c757d;">
+            This is an automated notification from the E-Store order system.
+            Please process this order promptly.
+        </p>
+    </div>
+</body>
+</html>

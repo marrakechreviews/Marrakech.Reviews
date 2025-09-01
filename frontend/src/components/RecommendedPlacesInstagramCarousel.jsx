@@ -2,7 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 import { Button } from './ui/button';
-import { MapPin, ExternalLink } from 'lucide-react';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 
 const popularDestinations = [
   {

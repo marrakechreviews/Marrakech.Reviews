@@ -32,6 +32,10 @@ const orderSchema = new mongoose.Schema({
     required: true,
     ref: 'User'
   },
+  reservation: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ActivityReservation',
+  },
   orderItems: [orderItemSchema],
   shippingAddress: {
     fullName: {

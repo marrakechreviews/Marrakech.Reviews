@@ -2,16 +2,14 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { 
-  Shield, 
-  FileText, 
-  RefreshCw, 
-  CreditCard,
-  Users,
-  Lock,
-  AlertTriangle,
-  CheckCircle
-} from 'lucide-react';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import FileText from 'lucide-react/dist/esm/icons/file-text';
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
+import CreditCard from 'lucide-react/dist/esm/icons/credit-card';
+import Users from 'lucide-react/dist/esm/icons/users';
+import Lock from 'lucide-react/dist/esm/icons/lock';
+import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
 
 export default function PoliciesPage() {
   const policies = [

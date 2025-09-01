@@ -37,6 +37,7 @@ const OrganizedTravelPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProgram, setEditingProgram] = useState(null);
   const [activeTab, setActiveTab] = useState('programs');
+  const [csvFile, setCsvFile] = useState(null);
 
   const [programForm, setProgramForm] = useState({
     title: '',
@@ -82,6 +83,32 @@ const OrganizedTravelPage = () => {
       toast.error('Failed to fetch reservations');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    setCsvFile(e.target.files[0]);
+  };
+
+  const handleBulkImport = async () => {
+    if (!csvFile) {
+      toast.error('Please select a CSV file to import');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', csvFile);
+
+    try {
+      await api.post('/bulk/organized-travels', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      toast.success('Travel programs imported successfully!');
+      fetchPrograms();
+      setCsvFile(null);
+    } catch (error) {
+      console.error("Failed to import programs:", error);
+      toast.error('Failed to import programs. Please check the console for details.');
     }
   };
 
@@ -191,7 +218,7 @@ const OrganizedTravelPage = () => {
   const updateItineraryDay = (index, field, value) => {
     setProgramForm(prev => ({
       ...prev,
-      itinerary: prev.itinerary.map((item, i) => 
+      itinerary: prev.itinerary.map((item, i) =>
         i === index ? { ...item, [field]: value } : item
       )
     }));
@@ -200,7 +227,7 @@ const OrganizedTravelPage = () => {
   const addActivity = (dayIndex) => {
     setProgramForm(prev => ({
       ...prev,
-      itinerary: prev.itinerary.map((item, i) => 
+      itinerary: prev.itinerary.map((item, i) =>
         i === dayIndex ? { ...item, activities: [...item.activities, ''] } : item
       )
     }));
@@ -209,10 +236,10 @@ const OrganizedTravelPage = () => {
   const updateActivity = (dayIndex, activityIndex, value) => {
     setProgramForm(prev => ({
       ...prev,
-      itinerary: prev.itinerary.map((item, i) => 
+      itinerary: prev.itinerary.map((item, i) =>
         i === dayIndex ? {
           ...item,
-          activities: item.activities.map((activity, j) => 
+          activities: item.activities.map((activity, j) =>
             j === activityIndex ? value : activity
           )
         } : item
@@ -253,9 +280,9 @@ const OrganizedTravelPage = () => {
                          reservation.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          reservation.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          reservation.destination.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = filterStatus === 'all' || reservation.status === filterStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -311,7 +338,7 @@ const OrganizedTravelPage = () => {
                     Fill in the details for the travel program
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -537,6 +564,26 @@ const OrganizedTravelPage = () => {
             </Dialog>
           </div>
 
+          <Card>
+            <CardHeader>
+              <CardTitle>Bulk Import</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-4">
+                <Input type="file" accept=".csv" onChange={handleFileChange} />
+                <Button onClick={handleBulkImport} disabled={!csvFile}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Import
+                </Button>
+                <Button variant="outline" asChild>
+                  <a href="/samples/organized-travels.csv" download>
+                    Download Sample
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid gap-6">
             {programs.map((program) => (
               <Card key={program._id}>
@@ -678,4 +725,3 @@ const OrganizedTravelPage = () => {
 };
 
 export default OrganizedTravelPage;
-

@@ -52,14 +52,19 @@ const navigation = [
     icon: Calendar,
   },
   {
+    name: 'Activity Reservations',
+    href: '/activity-reservations',
+    icon: Calendar,
+  },
+  {
     name: 'Flight Reservations',
     href: '/flights',
     icon: Plane,
   },
   {
-    name: 'Organized Travel',
+    name: 'Travel Programs',
     href: '/organized-travel',
-    icon: MapPin,
+    icon: Plane,
   },
   {
     name: 'Customers',

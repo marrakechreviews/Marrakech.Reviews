@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Play, ExternalLink } from 'lucide-react';
+import Play from 'lucide-react/dist/esm/icons/play';
+import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 
 const InstagramVideoEmbed = ({ video, showThumbnail = true, autoPlay = false }) => {
   const [isPlaying, setIsPlaying] = useState(autoPlay);
@@ -34,7 +35,7 @@ const InstagramVideoEmbed = ({ video, showThumbnail = true, autoPlay = false }) 
               style={{ aspectRatio: '9/16' }}
             />
           ) : (
-            <div 
+            <div
               className="w-full bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 flex items-center justify-center"
               style={{ aspectRatio: '9/16' }}
             >

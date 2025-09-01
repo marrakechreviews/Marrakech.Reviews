@@ -4,7 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RotateCcw, Package, Clock, CheckCircle, XCircle, AlertTriangle, Mail, RefreshCw } from 'lucide-react';
+import RotateCcw from 'lucide-react/dist/esm/icons/rotate-ccw';
+import Package from 'lucide-react/dist/esm/icons/package';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import XCircle from 'lucide-react/dist/esm/icons/x-circle';
+import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
 
 const ReturnsPage = () => {
   const [activeTab, setActiveTab] = useState('policy');

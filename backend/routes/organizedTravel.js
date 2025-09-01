@@ -3,6 +3,11 @@ const router = express.Router();
 const OrganizedTravel = require("../models/OrganizedTravel");
 const TravelReservation = require("../models/TravelReservation");
 const { protect, admin } = require("../middleware/authMiddleware");
+const {
+  sendTravelReservationConfirmation,
+  sendTravelAdminNotification,
+  sendReservationUpdateNotification
+} = require('../utils/emailService');
 
 // @desc    Get all organized travel programs
 // @route   GET /api/organized-travel
@@ -127,24 +132,33 @@ router.post("/reservations", async (req, res) => {
 
     const savedReservation = await reservation.save();
     
+    // Send email notifications
+    try {
+      await sendTravelReservationConfirmation(savedReservation);
+      await sendTravelAdminNotification(savedReservation);
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+    }
+
     res.status(201).json({
       message: "Reservation created successfully",
       reservation: savedReservation
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: error.message, errors: error.errors });
   }
 });
 
 // @desc    Get all reservations (Admin only)
-// @route   GET /api/organized-travel/reservations
+// @route   GET /api/organized-travel/admin/reservations
 // @access  Private/Admin
 router.get("/admin/reservations", protect, admin, async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, destination } = req.query;
+    const { page = 1, limit = 10, status, destination, paymentStatus } = req.query;
     
     const query = {};
-    if (status) query.status = status;
+    if (status && status !== 'all') query.status = status;
+    if (paymentStatus && paymentStatus !== 'all') query.paymentStatus = paymentStatus;
     if (destination) query.destination = { $regex: new RegExp(destination, 'i') };
     
     const reservations = await TravelReservation.find(query)
@@ -166,26 +180,70 @@ router.get("/admin/reservations", protect, admin, async (req, res) => {
   }
 });
 
-// @desc    Update reservation status (Admin only)
-// @route   PUT /api/organized-travel/reservations/:id
+// @desc    Admin Create travel reservation
+// @route   POST /api/organized-travel/admin/reservations
+// @access  Private/Admin
+router.post("/admin/reservations", protect, admin, async (req, res) => {
+  try {
+    const reservation = new TravelReservation({
+      ...req.body,
+      createdBy: req.user._id,
+    });
+    const savedReservation = await reservation.save();
+    await savedReservation.populate('programId');
+    res.status(201).json(savedReservation);
+  } catch (error) {
+    res.status(400).json({ message: error.message, errors: error.errors });
+  }
+});
+
+// @desc    Update travel reservation (Admin only)
+// @route   PUT /api/organized-travel/admin/reservations/:id
 // @access  Private/Admin
 router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
   try {
-    const { status, notes } = req.body;
-    
-    const reservation = await TravelReservation.findByIdAndUpdate(
-      req.params.id,
-      { status, notes, updatedAt: Date.now() },
-      { new: true }
-    ).populate('programId');
-    
+    const reservation = await TravelReservation.findById(req.params.id);
+
     if (!reservation) {
       return res.status(404).json({ message: "Reservation not found" });
     }
+
+    // Selectively update fields from the request body
+    for (const key in req.body) {
+      if (Object.hasOwnProperty.call(req.body, key)) {
+        reservation.set(key, req.body[key]);
+      }
+    }
     
-    res.json(reservation);
+    const updatedReservation = await reservation.save();
+    await updatedReservation.populate('programId');
+
+    // Send update notification email
+    try {
+      await sendReservationUpdateNotification(updatedReservation);
+    } catch (emailError) {
+      console.error('Failed to send update notification email for travel reservation:', emailError);
+    }
+
+    res.json(updatedReservation);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: error.message, errors: error.errors });
+  }
+});
+
+// @desc    Delete travel reservation (Admin only)
+// @route   DELETE /api/organized-travel/admin/reservations/:id
+// @access  Private/Admin
+router.delete("/admin/reservations/:id", protect, admin, async (req, res) => {
+  try {
+    const reservation = await TravelReservation.findById(req.params.id);
+    if (!reservation) {
+      return res.status(404).json({ message: "Reservation not found" });
+    }
+    await reservation.deleteOne();
+    res.json({ message: "Reservation removed" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -194,11 +252,13 @@ router.put("/admin/reservations/:id", protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.post("/admin/programs", protect, admin, async (req, res) => {
   try {
-    const program = new OrganizedTravel(req.body);
+    const { title } = req.body;
+    const slug = title.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+    const program = new OrganizedTravel({ ...req.body, slug });
     const savedProgram = await program.save();
     res.status(201).json(savedProgram);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: error.message, errors: error.errors });
   }
 });
 
@@ -207,6 +267,10 @@ router.post("/admin/programs", protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.put("/admin/programs/:id", protect, admin, async (req, res) => {
   try {
+    const { title } = req.body;
+    if (title) {
+      req.body.slug = title.toLowerCase().replace(/[^a-z0-9 -]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+    }
     const program = await OrganizedTravel.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -219,7 +283,7 @@ router.put("/admin/programs/:id", protect, admin, async (req, res) => {
     
     res.json(program);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: error.message, errors: error.errors });
   }
 });
 
@@ -253,4 +317,3 @@ router.get("/admin/programs", protect, admin, async (req, res) => {
 });
 
 module.exports = router;
-

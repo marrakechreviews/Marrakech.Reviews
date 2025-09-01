@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Contact Form Submission</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .header {
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            color: #333;
+            margin: 0;
+        }
+        .content-block {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .content-block h3 {
+            color: #e74c3c;
+            margin-top: 0;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>New Contact Form Submission</h2>
+        </div>
+
+        <div class="content-block">
+            <h3>Contact Details</h3>
+            <p><strong>Name:</strong> {{name}}</p>
+            <p><strong>Email:</strong> {{email}}</p>
+            <p><strong>Subject:</strong> {{subject}}</p>
+            <p><strong>Category:</strong> {{category}}</p>
+            <p><strong>Date:</strong> {{date}}</p>
+        </div>
+
+        <div class="content-block">
+            <h3>Message</h3>
+            <p style="white-space: pre-wrap;">{{message}}</p>
+        </div>
+
+        <div style="padding: 15px; background-color: #e8f5e8; border-radius: 5px;">
+            <p style="margin: 0; color: #2d5a2d;">
+                <strong>Action Required:</strong> Please respond to this inquiry through the admin dashboard.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated notification from Marrakech Reviews contact form.</p>
+        </div>
+    </div>
+</body>
+</html>

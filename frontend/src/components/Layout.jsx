@@ -2,28 +2,27 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useCart } from '../contexts/CartContext';
-import { 
-  Search, 
-  ShoppingBag, 
-  User, 
-  Heart, 
-  Menu, 
-  X,
-  Phone,
-  Mail,
-  MapPin,
-  Facebook,
-  Twitter,
-  Instagram,
-  Youtube,
-  Truck,
-  Shield,
-  RotateCcw,
-  Award
-} from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import ShoppingBag from 'lucide-react/dist/esm/icons/shopping-bag';
+import User from 'lucide-react/dist/esm/icons/user';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+import Menu from 'lucide-react/dist/esm/icons/menu';
+import X from 'lucide-react/dist/esm/icons/x';
+import Phone from 'lucide-react/dist/esm/icons/phone';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Facebook from 'lucide-react/dist/esm/icons/facebook';
+import Twitter from 'lucide-react/dist/esm/icons/twitter';
+import Instagram from 'lucide-react/dist/esm/icons/instagram';
+import Youtube from 'lucide-react/dist/esm/icons/youtube';
+import Truck from 'lucide-react/dist/esm/icons/truck';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import RotateCcw from 'lucide-react/dist/esm/icons/rotate-ccw';
+import Award from 'lucide-react/dist/esm/icons/award';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Helmet } from 'react-helmet-async';
 import { settingsAPI } from '../lib/api';
 
 export default function Layout({ children }) {
@@ -51,21 +50,60 @@ export default function Layout({ children }) {
     { name: 'Home', href: '/' },
     // { name: 'Products', href: '/products' },
     { name: 'Articles', href: '/articles' },
+    { name: 'Activities', href: '/Activities' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];
 
   const categories = [
     { name: 'Activities', href: '/Activities' },
-    // { name: 'restaurants', href: '/category/restaurants' },
-    { name: 'hosting', href: '/hosting' },
-    // { name: 'hidden gems', href: '/category/hidden-gems' },
-    // { name: 'fast food', href: '/category/fast-food' },
-    // { name: 'guide', href: '/category/guide' },
+    { name: 'Restaurants', href: '/articles' },
+    { name: 'Hosting', href: 'https://search.hotellook.com/?marker=666986.Zzbd472563f0e449feae8f86d-666986&locale=en_US' },
+    { name: 'Hidden gems', href: 'https://search.hotellook.com/?marker=666986.Zzbd472563f0e449feae8f86d-666986&locale=en_US' },
+    { name: 'Fast food', href: '/articles' },
+    { name: 'Guide', href: 'https://www.instagram.com/marrakechreviews/' },
   ];
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "url": "https://www.marrakech.reviews/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://www.marrakech.reviews/products?search={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  };
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Marrakech Reviews",
+    "url": "https://www.marrakech.reviews/",
+    "logo": "https://www.marrakech.reviews/logo.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": settings?.general?.contactPhone,
+      "contactType": "customer service"
+    },
+    "sameAs": [
+      settings?.social?.facebook,
+      settings?.social?.twitter,
+      settings?.social?.instagram,
+      settings?.social?.youtube
+    ].filter(Boolean)
+  };
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify(websiteSchema)}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(organizationSchema)}
+        </script>
+      </Helmet>
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -198,7 +236,7 @@ export default function Layout({ children }) {
       <footer className="bg-black text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Features */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+          {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div className="text-center">
               <Truck className="h-8 w-8 text-red-500 mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Free Shipping</h3>
@@ -219,16 +257,16 @@ export default function Layout({ children }) {
               <h3 className="font-semibold mb-2">Quality Guarantee</h3>
               <p className="text-sm text-gray-400">Premium quality products</p>
             </div>
-          </div>
+          </div> */}
 
           {/* Footer Links */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <ShoppingBag className="h-6 w-6 text-red-500" />
-                <h3 className="text-lg font-semibold">
-                  {settings?.general?.siteName || 'Your Store'}
-                </h3>
+                {/* Logo */}
+                <Link to="/" className="flex items-center gap-70">
+                  <img src="\logo2.png" alt="Marrakech Reviews Logo" className="h-29" />
+                </Link>
               </div>
               <p className="text-gray-400 mb-4">
                 {settings?.general?.siteDescription || 'Your premier online shopping destination'}
@@ -326,7 +364,7 @@ export default function Layout({ children }) {
 
           {/* Copyright */}
           <div className="border-t border-gray-800 pt-8 text-center text-white-500">
-            <p>&copy; 2024 {settings?.general?.siteName || 'Your Store'}. All rights reserved.</p>
+            <p>&copy; 2025 {settings?.general?.siteName || 'Your Store'}. All rights reserved.</p>
           </div>
         </div>
       </footer>

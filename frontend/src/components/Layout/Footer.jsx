@@ -1,6 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Facebook, Twitter, Instagram, Mail, Phone, Globe } from 'lucide-react';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Facebook from 'lucide-react/dist/esm/icons/facebook';
+import Twitter from 'lucide-react/dist/esm/icons/twitter';
+import Instagram from 'lucide-react/dist/esm/icons/instagram';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import Phone from 'lucide-react/dist/esm/icons/phone';
+import Globe from 'lucide-react/dist/esm/icons/globe';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();

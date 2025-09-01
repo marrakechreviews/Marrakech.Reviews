@@ -1,50 +1,39 @@
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Button } from './ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import { Globe } from 'lucide-react';
+import React, { useEffect } from 'react';
 
-const languages = [
-  { code: 'en', lang: 'English' },
-  { code: 'es', lang: 'Español' },
-  { code: 'fr', lang: 'Français' },
-  { code: 'de', lang: 'Deutsch' },
-];
+const GoogleTranslate = () => {
+  useEffect(() => {
+    // Check if the script already exists
+    if (document.querySelector('script[src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"]')) {
+      return;
+    }
 
-const LanguageSwitcher = () => {
-  const { i18n } = useTranslation();
+    const addScript = document.createElement('script');
+    addScript.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    addScript.async = true;
+    document.body.appendChild(addScript);
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-  };
+    window.googleTranslateElementInit = () => {
+      new window.google.translate.TranslateElement(
+        {
+          pageLanguage: 'en',
+          layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+        },
+        'google_translate_element'
+      );
+    };
 
-  const currentLanguage = languages.find((lng) => lng.code === i18n.language);
+    return () => {
+      // It's tricky to clean up Google's scripts and widgets perfectly.
+      // A simple cleanup might involve removing the script, but the widget can leave behind artifacts.
+      // For this implementation, we will leave the script and widget in the DOM.
+    };
+  }, []);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <Globe className="h-5 w-5" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {languages.map((lng) => (
-          <DropdownMenuItem
-            key={lng.code}
-            onClick={() => changeLanguage(lng.code)}
-            className={i18n.language === lng.code ? 'font-bold' : ''}
-          >
-            {lng.lang}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div id="google_translate_element_container" className="flex items-center">
+      <div id="google_translate_element"></div>
+    </div>
   );
 };
 
-export default LanguageSwitcher;
+export default GoogleTranslate;

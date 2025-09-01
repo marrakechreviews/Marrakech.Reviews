@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Marrakech.Reviews</title>
 
+    <link rel="preload" href="/images/hero/marrakech-riad.jpg" as="image" media="(max-width: 768px)">
+    <link rel="preload" href="/images/hero/marrakech-architecture-hero.jpg" as="image" media="(min-width: 769px)">
+
+    <link rel="preconnect" href="https://tpwdgt.com">
+    <link rel="preconnect" href="https://marrakech-reviews-backend.vercel.app">
+    <link rel="preconnect" href="https://sentry.avs.io">
+    <link rel="preconnect" href="https://suggest.apistp.com">
+
     <!-- SEO Meta Tags -->
     <meta name="description" content="Your premier online guide for travelers to Marrakech and all Moroccan destination. Shop Activities, clothing, home goods and more." />
     <meta name="keywords" content="ecommerce, online shopping, products, deals, Activities, clothing, home goods, accessories" />
@@ -17,7 +25,7 @@
     <meta property="og:description" content="Your premier online guide for travelers to Marrakech and all Moroccan destination." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://marrakech.reviews" />
-    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="og:image" content="/favicon.png" />
     <meta property="og:site_name" content="Marrakech.Reviews" />
 
     <!-- Twitter Card Meta Tags -->
@@ -37,7 +45,7 @@
       "name": "Marrakech.Reviews",
       "url": "https://marrakech.reviews",
       "logo": "https://marrakech.reviews/logo.png",
-      "description": "Your premier online guide for travelers to Marrakech and all Moroccan destination",
+      "description": "Your premier online guide for travelers to Marrakech and all Moroccan destinations",
       "contactPoint": {
         "@type": "ContactPoint",
         "telephone": "+212-708-040-530",
@@ -58,14 +66,39 @@
       ]
     }
     </script>
-    <script type="module" crossorigin src="/assets/index-BFGJD8-R.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/react-vendor-HnKmhvXM.js">
-    <link rel="modulepreload" crossorigin href="/assets/router-vendor-DWBHCWYc.js">
-    <link rel="modulepreload" crossorigin href="/assets/ui-vendor-DG2uHk0I.js">
-    <link rel="modulepreload" crossorigin href="/assets/query-vendor-B4bGrInS.js">
-    <link rel="modulepreload" crossorigin href="/assets/utils-DUwdSENG.js">
-    <link rel="modulepreload" crossorigin href="/assets/date-utils-Dkoj95Ly.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BD3ZFjVy.css">
+    <script data-noptimize="1" data-cfasync="false" data-wpfc-render="false">
+      function loadThirdPartyScripts() {
+        // Load tp-em.com script
+        (function () {
+          var script = document.createElement("script");
+          script.async = 1;
+          script.src = 'https://tp-em.com/NDUxNTc0.js?t=451574';
+          document.head.appendChild(script);
+        })();
+
+        // Load Clarity script
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "szxnsbgya8");
+      }
+
+      function triggerLoad() {
+        loadThirdPartyScripts();
+        window.removeEventListener('scroll', triggerLoad);
+        window.removeEventListener('mousemove', triggerLoad);
+        window.removeEventListener('touchstart', triggerLoad);
+      }
+
+      window.addEventListener('scroll', triggerLoad, { passive: true });
+      window.addEventListener('mousemove', triggerLoad, { passive: true });
+      window.addEventListener('touchstart', triggerLoad, { passive: true });
+    </script>
+    <script type="module" crossorigin src="/assets/index-CvC5V-Of.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-Bpv_kw6A.js">
+    <link rel="modulepreload" crossorigin href="/assets/radix-ui-Ds8IUHTR.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-CuDVCMLC.css">
   </head>
   <body>
     <div id="root"></div>

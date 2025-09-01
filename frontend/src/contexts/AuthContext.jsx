@@ -184,12 +184,31 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const googleLogin = async (googleToken) => {
+    dispatch({ type: 'LOGIN_START' });
+    try {
+        const response = await api.post('/auth/google', { token: googleToken });
+        if (response.data.success) {
+            const { data } = response.data;
+            localStorage.setItem('userToken', data.token);
+            localStorage.setItem('user', JSON.stringify(data));
+            dispatch({ type: 'LOGIN_SUCCESS', payload: { user: data, token: data.token } });
+            return { success: true };
+        }
+        throw new Error(response.data.message || 'Google login failed');
+    } catch (error) {
+        dispatch({ type: 'LOGIN_FAILURE' });
+        return { success: false, message: error.response?.data?.message || 'Google login failed' };
+    }
+  };
+
   const value = {
     ...state,
     register,
     login,
     logout,
     updateProfile,
+    googleLogin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

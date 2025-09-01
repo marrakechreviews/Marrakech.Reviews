@@ -28,6 +28,7 @@ import {
   Quote
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { optimizeImage } from '../lib/image';
 
 const ModernArticleDetailPage = () => {
   const { slug } = useParams();
@@ -308,7 +309,7 @@ const ModernArticleDetailPage = () => {
             {article.author && (
               <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-sm">
                 <User className="h-4 w-4 text-green-500" />
-                <span className="font-medium">{article.author.name || 'Anonymous'}</span>
+                <span className="font-medium">{article.author.name || 'Marrakech.Reviews'}</span>
               </div>
             )}
             
@@ -368,7 +369,7 @@ const ModernArticleDetailPage = () => {
           <div className="mb-12">
             <div className="relative overflow-hidden rounded-2xl shadow-2xl">
               <img
-                src={article.image}
+                src={optimizeImage(article.image, 800)}
                 alt={article.title}
                 className="w-full h-auto object-cover transition-transform duration-700 hover:scale-105"
               />
@@ -445,7 +446,7 @@ const ModernArticleDetailPage = () => {
                     <CardContent className="p-6">
                       {relatedArticle.image && (
                         <img 
-                          src={relatedArticle.image} 
+                          src={optimizeImage(relatedArticle.image, 400)}
                           alt={relatedArticle.title}
                           className="w-full h-32 object-cover rounded-lg mb-4"
                         />

@@ -25,7 +25,7 @@ const TravelpayoutsFourPartWidget = () => {
     widgets.forEach(widget => {
       const script = document.createElement('script');
       script.src = widget.src;
-      script.async = true;
+      script.defer = true;
       script.charset = "utf-8";
 
       const widgetContainer = document.getElementById(widget.id);

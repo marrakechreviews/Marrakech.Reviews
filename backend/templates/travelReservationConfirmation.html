@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Reservation Confirmation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .wrapper {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eeeeee;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0056b3;
+            margin-bottom: 5px;
+        }
+        .title {
+            font-size: 22px;
+            color: #20c997;
+            margin-bottom: 10px;
+        }
+        .reservation-id {
+            background-color: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            margin: 20px 0;
+            color: #495057;
+        }
+        .details-section {
+            margin: 20px 0;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #0056b3;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 5px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        .detail-label {
+            font-weight: 500;
+            color: #6c757d;
+        }
+        .detail-value {
+            font-weight: 500;
+            text-align: right;
+        }
+        .price-total {
+            background-color: #0056b3;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 25px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #ffc107;
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .next-steps {
+            background-color: #e6f7ff;
+            border-left: 4px solid #007bff;
+            padding: 15px 20px;
+            margin: 25px 0;
+        }
+        .step {
+            margin: 10px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .step::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eeeeee;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: #ffffff !important;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin: 10px 5px;
+        }
+        .button-secondary {
+            background-color: #007bff;
+        }
+        @media (max-width: 600px) {
+            .wrapper {
+                padding: 15px;
+            }
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .detail-value {
+                text-align: left;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <div class="logo">MARRAKECH REVIEWS</div>
+            <h1 class="title">Travel Reservation Confirmation</h1>
+            <p>Thank you for choosing us, {{firstName}} {{lastName}}!</p>
+        </div>
+
+        <p>We have received your reservation request for the following travel program. Please review the details below.</p>
+
+        <div class="reservation-id">
+            Reservation ID: <strong>{{reservationId}}</strong>
+        </div>
+
+        <div class="details-section">
+            <h2 class="section-title">Reservation Details</h2>
+            <div class="detail-row">
+                <span class="detail-label">Program:</span>
+                <span class="detail-value">{{programName}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Destination:</span>
+                <span class="detail-value">{{destination}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Preferred Date:</span>
+                <span class="detail-value">{{preferredDate}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Number of Travelers:</span>
+                <span class="detail-value">{{numberOfTravelers}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span class="detail-value"><span class="status-badge">{{status}}</span></span>
+            </div>
+        </div>
+
+        <div class="details-section">
+            <h2 class="section-title">Your Information</h2>
+            <div class="detail-row">
+                <span class="detail-label">Name:</span>
+                <span class="detail-value">{{firstName}} {{lastName}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span class="detail-value">{{email}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Phone:</span>
+                <span class="detail-value">{{phone}}</span>
+            </div>
+        </div>
+
+        {{#if specialRequests}}
+        <div class="details-section">
+            <h2 class="section-title">Your Special Requests</h2>
+            <p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; font-style: italic;">
+                "{{specialRequests}}"
+            </p>
+        </div>
+        {{/if}}
+
+        <div class="price-total">
+            Total Price: ${{totalPrice}}
+        </div>
+
+        <div class="next-steps">
+            <h3 style="color: #0056b3; margin-top: 0; font-weight: 600;">What's Next?</h3>
+            <div class="step">Our team will contact you shortly to confirm availability.</div>
+            <div class="step">We will send payment instructions to you via WhatsApp or email.</div>
+            <div class="step">Your reservation is secured upon successful payment.</div>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="https://wa.me/{{whatsappNumber}}" class="button button-secondary">Contact us on WhatsApp</a>
+            <a href="mailto:{{supportEmail}}" class="button">Email Support</a>
+        </div>
+
+        <div class="footer">
+            <p><strong>Please Note:</strong> This is a reservation request and is not confirmed until you hear from our team and complete the payment.</p>
+            <p>&copy; 2024 MARRAKECH REVIEWS. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

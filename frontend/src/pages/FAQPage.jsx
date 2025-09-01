@@ -4,7 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Search, HelpCircle, MapPin, Utensils, Calendar, Shield, CreditCard, Users } from 'lucide-react';
+import Search from 'lucide-react/dist/esm/icons/search';
+import HelpCircle from 'lucide-react/dist/esm/icons/help-circle';
+import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import Utensils from 'lucide-react/dist/esm/icons/utensils';
+import Calendar from 'lucide-react/dist/esm/icons/calendar';
+import Shield from 'lucide-react/dist/esm/icons/shield';
+import CreditCard from 'lucide-react/dist/esm/icons/credit-card';
+import Users from 'lucide-react/dist/esm/icons/users';
 
 const FAQPage = () => {
   const [searchTerm, setSearchTerm] = useState('');

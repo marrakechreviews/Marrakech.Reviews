@@ -6,27 +6,6 @@ const mongoose = require("mongoose");
 const protect = async (req, res, next) => {
   let token;
 
-  // Allow bypass for specific routes
-  const bypassRoutes = [
-    "/api/users",
-    "/api/flights",
-    "/api/instagram",
-    "/api/products",
-    "/api/orders",
-    "/api/articles",
-  ];
-
-  if (bypassRoutes.includes(req.path)) {
-    req.user = {
-      _id: new mongoose.Types.ObjectId("507f1f77bcf86cd799439011"), // Valid ObjectId for bypass
-      name: "Bypass User",
-      email: "user@bypass.com",
-      role: "user",
-      isActive: true,
-    };
-    return next();
-  }
-
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -49,10 +28,13 @@ const protect = async (req, res, next) => {
       }
 
       // Verify token
+      console.log('Verifying token:', token);
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('Decoded token:', decoded);
 
       // Get user from the token
       req.user = await User.findById(decoded.id).select("-password");
+      console.log('User found:', req.user ? req.user.email : 'No user found');
 
       if (!req.user) {
         return res.status(401).json({

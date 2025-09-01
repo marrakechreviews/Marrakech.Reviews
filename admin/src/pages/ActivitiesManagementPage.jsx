@@ -28,6 +28,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
+import { activitiesAPI } from '../lib/api';
 
 export default function ActivitiesManagementPage() {
   const [activities, setActivities] = useState([]);
@@ -38,132 +40,167 @@ export default function ActivitiesManagementPage() {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
 
-  // Sample activities data
-  const sampleActivities = [
-    {
-      id: 1,
-      name: "Sahara Desert Camel Trek",
-      category: "Desert Tours",
-      location: "Merzouga, Sahara Desert",
-      duration: "2 Days, 1 Night",
-      price: 120,
-      marketPrice: 180,
-      maxParticipants: 12,
-      minParticipants: 2,
-      rating: 4.9,
-      numReviews: 156,
-      isActive: true,
-      isFeatured: true,
-      difficulty: "Moderate",
-      createdAt: "2024-01-15",
-      totalReservations: 45,
-      revenue: 5400
-    },
-    {
-      id: 2,
-      name: "Marrakech Food Walking Tour",
-      category: "Food & Cooking",
-      location: "Marrakech Medina",
-      duration: "4 Hours",
-      price: 45,
-      marketPrice: 65,
-      maxParticipants: 8,
-      minParticipants: 2,
-      rating: 4.8,
-      numReviews: 203,
-      isActive: true,
-      isFeatured: true,
-      difficulty: "Easy",
-      createdAt: "2024-01-10",
-      totalReservations: 78,
-      revenue: 3510
-    },
-    {
-      id: 3,
-      name: "Atlas Mountains Hiking",
-      category: "Adventure Sports",
-      location: "Atlas Mountains, Imlil",
-      duration: "Full Day (8 Hours)",
-      price: 85,
-      marketPrice: 120,
-      maxParticipants: 10,
-      minParticipants: 4,
-      rating: 4.7,
-      numReviews: 89,
-      isActive: true,
-      isFeatured: false,
-      difficulty: "Challenging",
-      createdAt: "2024-01-05",
-      totalReservations: 32,
-      revenue: 2720
-    }
-  ];
-
-  const categories = [
+  const [categories, setCategories] = useState([
     "Desert Tours",
-    "Food & Cooking", 
+    "City Tours",
+    "Cultural Experiences",
     "Adventure Sports",
-    "Day Trips",
+    "Food & Cooking",
     "Wellness & Spa",
-    "Cultural Experiences"
-  ];
+    "Day Trips",
+    "Multi-day Tours"
+  ]);
 
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setActivities(sampleActivities);
-      setLoading(false);
-    }, 1000);
+    fetchActivities();
   }, []);
 
-  const filteredActivities = activities.filter(activity => {
-    const matchesSearch = activity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         activity.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !filterCategory || activity.category === filterCategory;
-    const matchesStatus = !filterStatus || 
-                         (filterStatus === 'active' && activity.isActive) ||
-                         (filterStatus === 'inactive' && !activity.isActive) ||
-                         (filterStatus === 'featured' && activity.isFeatured);
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+  const fetchActivities = async () => {
+    setLoading(true);
+    try {
+      const params = {
+        search: searchTerm,
+        category: filterCategory === 'all' ? '' : filterCategory,
+        isActive: 'all'
+      };
+      if (filterStatus === 'active') params.isActive = true;
+      if (filterStatus === 'inactive') params.isActive = false;
+      if (filterStatus === 'featured') params.isFeatured = true;
 
-  const handleToggleStatus = (activityId, field) => {
-    setActivities(prev => prev.map(activity => 
-      activity.id === activityId 
-        ? { ...activity, [field]: !activity[field] }
-        : activity
-    ));
+      const response = await activitiesAPI.getActivities(params);
+      setActivities(response.data.activities);
+    } catch (error) {
+      console.error("Failed to fetch activities:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteActivity = (activityId) => {
+  const fetchCategories = async () => {
+    try {
+      const response = await activitiesAPI.getActivityCategories();
+      setCategories(response.data.map(c => c._id));
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchActivities();
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, filterCategory, filterStatus]);
+
+  const handleFileChange = (e) => {
+    setCsvFile(e.target.files[0]);
+  };
+
+  const handleBulkImport = async () => {
+    if (!csvFile) {
+      toast.error('Please select a CSV file to import');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', csvFile);
+
+    try {
+      await activitiesAPI.bulkImportActivities(formData);
+      toast.success('Activities imported successfully!');
+      fetchActivities();
+      setCsvFile(null);
+    } catch (error) {
+      console.error("Failed to import activities:", error);
+      toast.error("Failed to import activities. Please try again.");
+    }
+  };
+
+  const handleToggleStatus = async (activityId, field) => {
+    const activity = activities.find(a => a._id === activityId);
+    if (!activity) return;
+
+    const updatedActivityData = { ...activity, [field]: !activity[field] };
+
+    try {
+      await activitiesAPI.updateActivity(activityId, updatedActivityData);
+      setActivities(prev => prev.map(a =>
+        a._id === activityId ? updatedActivityData : a
+      ));
+    } catch (error) {
+      console.error(`Failed to toggle ${field} status:`, error);
+    }
+  };
+
+  const handleDeleteActivity = async (activityId) => {
     if (window.confirm('Are you sure you want to delete this activity?')) {
-      setActivities(prev => prev.filter(activity => activity.id !== activityId));
+      try {
+        await activitiesAPI.deleteActivity(activityId);
+        setActivities(prev => prev.filter(activity => activity._id !== activityId));
+      } catch (error) {
+        console.error("Failed to delete activity:", error);
+      }
     }
   };
 
   const ActivityForm = ({ activity, onSave, onCancel }) => {
-    const [formData, setFormData] = useState(activity || {
-      name: '',
-      category: '',
-      location: '',
-      duration: '',
-      price: '',
-      marketPrice: '',
-      maxParticipants: '',
-      minParticipants: '',
-      difficulty: 'Easy',
-      shortDescription: '',
-      description: '',
-      isActive: true,
-      isFeatured: false
-    });
+    const [formData, setFormData] = useState(
+      activity
+        ? {
+            ...activity,
+            images: activity.images ? activity.images.join(', ') : '',
+          }
+        : {
+            name: '',
+            category: '',
+            location: '',
+            duration: '',
+            price: 0,
+            marketPrice: 0,
+            maxParticipants: 10,
+            minParticipants: 1,
+            difficulty: 'Easy',
+            shortDescription: '',
+            description: '',
+            image: 'https://via.placeholder.com/400x300.png?text=Activity+Image',
+            images: '',
+            isActive: true,
+            isFeatured: false,
+          }
+    );
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
-      onSave(formData);
+      const dataToSend = {
+        ...formData,
+        images: typeof formData.images === 'string'
+          ? formData.images.split(',').map(url => url.trim()).filter(url => url)
+          : formData.images,
+      };
+
+      try {
+        if (activity) {
+          await activitiesAPI.updateActivity(activity._id, dataToSend);
+          toast.success("Activity updated successfully!");
+        } else {
+          await activitiesAPI.createActivity(dataToSend);
+          toast.success("Activity created successfully!");
+        }
+        onSave();
+      } catch (error) {
+        console.error("Failed to save activity:", error);
+        if (error.response && error.response.data && error.response.data.errors) {
+          const errorMessages = Object.values(error.response.data.errors).map(err => err.message).join('\n');
+          toast.error(errorMessages || "Please check the form for errors.");
+        } else if (error.response && error.response.data && error.response.data.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Failed to save activity. Please try again.");
+        }
+      }
     };
 
     return (
@@ -225,7 +262,7 @@ export default function ActivitiesManagementPage() {
               id="price"
               type="number"
               value={formData.price}
-              onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
               required
             />
           </div>
@@ -236,7 +273,7 @@ export default function ActivitiesManagementPage() {
               id="marketPrice"
               type="number"
               value={formData.marketPrice}
-              onChange={(e) => setFormData(prev => ({ ...prev, marketPrice: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, marketPrice: parseFloat(e.target.value) || 0 }))}
               required
             />
           </div>
@@ -247,7 +284,7 @@ export default function ActivitiesManagementPage() {
               id="minParticipants"
               type="number"
               value={formData.minParticipants}
-              onChange={(e) => setFormData(prev => ({ ...prev, minParticipants: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, minParticipants: parseInt(e.target.value) || 1 }))}
               required
             />
           </div>
@@ -258,7 +295,7 @@ export default function ActivitiesManagementPage() {
               id="maxParticipants"
               type="number"
               value={formData.maxParticipants}
-              onChange={(e) => setFormData(prev => ({ ...prev, maxParticipants: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 10 }))}
               required
             />
           </div>
@@ -294,6 +331,28 @@ export default function ActivitiesManagementPage() {
           />
         </div>
         
+        <div>
+          <Label htmlFor="image">Main Image URL *</Label>
+          <Input
+            id="image"
+            value={formData.image}
+            onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+            placeholder="e.g., https://example.com/main-image.jpg"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="images">Additional Images (comma-separated)</Label>
+          <Textarea
+            id="images"
+            value={formData.images}
+            onChange={(e) => setFormData(prev => ({ ...prev, images: e.target.value }))}
+            placeholder="e.g., https://example.com/image1.jpg, https://example.com/image2.jpg"
+            rows={3}
+          />
+        </div>
+
         <div>
           <Label htmlFor="description">Full Description *</Label>
           <Textarea
@@ -417,55 +476,80 @@ export default function ActivitiesManagementPage() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search activities..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      {/* Filters and Bulk Import */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search activities..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
+
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="featured">Featured</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="featured">Featured</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Bulk Import</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <Input type="file" accept=".csv" onChange={handleFileChange} />
+              <Button onClick={handleBulkImport} disabled={!csvFile}>
+                <Plus className="h-4 w-4 mr-2" />
+                Import
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/samples/activities.csv" download>
+                  Download Sample
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Activities Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Activities ({filteredActivities.length})</CardTitle>
+          <CardTitle>Activities ({activities.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -494,7 +578,7 @@ export default function ActivitiesManagementPage() {
                       </TableCell>
                     </TableRow>
                   ))
-                ) : filteredActivities.length === 0 ? (
+                ) : activities.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-8">
                       <div className="text-gray-500">
@@ -504,8 +588,8 @@ export default function ActivitiesManagementPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredActivities.map((activity) => (
-                    <TableRow key={activity.id}>
+                  activities.map((activity) => (
+                    <TableRow key={activity._id}>
                       <TableCell>
                         <div>
                           <div className="font-medium">{activity.name}</div>
@@ -553,7 +637,7 @@ export default function ActivitiesManagementPage() {
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
                             <button
-                              onClick={() => handleToggleStatus(activity.id, 'isActive')}
+                              onClick={() => handleToggleStatus(activity._id, 'isActive')}
                               className="flex items-center gap-1"
                             >
                               {activity.isActive ? (
@@ -575,9 +659,9 @@ export default function ActivitiesManagementPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <div>{activity.totalReservations} bookings</div>
+                          <div>{activity.totalReservations || 0} bookings</div>
                           <div className="text-green-600 font-medium">
-                            ${activity.revenue}
+                            ${activity.revenue || 0}
                           </div>
                         </div>
                       </TableCell>
@@ -596,7 +680,7 @@ export default function ActivitiesManagementPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDeleteActivity(activity.id)}
+                            onClick={() => handleDeleteActivity(activity._id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -618,18 +702,9 @@ export default function ActivitiesManagementPage() {
             <DialogTitle>Create New Activity</DialogTitle>
           </DialogHeader>
           <ActivityForm
-            onSave={(formData) => {
-              const newActivity = {
-                ...formData,
-                id: Date.now(),
-                rating: 0,
-                numReviews: 0,
-                totalReservations: 0,
-                revenue: 0,
-                createdAt: new Date().toISOString().split('T')[0]
-              };
-              setActivities(prev => [newActivity, ...prev]);
+            onSave={() => {
               setIsCreateDialogOpen(false);
+              fetchActivities();
             }}
             onCancel={() => setIsCreateDialogOpen(false)}
           />
@@ -644,14 +719,10 @@ export default function ActivitiesManagementPage() {
           </DialogHeader>
           <ActivityForm
             activity={selectedActivity}
-            onSave={(formData) => {
-              setActivities(prev => prev.map(activity => 
-                activity.id === selectedActivity.id 
-                  ? { ...activity, ...formData }
-                  : activity
-              ));
+            onSave={() => {
               setIsEditDialogOpen(false);
               setSelectedActivity(null);
+              fetchActivities();
             }}
             onCancel={() => {
               setIsEditDialogOpen(false);

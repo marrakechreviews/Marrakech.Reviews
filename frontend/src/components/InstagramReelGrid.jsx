@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Heart, MessageCircle, Share, MoreHorizontal } from 'lucide-react';
+import Play from 'lucide-react/dist/esm/icons/play';
+import Heart from 'lucide-react/dist/esm/icons/heart';
+import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
+import Share from 'lucide-react/dist/esm/icons/share';
+import MoreHorizontal from 'lucide-react/dist/esm/icons/more-horizontal';
 
 const InstagramReelGrid = ({ 
   title = "Featured Reels",
