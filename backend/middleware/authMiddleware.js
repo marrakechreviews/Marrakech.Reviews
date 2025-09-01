@@ -6,27 +6,6 @@ const mongoose = require("mongoose");
 const protect = async (req, res, next) => {
   let token;
 
-  // Allow bypass for specific routes
-  const bypassRoutes = [
-    "/api/users",
-    "/api/flights",
-    "/api/instagram",
-    "/api/products",
-    "/api/orders",
-    "/api/articles",
-  ];
-
-  if (bypassRoutes.includes(req.path)) {
-    req.user = {
-      _id: new mongoose.Types.ObjectId("507f1f77bcf86cd799439011"), // Valid ObjectId for bypass
-      name: "Bypass User",
-      email: "user@bypass.com",
-      role: "user",
-      isActive: true,
-    };
-    return next();
-  }
-
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")

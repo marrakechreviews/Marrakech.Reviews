@@ -10,6 +10,23 @@ const api = axios.create({
   },
 });
 
+// Add a request interceptor to include the token in headers
+api.interceptors.request.use(
+  (config) => {
+    const userInfo = localStorage.getItem('userInfo')
+      ? JSON.parse(localStorage.getItem('userInfo'))
+      : null;
+
+    if (userInfo && userInfo.token) {
+      config.headers['Authorization'] = `Bearer ${userInfo.token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Products API
 export const productsAPI = {
   getProducts: (params = {}) => {
