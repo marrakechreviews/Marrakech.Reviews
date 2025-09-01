@@ -32,7 +32,7 @@ router.post('/from-reservation', protect, createOrderFromReservation);
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
-router.post('/', [
+router.post('/', protect, [
   body('orderItems')
     .isArray({ min: 1 })
     .withMessage('Order must contain at least one item'),

@@ -10,30 +10,24 @@ const { client } = require('../utils/paypal');
 // @route   POST /api/orders
 // @access  Private
 const createOrder = async (req, res) => {
-  console.log('--- Starting createOrder ---');
   try {
     // Check for validation errors
-    console.log('Step 1: Validating request body...');
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.error('Validation failed:', errors.array());
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
         errors: errors.array()
       });
     }
-    console.log('Validation successful.');
 
     const {
       orderItems,
       shippingAddress,
       paymentMethod
     } = req.body;
-    console.log(`Step 2: Received order for payment method: ${paymentMethod}`);
 
     if (orderItems && orderItems.length === 0) {
-      console.error('Error: No order items provided.');
       return res.status(400).json({
         success: false,
         message: 'No order items'
@@ -41,13 +35,10 @@ const createOrder = async (req, res) => {
     }
 
     // Verify products exist and get current prices
-    console.log('Step 3: Verifying products and prices...');
     const productIds = orderItems.map(item => item.product);
     const products = await Product.find({ _id: { $in: productIds } });
-    console.log(`Found ${products.length} products in database.`);
 
     if (products.length !== orderItems.length) {
-      console.error('Error: One or more products not found.');
       return res.status(400).json({
         success: false,
         message: 'One or more products not found'
@@ -55,14 +46,11 @@ const createOrder = async (req, res) => {
     }
 
     // Check stock availability and update order items with current data
-    console.log('Step 4: Checking stock and building updated order items...');
     const updatedOrderItems = [];
     for (const item of orderItems) {
       const product = products.find(p => p._id.toString() === item.product);
-      console.log(`Processing product: ${product.name}`);
 
       if (!product) {
-        console.error(`Error: Product ${item.name} not found in fetched products.`);
         return res.status(400).json({
           success: false,
           message: `Product ${item.name} not found`
@@ -70,7 +58,6 @@ const createOrder = async (req, res) => {
       }
 
       if (!product.isActive) {
-        console.error(`Error: Product ${product.name} is not active.`);
         return res.status(400).json({
           success: false,
           message: `Product ${product.name} is not available`
@@ -78,7 +65,6 @@ const createOrder = async (req, res) => {
       }
 
       if (product.countInStock < item.qty) {
-        console.error(`Error: Insufficient stock for ${product.name}.`);
         return res.status(400).json({
           success: false,
           message: `Insufficient stock for ${product.name}. Available: ${product.countInStock}`
@@ -93,65 +79,48 @@ const createOrder = async (req, res) => {
         product: product._id
       });
     }
-    console.log('Finished building updated order items.');
 
     // Create order
-    console.log('Step 5: Creating new Order object...');
     const order = new Order({
       user: req.user._id,
       orderItems: updatedOrderItems,
       shippingAddress,
       paymentMethod
     });
-    console.log('Order object created. User ID:', req.user._id);
 
-    console.log('Step 6: Saving order to database...');
     const createdOrder = await order.save();
-    console.log('Order saved successfully. Order ID:', createdOrder._id);
 
     // Update product stock
-    console.log('Step 7: Updating product stock...');
     for (const item of updatedOrderItems) {
-      console.log(`Updating stock for product ${item.product} by -${item.qty}`);
       await Product.findByIdAndUpdate(
         item.product,
         { $inc: { countInStock: -item.qty } }
       );
     }
-    console.log('Product stock updated successfully.');
 
     // Populate user information
-    console.log('Step 8: Populating user information for the order...');
     await createdOrder.populate('user', 'name email');
-    console.log('User information populated.');
 
     // Send email notifications
-    console.log('Step 9: Sending email notifications...');
     try {
       // Send confirmation email to customer
-      console.log('Sending order confirmation to customer...');
       const confirmationResult = await sendOrderConfirmation(createdOrder);
       if (confirmationResult.success) {
         console.log('Order confirmation email sent successfully');
       }
 
       // Send notification email to admin
-      console.log('Sending order notification to admin...');
       await sendOrderNotification(createdOrder);
-      console.log('Admin notification sent successfully.');
     } catch (emailError) {
       console.error('Email sending error:', emailError);
       // Don't fail the order if email fails
     }
-    console.log('Finished sending emails.');
 
-    console.log('Step 10: Sending final response.');
     res.status(201).json({
       success: true,
       message: 'Order created successfully',
       data: createdOrder
     });
-    console.log('--- createOrder finished successfully ---');
   } catch (error) {
     console.error('Create order error:', error);
     res.status(500).json({
