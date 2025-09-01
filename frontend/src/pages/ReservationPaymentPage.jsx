@@ -17,7 +17,7 @@ const ReservationPaymentPage = () => {
   useEffect(() => {
     const fetchReservation = async () => {
       try {
-        const { data } = await api.get(`/api/reservations/payment/${token}`);
+        const { data } = await api.get(`/reservations/payment/${token}`);
         setReservation(data.data);
       } catch (err) {
         setError('Invalid or expired payment link.');
@@ -45,7 +45,7 @@ const ReservationPaymentPage = () => {
 
   const handleCreateOrder = async () => {
     try {
-      const { data } = await api.post('/api/orders/from-reservation', { reservationId: reservation._id });
+      const { data } = await api.post('/orders/from-reservation', { reservationId: reservation._id });
       setOrderId(data.data._id);
       return data.data._id;
     } catch (error) {

@@ -130,7 +130,7 @@ const CheckoutPage = () => {
     }
     setLoading(true);
     try {
-      const { data } = await api.post('/api/orders', orderData);
+      const { data } = await api.post('/orders', orderData);
       setCreatedOrderId(data._id);
       toast.success('Order created. Proceed to payment.');
     } catch (error) {

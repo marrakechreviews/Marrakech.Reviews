@@ -18,7 +18,7 @@ const OrderThankYou = ({ orderId, orderNumber }) => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const { data } = await api.get(`/api/orders/${orderId}`);
+        const { data } = await api.get(`/orders/${orderId}`);
         setOrder(data.data);
       } catch (err) {
         setError('Failed to fetch order details.');
