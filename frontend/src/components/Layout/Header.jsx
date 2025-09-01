@@ -55,6 +55,10 @@ export default function Header() {
     { name: 'Contact', href: '/contact' },
   ];
 
+  if (isAuthenticated) {
+    navigation.push({ name: 'My Account', href: '/account' });
+  }
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -146,14 +150,14 @@ export default function Header() {
                   size="sm"
                   onClick={() => navigate('/login')}
                 >
-                  Sign In
+                  Login
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => navigate('/register')}
                   className="hidden sm:inline-flex"
                 >
-                  Sign Up
+                  Register
                 </Button>
               </div>
             )}
@@ -201,13 +205,25 @@ export default function Header() {
             ))}
             {!isAuthenticated && (
               <div className="pt-2 border-t border-gray-200 mt-2">
-                <Link
-                  to="/register"
-                  className="block px-3 py-2 text-primary hover:bg-gray-50 rounded-md transition-colors font-medium"
-                  onClick={() => setMobileMenuOpen(false)}
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    navigate('/login');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start"
                 >
-                  Sign Up
-                </Link>
+                  Login
+                </Button>
+                <Button
+                  onClick={() => {
+                    navigate('/register');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start mt-1"
+                >
+                  Register
+                </Button>
               </div>
             )}
           </div>
@@ -216,4 +232,3 @@ export default function Header() {
     </header>
   );
 }
-

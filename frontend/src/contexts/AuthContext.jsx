@@ -187,7 +187,7 @@ export function AuthProvider({ children }) {
   const googleLogin = async (googleToken) => {
     dispatch({ type: 'LOGIN_START' });
     try {
-        const response = await api.post('/auth/google', { token: googleToken });
+        const response = await authAPI.post('/auth/google', { token: googleToken });
         if (response.data.success) {
             const { data } = response.data;
             localStorage.setItem('userToken', data.token);
@@ -202,6 +202,34 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfileImage = async (imageFile) => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    try {
+      const response = await authAPI.post('/auth/profile/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.success) {
+        const { image } = response.data.data;
+        const updatedUser = { ...state.user, image };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        dispatch({ type: 'UPDATE_USER', payload: updatedUser });
+        return { success: true };
+      } else {
+        throw new Error(response.data.message || 'Image upload failed');
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message || 'Image upload failed',
+      };
+    }
+  };
+
   const value = {
     ...state,
     register,
@@ -209,6 +237,7 @@ export function AuthProvider({ children }) {
     logout,
     updateProfile,
     googleLogin,
+    updateProfileImage,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -221,4 +250,3 @@ export function useAuth() {
   }
   return context;
 }
-

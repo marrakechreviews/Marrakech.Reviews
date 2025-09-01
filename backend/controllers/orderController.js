@@ -611,6 +611,75 @@ const createOrderFromReservation = async (req, res) => {
   }
 };
 
+const PDFDocument = require('pdfkit');
+
+const generateInvoice = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id).populate('user', 'name email');
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Not authorized to view this invoice' });
+        }
+
+        const doc = new PDFDocument({ size: 'A4', margin: 50 });
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=invoice-${order._id}.pdf`);
+
+        doc.pipe(res);
+
+        // Header
+        doc.fontSize(20).text('Invoice', { align: 'center' });
+        doc.moveDown();
+
+        // Order details
+        doc.fontSize(12).text(`Order ID: ${order._id}`);
+        doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`);
+        doc.text(`Status: ${order.status}`);
+        doc.moveDown();
+
+        // Customer details
+        doc.text('Bill to:');
+        doc.text(order.user.name);
+        doc.text(order.user.email);
+        doc.moveDown();
+
+        // Table header
+        const tableTop = doc.y;
+        doc.fontSize(10);
+        doc.text('Item', 50, tableTop);
+        doc.text('Quantity', 250, tableTop, { width: 100, align: 'right' });
+        doc.text('Price', 350, tableTop, { width: 100, align: 'right' });
+        doc.text('Total', 450, tableTop, { width: 100, align: 'right' });
+        doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
+
+        // Table rows
+        let y = tableTop + 25;
+        order.orderItems.forEach(item => {
+            doc.text(item.name, 50, y);
+            doc.text(item.qty, 250, y, { width: 100, align: 'right' });
+            doc.text(`$${item.price.toFixed(2)}`, 350, y, { width: 100, align: 'right' });
+            doc.text(`$${(item.qty * item.price).toFixed(2)}`, 450, y, { width: 100, align: 'right' });
+            y += 20;
+        });
+        doc.moveTo(50, y).lineTo(550, y).stroke();
+        doc.moveDown();
+
+        // Total
+        doc.fontSize(12).text(`Total: $${order.totalPrice.toFixed(2)}`, { align: 'right' });
+
+        doc.end();
+
+    } catch (error) {
+        console.error('Generate invoice error:', error);
+        res.status(500).json({ success: false, message: 'Server error while generating invoice' });
+    }
+};
+
 module.exports = {
   createOrderFromReservation,
   createOrder,
@@ -623,5 +692,6 @@ module.exports = {
   getOrderStats,
   createPayPalOrder,
   capturePayPalOrder,
+  generateInvoice,
 };
 

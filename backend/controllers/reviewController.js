@@ -57,13 +57,19 @@ const createReview = async (req, res) => {
     }
 
     // Create review
-    const review = await Review.create({
+    const reviewData = {
       name: req.user.name,
       rating,
       comment,
       user: req.user._id,
-      product
-    });
+      product,
+    };
+
+    if (req.files) {
+      reviewData.images = req.files.map(file => file.path);
+    }
+
+    const review = await Review.create(reviewData);
 
     res.status(201).json({
       success: true,

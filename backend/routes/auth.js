@@ -56,6 +56,13 @@ router.post('/login', [
 // @access  Private
 router.get('/me', protect, getMe);
 
+const createUploader = require('../middleware/upload');
+const profileImageUpload = createUploader({
+    type: 'single',
+    fieldName: 'image',
+    prefix: 'profile'
+});
+
 // @desc    Update user profile
 // @route   PUT /api/auth/profile
 // @access  Private
@@ -71,6 +78,13 @@ router.put('/profile', protect, [
     .normalizeEmail()
     .withMessage('Please enter a valid email')
 ], updateProfile);
+
+const { updateProfileImage } = require('../controllers/authController');
+
+// @desc    Update profile image
+// @route   POST /api/auth/profile/image
+// @access  Private
+router.post('/profile/image', protect, profileImageUpload, updateProfileImage);
 
 // @desc    Change password
 // @route   PUT /api/auth/change-password

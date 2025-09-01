@@ -446,6 +446,33 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const updateProfileImage = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (req.file) {
+            user.image = req.file.path;
+            const updatedUser = await user.save();
+            res.json({
+                success: true,
+                message: 'Profile image updated successfully',
+                data: {
+                    image: updatedUser.image,
+                },
+            });
+        } else {
+            res.status(400).json({ success: false, message: 'Please upload an image' });
+        }
+    } catch (error) {
+        console.error('Update profile image error:', error);
+        res.status(500).json({ success: false, message: 'Server error during profile image update' });
+    }
+};
+
 module.exports = {
   googleLogin,
   register,
@@ -454,6 +481,7 @@ module.exports = {
   updateProfile,
   changePassword,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  updateProfileImage,
 };
 

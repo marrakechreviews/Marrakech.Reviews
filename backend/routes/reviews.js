@@ -23,10 +23,18 @@ router.get('/', protect, admin, [
   query('user').optional().isMongoId().withMessage('Valid user ID required')
 ], getAllReviews);
 
+const createUploader = require('../middleware/upload');
+const reviewImageUpload = createUploader({
+    type: 'array',
+    fieldName: 'images',
+    maxCount: 5,
+    prefix: 'review'
+});
+
 // @desc    Create a review
 // @route   POST /api/reviews
 // @access  Private
-router.post('/', protect, [
+router.post('/', protect, reviewImageUpload, [
   body('rating')
     .isInt({ min: 1, max: 5 })
     .withMessage('Rating must be between 1 and 5'),

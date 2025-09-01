@@ -123,6 +123,13 @@ router.post('/:id/create-paypal-order', protect, createPayPalOrder);
 // @access  Private
 router.put('/:id/capture-paypal-order', protect, capturePayPalOrder);
 
+const { generateInvoice } = require('../controllers/orderController');
+
+// @desc    Get order invoice
+// @route   GET /api/orders/:id/invoice
+// @access  Private
+router.get('/:id/invoice', protect, generateInvoice);
+
 // @desc    Update order to delivered (Admin only)
 // @route   PUT /api/orders/:id/deliver
 // @access  Private/Admin

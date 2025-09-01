@@ -18,6 +18,15 @@ const getReservationByPaymentToken = asyncHandler(async (req, res) => {
   res.json({ success: true, data: reservation });
 });
 
+const getMyReservations = asyncHandler(async (req, res) => {
+    const reservations = await ActivityReservation.find({ user: req.user._id })
+        .populate('activity', 'name images price')
+        .sort({ date: -1 });
+
+    res.json({ success: true, data: reservations });
+});
+
 module.exports = {
   getReservationByPaymentToken,
+  getMyReservations,
 };
