@@ -252,40 +252,32 @@ const sendOrderConfirmation = async (orderData) => {
     const transporter = createTransporter();
     
     const emailData = {
-      orderId: orderData._id.toString(),
-      customerName: orderData.user.name,
-      customerEmail: orderData.user.email,
-      orderItems: orderData.orderItems.map(item => `
-        <div class="order-item">
-            <div class="item-details">
-                <div class="item-name">${item.name}</div>
-                <div class="item-qty">Quantity: ${item.qty}</div>
-            </div>
-            <div class="item-price">$${(item.price * item.qty).toFixed(2)}</div>
-        </div>
-      `).join(''),
-      itemsPrice: orderData.itemsPrice.toFixed(2),
-      shippingPrice: orderData.shippingPrice.toFixed(2),
-      taxPrice: orderData.taxPrice.toFixed(2),
-      totalPrice: orderData.totalPrice.toFixed(2),
-      status: orderData.status,
-      isPaid: orderData.isPaid ? 'Paid' : 'Pending Payment',
-      orderDate: new Date(orderData.createdAt).toLocaleDateString('en-US', {
+      reservationId: orderData._id.toString(), // Map orderId to reservationId
+      activityName: orderData.orderItems.map(item => `${item.name} (Qty: ${item.qty})`).join('<br>'), // Format order items
+      reservationDate: new Date(orderData.createdAt).toLocaleDateString('en-US', { // Use order date
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       }),
+      numberOfPersons: orderData.orderItems.reduce((sum, item) => sum + item.qty, 0), // Summarize quantity
+      customerName: orderData.user.name,
+      customerEmail: orderData.user.email,
+      customerWhatsApp: orderData.shippingAddress.phone || '', // Assuming phone can be used as whatsapp
+      customerPhone: orderData.shippingAddress.phone || '', // Use phone from shipping
+      notes: orderData.notes || '', // Assuming there might be notes in the order
+      totalPrice: orderData.totalPrice.toFixed(2),
+      status: orderData.status,
       shippingAddress: `
         <p><strong>${orderData.shippingAddress.fullName}</strong></p>
         <p>${orderData.shippingAddress.address}</p>
         <p>${orderData.shippingAddress.city}, ${orderData.shippingAddress.postalCode}</p>
         <p>${orderData.shippingAddress.country}</p>
       `,
-      trackingUrl: `${process.env.FRONTEND_URL || 'https://example.com'}/orders/${orderData._id}`,
-      contactPhone: process.env.BUSINESS_PHONE || '+212 524-123456',
-      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
-      supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com'
+      contactPhone: process.env.BUSINESS_PHONE || '+212 708040530',
+      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 708040530',
+      supportEmail: process.env.SUPPORT_EMAIL || 'Hello@Marrakech.Reviews',
+      websiteUrl: process.env.WEBSITE_URL || 'https://Marrakech.Reviews'
     };
 
     const mailOptions = {
