@@ -260,7 +260,7 @@ const createReservation = asyncHandler(async (req, res) => {
 
     // Create payment token
     const paymentToken = crypto.randomBytes(32).toString('hex');
-    const paymentTokenExpires = Date.now() + 3600000; // 1 hour
+    const paymentTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
     // Create reservation
     const reservation = new ActivityReservation({
