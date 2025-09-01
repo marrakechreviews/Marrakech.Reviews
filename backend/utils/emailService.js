@@ -40,6 +40,12 @@ const getEmailTemplate = (templateName, data) => {
     });
 
     // Replace provided data
+    // First, handle triple braces for HTML content
+    for (const key in data) {
+      const regex = new RegExp(`{{{${key}}}}`, 'g');
+      template = template.replace(regex, data[key] || '');
+    }
+    // Then, handle double braces for plain text
     for (const key in data) {
       const regex = new RegExp(`{{${key}}}`, 'g');
       template = template.replace(regex, data[key] || '');
