@@ -131,7 +131,7 @@ export default function HostingReservationsPage() {
   return (
     <>
       <Helmet>
-        <title>Hosting Reservations - Book Your Stay | E-Store</title>
+        <title>Hosting Reservations - Book Your Stay | Marrakech Reviews</title>
         <meta
           name="description"
           content="Book your perfect accommodation in Morocco. From luxury riads to desert camps and mountain lodges. Best prices guaranteed with TripAdvisor integration."
