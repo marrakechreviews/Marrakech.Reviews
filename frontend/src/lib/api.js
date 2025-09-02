@@ -128,6 +128,7 @@ export const organizedTravelAPI = {
 // Orders API
 export const ordersAPI = {
   getOrder: (id) => api.get(`/orders/${id}`),
+  getOrderByToken: (token) => api.get(`/orders/payment/${token}`),
   createOrder: (orderData) => api.post('/orders', orderData),
   payOrder: (id, paymentResult) => api.put(`/orders/${id}/pay`, paymentResult),
   getMyOrders: () => api.get('/orders/myorders'),

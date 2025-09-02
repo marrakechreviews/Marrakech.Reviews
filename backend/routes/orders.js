@@ -12,7 +12,10 @@ const {
   createPayPalOrder,
   capturePayPalOrder,
   createOrderFromReservation,
-  sendPaymentReminderEmail
+  sendPaymentReminderEmail,
+  getOrderByPaymentToken,
+  createPayPalOrderByToken,
+  capturePayPalOrderByToken
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -151,6 +154,21 @@ router.put('/:id/status', [
 // @route   POST /api/orders/:id/remind
 // @access  Private/Admin
 router.post('/:id/remind', protect, admin, sendPaymentReminderEmail);
+
+// @desc    Get order by payment token
+// @route   GET /api/orders/payment/:token
+// @access  Public
+router.get('/payment/:token', getOrderByPaymentToken);
+
+// @desc    Create PayPal order by token
+// @route   POST /api/orders/payment/:token/create-paypal-order
+// @access  Public
+router.post('/payment/:token/create-paypal-order', createPayPalOrderByToken);
+
+// @desc    Capture PayPal order by token
+// @route   PUT /api/orders/payment/:token/capture-paypal-order
+// @access  Public
+router.put('/payment/:token/capture-paypal-order', capturePayPalOrderByToken);
 
 module.exports = router;
 

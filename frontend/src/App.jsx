@@ -73,7 +73,7 @@ function App() {
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />
                 <Route path="/payment/reservation/:token" element={<ReservationPaymentPage />} />
-                <Route path="/payment/order/:orderId" element={<OrderPaymentPage />} />
+                <Route path="/payment/order/token/:token" element={<OrderPaymentPage />} />
                 <Route path="/travel/thank-you" element={<TravelThankYouPage />} />
                 <Route path="/about" element={<AboutUsPage />} />
                 <Route path="/contact" element={<ContactUsPage />} />

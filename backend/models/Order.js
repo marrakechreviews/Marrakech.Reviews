@@ -125,13 +125,20 @@ const orderSchema = new mongoose.Schema({
   notes: {
     type: String,
     maxlength: [500, 'Notes cannot be more than 500 characters']
-  }
+  },
+  paymentToken: {
+    type: String,
+  },
+  paymentTokenExpires: {
+    type: Date,
+  },
 }, {
   timestamps: true
 });
 
 // Indexes for better query performance
 orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ paymentToken: 1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ isPaid: 1 });
 orderSchema.index({ isDelivered: 1 });

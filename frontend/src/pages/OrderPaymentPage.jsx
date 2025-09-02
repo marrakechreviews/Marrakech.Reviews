@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const OrderPaymentPage = () => {
-  const { orderId } = useParams();
+  const { token } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,14 +17,14 @@ const OrderPaymentPage = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const { data } = await ordersAPI.getOrder(orderId);
+        const { data } = await ordersAPI.getOrderByToken(token);
         if (data.data.isPaid) {
           setError('This order has already been paid.');
         } else {
           setOrder(data.data);
         }
       } catch (err) {
-        setError('Failed to fetch order details.');
+        setError('Failed to fetch order details. The payment link may be invalid or expired.');
         console.error(err);
       } finally {
         setLoading(false);
@@ -32,7 +32,7 @@ const OrderPaymentPage = () => {
     };
 
     fetchOrder();
-  }, [orderId]);
+  }, [token]);
 
   const onPaymentSuccess = (data) => {
     toast.success('Payment successful!');
@@ -95,6 +95,7 @@ const OrderPaymentPage = () => {
                 <div className="mt-6">
                   <PayPalButton
                     orderId={order._id}
+                    paymentToken={token}
                     onPaymentSuccess={onPaymentSuccess}
                     onPaymentError={onPaymentError}
                   />

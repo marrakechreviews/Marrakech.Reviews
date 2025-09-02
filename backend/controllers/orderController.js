@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const ActivityReservation = require('../models/ActivityReservation');
+const crypto = require('crypto');
 const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice, sendOrderStatusUpdate, sendPaymentReminder } = require('../utils/emailService');
 const paypal = require('@paypal/paypal-server-sdk');
 const { client } = require('../utils/paypal');
@@ -700,7 +701,20 @@ const sendPaymentReminderEmail = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Order is already paid' });
     }
 
-    const paymentLink = `${process.env.WEBSITE_URL}/payment/order/${order._id}`;
+    // Generate token
+    const paymentToken = crypto.randomBytes(32).toString('hex');
+
+    // Hash token and set expiration
+    order.paymentToken = crypto
+      .createHash('sha256')
+      .update(paymentToken)
+      .digest('hex');
+
+    order.paymentTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+
+    await order.save();
+
+    const paymentLink = `${process.env.WEBSITE_URL}/payment/order/token/${paymentToken}`;
 
     await sendPaymentReminder(order, paymentLink);
 
@@ -711,7 +725,124 @@ const sendPaymentReminderEmail = async (req, res) => {
   }
 };
 
+const getOrderByPaymentToken = async (req, res) => {
+  try {
+    const paymentToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+
+    const order = await Order.findOne({
+      paymentToken,
+      paymentTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!order) {
+      return res.status(400).json({ success: false, message: 'Payment token is invalid or has expired.' });
+    }
+
+    res.json({ success: true, data: order });
+  } catch (error) {
+    console.error('Get order by payment token error:', error);
+    res.status(500).json({ success: false, message: 'Server error while fetching order' });
+  }
+};
+
+const createPayPalOrderByToken = async (req, res) => {
+  const paymentToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const order = await Order.findOne({
+    paymentToken,
+    paymentTokenExpires: { $gt: Date.now() },
+  });
+
+  if (order) {
+    const request = new paypal.orders.OrdersCreateRequest();
+    request.prefer("return=representation");
+    request.requestBody({
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'USD',
+          value: order.totalPrice,
+        },
+      }],
+    });
+
+    try {
+      const payPalOrder = await client().execute(request);
+      res.json({ orderID: payPalOrder.result.id });
+    } catch (e) {
+      res.status(500).send({ message: "Something went wrong", error: e.message });
+    }
+  } else {
+    res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
+  }
+};
+
+const capturePayPalOrderByToken = async (req, res) => {
+  const { paypalOrderID } = req.body;
+  const paymentToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const order = await Order.findOne({
+    paymentToken,
+    paymentTokenExpires: { $gt: Date.now() },
+  }).populate('reservation');
+
+  if (order) {
+    const request = new paypal.orders.OrdersCaptureRequest(paypalOrderID);
+    request.requestBody({});
+
+    try {
+      const capture = await client().execute(request);
+      order.isPaid = true;
+      order.paidAt = Date.now();
+      order.paymentResult = {
+        id: capture.result.id,
+        status: capture.result.status,
+        update_time: capture.result.update_time,
+        email_address: capture.result.payer.email_address,
+      };
+      if (order.status === 'pending') {
+        order.status = 'processing';
+      }
+
+      // Invalidate the payment token
+      order.paymentToken = undefined;
+      order.paymentTokenExpires = undefined;
+
+      const updatedOrder = await order.save();
+
+      if (order.reservation) {
+        const reservation = await ActivityReservation.findById(order.reservation._id);
+        reservation.status = 'confirmed';
+        reservation.paymentStatus = 'paid';
+        await reservation.save();
+        await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
+      } else {
+        await sendOrderConfirmation(updatedOrder);
+      }
+
+      res.send({ message: 'Order Paid', order: updatedOrder });
+    } catch (e) {
+      res.status(500).send({ message: "Something went wrong", error: e.message });
+    }
+  } else {
+    res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
+  }
+};
+
+
 module.exports = {
+  createPayPalOrderByToken,
+  capturePayPalOrderByToken,
+  getOrderByPaymentToken,
   sendPaymentReminderEmail,
   createOrderFromReservation,
   createOrder,

@@ -3,11 +3,14 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { toast } from 'sonner';
 import api from '../lib/api';
 
-const PayPalButton = ({ orderId, onPaymentSuccess, onPaymentError }) => {
+const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError }) => {
 
   const createPayPalOrder = async () => {
+    const url = paymentToken
+      ? `/orders/payment/${paymentToken}/create-paypal-order`
+      : `/orders/${orderId}/create-paypal-order`;
     try {
-      const response = await api.post(`/api/orders/${orderId}/create-paypal-order`);
+      const response = await api.post(url);
       return response.data.orderID;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create PayPal order.');
@@ -17,12 +20,15 @@ const PayPalButton = ({ orderId, onPaymentSuccess, onPaymentError }) => {
   };
 
   const onApprove = async (data) => {
+    const url = paymentToken
+      ? `/orders/payment/${paymentToken}/capture-paypal-order`
+      : `/orders/${orderId}/capture-paypal-order`;
     try {
-      const response = await api.put(`/api/orders/${orderId}/capture-paypal-order`, {
+      const response = await api.put(url, {
         paypalOrderID: data.orderID,
       });
       toast.success('Payment successful!');
-      onPaymentSuccess(response.data.data);
+      onPaymentSuccess(response.data.order);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Payment failed.');
       onPaymentError();
