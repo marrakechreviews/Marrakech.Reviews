@@ -55,9 +55,6 @@ export default function Header() {
     { name: 'Contact', href: '/contact' },
   ];
 
-  if (isAuthenticated) {
-    navigation.push({ name: 'My Account', href: '/account' });
-  }
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">

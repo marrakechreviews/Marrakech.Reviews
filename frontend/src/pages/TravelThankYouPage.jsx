@@ -39,7 +39,7 @@ export default function TravelThankYouPage() {
   return (
     <>
       <Helmet>
-        <title>Travel Reservation Submitted - Thank You | Marrakech Reviews</title>
+        <title>Travel Reservation Submitted - Thank You | E-Store</title>
         <meta name="description" content="Your travel reservation has been successfully submitted. We will contact you shortly with confirmation details." />
       </Helmet>
 

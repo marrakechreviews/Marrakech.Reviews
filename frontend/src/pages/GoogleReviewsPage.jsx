@@ -152,7 +152,7 @@ export default function GoogleReviewsPage() {
   return (
     <>
       <Helmet>
-        <title>Google Reviews - Customer Testimonials | Marrakech Reviews</title>
+        <title>Google Reviews - Customer Testimonials | E-Store</title>
         <meta
           name="description"
           content="Read authentic Google reviews from our customers. Discover what people are saying about our services and experiences in Marrakech."

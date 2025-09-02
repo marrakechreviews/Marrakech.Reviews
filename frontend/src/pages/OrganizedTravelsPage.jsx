@@ -53,7 +53,7 @@ export default function OrganizedTravelsPage() {
   return (
     <>
       <Helmet>
-        <title>Organized Travels - Explore Curated Trips in Morocco | Marrakech Reviews</title>
+        <title>Organized Travels - Explore Curated Trips in Morocco | E-Store</title>
         <meta
           name="description"
           content="Discover our collection of organized travel programs in Morocco. Unforgettable experiences, expert guides, and all-inclusive packages."

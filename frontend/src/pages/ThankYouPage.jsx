@@ -162,7 +162,7 @@ const ReservationThankYou = ({ reservationData, reservationType }) => {
   return (
     <>
       <Helmet>
-        <title>Reservation Confirmed - Thank You | Marrakech Reviews</title>
+        <title>Reservation Confirmed - Thank You | E-Store</title>
         <meta name="description" content="Your reservation has been successfully submitted. We will contact you shortly with confirmation details." />
       </Helmet>
 
