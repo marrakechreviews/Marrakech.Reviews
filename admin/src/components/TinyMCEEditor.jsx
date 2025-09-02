@@ -107,9 +107,9 @@ const TinyMCEEditor = ({
       case 'image-gallery':
         template = `<div class="image-gallery" style="margin: 30px 0;">
           <div class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 10px;">
-            <img src="https://via.placeholder.com/300x200" alt="Gallery image 1" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;" />
-            <img src="https://via.placeholder.com/300x200" alt="Gallery image 2" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;" />
-            <img src="https://via.placeholder.com/300x200" alt="Gallery image 3" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;" />
+            <img src="https://placehold.co/300x200" alt="Gallery image 1" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;" />
+            <img src="https://placehold.co/300x200" alt="Gallery image 2" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;" />
+            <img src="https://placehold.co/300x200" alt="Gallery image 3" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;" />
           </div>
           <p class="gallery-caption" style="text-align: center; font-style: italic; color: #6c757d; margin: 0;">Image gallery caption</p>
         </div>`;

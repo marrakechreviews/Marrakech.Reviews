@@ -169,7 +169,7 @@ const AccountPage = () => {
                                     <div className="space-y-4 pt-4 border-t">
                                         <h3 className="text-lg font-medium">Profile Picture</h3>
                                         <div className="flex items-center gap-4">
-                                            <img src={user.image || 'https://via.placeholder.com/150'} alt="Profile" className="w-20 h-20 rounded-full object-cover" />
+                                            <img src={user.image || 'https://placehold.co/150'} alt="Profile" className="w-20 h-20 rounded-full object-cover" />
                                             <div>
                                                 <Input id="profileImage" type="file" />
                                                 <Button className="mt-2" onClick={async () => {

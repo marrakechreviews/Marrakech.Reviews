@@ -46,6 +46,10 @@ const AddReviewForm = () => {
             toast.error("Please select a product and provide a rating.");
             return;
         }
+        if (comment.length < 10) {
+            toast.error("Comment must be at least 10 characters long.");
+            return;
+        }
         setLoading(true);
 
         const formData = new FormData();
@@ -127,6 +131,7 @@ const AddReviewForm = () => {
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="What did you like or dislike?"
                             required
+                            minLength={10}
                         />
                     </div>
                     <div className="space-y-2">

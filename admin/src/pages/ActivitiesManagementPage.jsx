@@ -165,7 +165,7 @@ export default function ActivitiesManagementPage() {
             difficulty: 'Easy',
             shortDescription: '',
             description: '',
-            image: 'https://via.placeholder.com/400x300.png?text=Activity+Image',
+            image: 'https://placehold.co/400x300.png?text=Activity+Image',
             images: '',
             isActive: true,
             isFeatured: false,
