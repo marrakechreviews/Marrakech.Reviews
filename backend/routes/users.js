@@ -36,7 +36,7 @@ router.get('/:id', getUserById);
 // @desc    Update user (Admin only)
 // @route   PUT /api/users/:id
 // @access  Private/Admin
-router.put('/:id', [
+router.put('/:id', protect, admin, [
   body('name')
     .optional()
     .trim()

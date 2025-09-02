@@ -88,10 +88,10 @@ const getDashboardAnalytics = async (req, res) => {
     };
 
     // Calculate total revenue
-    const totalRevenue = 
-      activityReservationStats.totalRevenue + 
-      flightStats.totalFlightRevenue + 
-      orderStatsData.totalOrderRevenue;
+    const totalRevenue =
+      (activityReservationStats?.totalRevenue || 0) +
+      (flightStats?.totalFlightRevenue || 0) +
+      (orderStatsData?.totalOrderRevenue || 0);
 
     // Get recent activity
     const recentReservations = await ActivityReservation.find()
