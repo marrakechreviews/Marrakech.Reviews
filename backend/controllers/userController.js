@@ -225,7 +225,11 @@ const updateUser = async (req, res) => {
     if (role !== undefined) user.role = role;
     if (isActive !== undefined) user.isActive = isActive;
     if (image !== undefined) user.image = image;
-    if (address !== undefined) user.address = { ...user.address, ...address };
+    if (address !== undefined) {
+      if (typeof address === 'object' && address !== null && !Array.isArray(address)) {
+        user.address = { ...(user.address || {}), ...address };
+      }
+    }
     if (phone !== undefined) user.phone = phone;
 
     const updatedUser = await user.save();
