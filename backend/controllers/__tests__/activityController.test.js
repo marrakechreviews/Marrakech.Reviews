@@ -6,11 +6,24 @@ const ActivityReservation = require('../../models/ActivityReservation');
 const activityRoutes = require('../../routes/activities');
 const emailService = require('../../utils/emailService');
 
-// Mock the email service
+// Mock the email service and auth middleware
 jest.mock('../../utils/emailService', () => ({
   sendReservationConfirmation: jest.fn().mockResolvedValue({ success: true }),
   sendAdminNotification: jest.fn().mockResolvedValue({ success: true }),
   sendReservationUpdateNotification: jest.fn().mockResolvedValue({ success: true }),
+}));
+jest.mock('../../middleware/authMiddleware', () => ({
+  protect: jest.fn((req, res, next) => {
+    req.user = {
+      _id: '507f1f77bcf86cd799439011', // Using a hardcoded valid ObjectId string
+      name: 'Test Admin',
+      email: 'admin@test.com',
+      role: 'admin',
+      isActive: true,
+    };
+    next();
+  }),
+  admin: jest.fn((req, res, next) => next()),
 }));
 
 const app = express();
@@ -80,7 +93,6 @@ describe('Activity Controller', () => {
   it('should update a reservation status and send a notification email', async () => {
     const response = await request(app)
       .put(`/api/activities/reservations/${reservation._id}`)
-      .set('Authorization', 'Bearer bypass-token')
       .send({ status: 'confirmed' });
 
     expect(response.status).toBe(200);

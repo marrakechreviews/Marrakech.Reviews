@@ -14,19 +14,6 @@ const protect = async (req, res, next) => {
       // Get token from header
       token = req.headers.authorization.split(" ")[1];
 
-      // Check for bypass mode
-      if (token === "bypass-token") {
-        // Create a mock admin user for bypass mode with valid ObjectId
-        req.user = {
-          _id: new mongoose.Types.ObjectId("507f1f77bcf86cd799439011"), // Valid ObjectId for bypass
-          name: "Bypass Admin",
-          email: "admin@bypass.com",
-          role: "admin",
-          isActive: true,
-        };
-        return next();
-      }
-
       // Verify token
       console.log('Verifying token:', token);
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
