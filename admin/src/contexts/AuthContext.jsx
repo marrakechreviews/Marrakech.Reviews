@@ -59,23 +59,23 @@ export function AuthProvider({ children }) {
       // Check for bypass mode
       // const bypassMode = localStorage.getItem("bypassLogin");
       // if (bypassMode === 'true') {
-        // Create a mock admin user for bypass mode
-        const mockUser = {
-          _id: 'bypass-admin',
-          name: 'Bypass Admin',
-          email: 'admin@bypass.com',
-          role: 'admin',
-          isActive: true
-        };
+      //   // Create a mock admin user for bypass mode
+      //   const mockUser = {
+      //     _id: 'bypass-admin',
+      //     name: 'Bypass Admin',
+      //     email: 'admin@bypass.com',
+      //     role: 'admin',
+      //     isActive: true
+      //   };
         
-        dispatch({
-          type: 'LOGIN_SUCCESS',
-          payload: {
-            user: mockUser,
-            token: 'bypass-token',
-          },
-        });
-        return;
+      //   dispatch({
+      //     type: 'LOGIN_SUCCESS',
+      //     payload: {
+      //       user: mockUser,
+      //       token: 'bypass-token',
+      //     },
+      //   });
+      //   return;
       // }
 
       const token = localStorage.getItem('adminToken');
