@@ -194,8 +194,9 @@ export function AuthProvider({ children }) {
             localStorage.setItem('user', JSON.stringify(data));
             dispatch({ type: 'LOGIN_SUCCESS', payload: { user: data, token: data.token } });
             return { success: true };
+        } else {
+            return { success: false, message: response.data.message || 'Google login failed' };
         }
-        throw new Error(response.data.message || 'Google login failed');
     } catch (error) {
         dispatch({ type: 'LOGIN_FAILURE' });
         return { success: false, message: error.response?.data?.message || 'Google login failed' };
