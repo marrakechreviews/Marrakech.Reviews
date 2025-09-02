@@ -13,6 +13,7 @@ const ReservationPaymentPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [orderId, setOrderId] = useState(null);
+  const [paymentType, setPaymentType] = useState(null); // 'partial' or 'complete'
 
   useEffect(() => {
     const fetchReservation = async () => {
@@ -43,9 +44,13 @@ const ReservationPaymentPage = () => {
     setError('Payment failed. Please try again.');
   };
 
-  const handleCreateOrder = async () => {
+  const handleCreateOrder = async (type) => {
+    setPaymentType(type);
     try {
-      const { data } = await api.post('/orders/from-reservation', { reservationId: reservation._id });
+      const { data } = await api.post('/orders/from-reservation', {
+        reservationId: reservation._id,
+        paymentType: type
+      });
       setOrderId(data.data._id);
       return data.data._id;
     } catch (error) {
@@ -84,17 +89,36 @@ const ReservationPaymentPage = () => {
                 <p><strong>Date:</strong> {new Date(reservation.reservationDate).toLocaleDateString()}</p>
                 <p><strong>Guests:</strong> {reservation.numberOfPersons}</p>
                 <p><strong>Total:</strong> ${reservation.totalPrice}</p>
-                <div className="mt-4">
-                  {!orderId ? (
-                    <Button onClick={handleCreateOrder}>Proceed to Payment</Button>
-                  ) : (
+
+                {!orderId && (
+                  <div className="mt-6 border-t pt-4">
+                    <h3 className="text-lg font-semibold mb-4">Payment Options</h3>
+                    <div className="flex space-x-4">
+                      <Button onClick={() => handleCreateOrder('complete')} className="flex-1">
+                        Pay in Full (${reservation.totalPrice})
+                      </Button>
+                      <Button onClick={() => handleCreateOrder('partial')} variant="outline" className="flex-1">
+                        Pay Partial ($15.00)
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {orderId && (
+                  <div className="mt-6 border-t pt-4">
+                    <h3 className="text-lg font-semibold mb-2">
+                      {paymentType === 'partial' ? 'Partial Payment' : 'Full Payment'}
+                    </h3>
+                    <p className="mb-4 text-gray-600">
+                      You have chosen to make a {paymentType} payment. Please proceed with PayPal.
+                    </p>
                     <PayPalButton
                       orderId={orderId}
                       onPaymentSuccess={onPaymentSuccess}
                       onPaymentError={onPaymentError}
                     />
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

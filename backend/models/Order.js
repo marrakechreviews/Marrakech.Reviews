@@ -102,6 +102,10 @@ const orderSchema = new mongoose.Schema({
     required: true,
     default: false
   },
+  isPartial: {
+    type: Boolean,
+    default: false
+  },
   paidAt: {
     type: Date
   },

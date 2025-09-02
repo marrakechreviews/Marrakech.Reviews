@@ -4,7 +4,7 @@ const Product = require('../models/Product');
 const ActivityReservation = require('../models/ActivityReservation');
 const crypto = require('crypto');
 const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice, sendOrderStatusUpdate, sendPaymentReminder } = require('../utils/emailService');
-const { createOrder: createPayPalOrderUtil, captureOrder: capturePayPalOrderUtil } = require('../utils/paypal');
+const { createOrder, captureOrder } = require('../utils/paypal');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -522,7 +522,7 @@ const createPayPalOrder = async (req, res) => {
       return res.status(404).send({ message: 'Order Not Found' });
     }
     const { receiverEmail } = req.body;
-    const result = await createPayPalOrderUtil(order, receiverEmail);
+    const result = await createOrder(order, receiverEmail);
     if (result.success) {
       res.json({ orderID: result.order.id });
     } else {
@@ -536,7 +536,7 @@ const createPayPalOrder = async (req, res) => {
 const capturePayPalOrder = async (req, res) => {
   try {
     const { paypalOrderID } = req.body;
-    const result = await capturePayPalOrderUtil(paypalOrderID);
+    const result = await captureOrder(paypalOrderID);
     if (!result.success) {
       return res.status(500).send({ message: result.error || "Something went wrong" });
     }
@@ -575,21 +575,24 @@ const capturePayPalOrder = async (req, res) => {
 };
 
 const createOrderFromReservation = async (req, res) => {
-  const { reservationId } = req.body;
-  const reservation = await ActivityReservation.findById(reservationId);
+  const { reservationId, paymentType } = req.body;
+  const reservation = await ActivityReservation.findById(reservationId).populate('activity');
 
   if (reservation) {
+    const isPartialPayment = paymentType === 'partial';
+    const totalPrice = isPartialPayment ? 15 : reservation.totalPrice;
+
     const order = new Order({
-      user: req.user._id, // This assumes the user is logged in. This might need to be adjusted.
+      user: req.user._id,
       reservation: reservation._id,
       orderItems: [{
         name: reservation.activity.name,
         qty: reservation.numberOfPersons,
-        image: reservation.activity.image, // This needs to be added to the activity model
+        image: reservation.activity.image,
         price: reservation.totalPrice / reservation.numberOfPersons,
-        product: reservation.activity._id, // Using activity as a product
+        product: reservation.activity._id,
       }],
-      shippingAddress: { // This is a bit of a hack, as reservations don't have shipping addresses.
+      shippingAddress: {
         fullName: reservation.customerInfo.name,
         address: 'N/A',
         city: 'N/A',
@@ -597,10 +600,11 @@ const createOrderFromReservation = async (req, res) => {
         country: 'N/A',
       },
       paymentMethod: 'PayPal',
-      itemsPrice: reservation.totalPrice,
+      itemsPrice: totalPrice,
       taxPrice: 0,
       shippingPrice: 0,
-      totalPrice: reservation.totalPrice,
+      totalPrice: totalPrice,
+      isPartial: isPartialPayment,
     });
 
     const createdOrder = await order.save();
@@ -755,7 +759,7 @@ const createPayPalOrderByToken = async (req, res) => {
     }
 
     const receiverEmail = process.env.PAYPAL_RECEIVER_EMAIL || 'support@laptopsolution.tech';
-    const result = await createPayPalOrderUtil(order, receiverEmail);
+    const result = await createOrder(order, receiverEmail);
 
     if (result.success) {
       res.json({ orderID: result.order.id });
@@ -784,7 +788,7 @@ const capturePayPalOrderByToken = async (req, res) => {
       return res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
     }
 
-    const result = await capturePayPalOrderUtil(paypalOrderID);
+    const result = await captureOrder(paypalOrderID);
     if (!result.success) {
       return res.status(500).send({ message: result.error || "Something went wrong" });
     }

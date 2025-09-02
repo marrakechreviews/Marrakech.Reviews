@@ -48,10 +48,6 @@ const createOrder = async (order, receiverEmail) => {
           },
         },
       ],
-      application_context: {
-        return_url: `${process.env.WEBSITE_URL}/checkout/success`,
-        cancel_url: `${process.env.WEBSITE_URL}/checkout/cancel`,
-      },
     };
 
     const response = await fetch(`${PAYPAL_API_BASE_URL}/v2/checkout/orders`, {

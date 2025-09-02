@@ -37,7 +37,7 @@ const CheckoutPage = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('Stripe');
+  const [paymentMethod, setPaymentMethod] = useState('PayPal');
   const [formData, setFormData] = useState({
     // Shipping Information
     firstName: '',
@@ -152,12 +152,6 @@ const CheckoutPage = () => {
     }
   };
 
-  const handleStripeSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
-    // Stripe payment logic would go here
-  };
 
   if (items.length === 0) {
     return null;
@@ -301,48 +295,20 @@ const CheckoutPage = () => {
                 </CardContent>
               </Card>
 
-              {/* Payment Method */}
+              {/* Payment */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Payment Method</CardTitle>
+                  <CardTitle>Payment</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup
-                    value={paymentMethod}
-                    onValueChange={(value) => {
-                      setPaymentMethod(value);
-                      setCreatedOrderId(null); // Reset on payment method change
-                    }}
-                    className="space-y-3"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Stripe" id="stripe" />
-                      <Label htmlFor="stripe" className="flex items-center">
-                        <CreditCard className="h-5 w-5 mr-2" />
-                        Credit Card (Stripe)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="PayPal" id="paypal" />
-                      <Label htmlFor="paypal">PayPal</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Cash" id="cash" />
-                      <Label htmlFor="cash">Cash on Delivery</Label>
-                    </div>
-                  </RadioGroup>
-
-                  {paymentMethod === 'PayPal' && !createdOrderId && (
-                    <div className="mt-4">
-                      <Button onClick={handleCreateOrder} disabled={loading}>
-                        {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Proceed to PayPal
-                      </Button>
-                    </div>
-                  )}
-
-                  {paymentMethod === 'PayPal' && createdOrderId && (
-                    <div className="mt-4">
+                  {!createdOrderId ? (
+                    <Button onClick={handleCreateOrder} disabled={loading} className="w-full">
+                      {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Proceed to Payment
+                    </Button>
+                  ) : (
+                    <div>
+                      <p className="text-center text-gray-600 mb-4">Your order has been created. Complete your payment with PayPal.</p>
                       <PayPalButton
                         orderId={createdOrderId}
                         onPaymentSuccess={onPaymentSuccess}
@@ -352,12 +318,6 @@ const CheckoutPage = () => {
                   )}
                 </CardContent>
               </Card>
-
-              {paymentMethod !== 'PayPal' && (
-                <Button onClick={handleStripeSubmit} disabled={loading}>
-                  Place Order
-                </Button>
-              )}
             </div>
 
             {/* Order Summary */}
