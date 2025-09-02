@@ -13,15 +13,9 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const bypassMode = localStorage.getItem('bypassLogin');
-    if (bypassMode === 'true') {
-      // In bypass mode, add a mock token
-      config.headers.Authorization = 'Bearer bypass-token';
-    } else {
-      const token = localStorage.getItem('adminToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -34,12 +28,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const bypassMode = localStorage.getItem('bypassLogin');
-    if (bypassMode === 'true') {
-      // In bypass mode, don't redirect on 401 errors
-      return Promise.reject(error);
-    }
-    
     if (error.response?.status === 401) {
       localStorage.removeItem('adminToken');
       localStorage.removeItem('adminUser');
