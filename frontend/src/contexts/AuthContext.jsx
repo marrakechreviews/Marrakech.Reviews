@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { authAPI } from '../lib/api';
+import api, { authAPI } from '../lib/api';
 
 const AuthContext = createContext();
 
@@ -187,7 +187,7 @@ export function AuthProvider({ children }) {
   const googleLogin = async (googleToken) => {
     dispatch({ type: 'LOGIN_START' });
     try {
-        const response = await authAPI.post('/auth/google', { token: googleToken });
+        const response = await api.post('/auth/google', { token: googleToken });
         if (response.data.success) {
             const { data } = response.data;
             localStorage.setItem('userToken', data.token);
