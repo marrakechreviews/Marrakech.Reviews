@@ -3,7 +3,7 @@ const path = require('path');
 
 function createUploader(options) {
   const storage = multer.diskStorage({
-    destination: './uploads/',
+    destination: '/tmp/uploads',
     filename: function (req, file, cb) {
       const prefix = options.prefix || file.fieldname;
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
