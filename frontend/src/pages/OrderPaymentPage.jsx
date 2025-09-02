@@ -92,13 +92,16 @@ const OrderPaymentPage = () => {
                   <span>${order.totalPrice.toFixed(2)}</span>
                 </div>
 
-                <div className="mt-6">
-                  <PayPalButton
-                    orderId={order._id}
-                    paymentToken={token}
-                    onPaymentSuccess={onPaymentSuccess}
-                    onPaymentError={onPaymentError}
-                  />
+                <div className="mt-8 pt-6 border-t">
+                  <h3 className="text-lg font-semibold mb-4 text-center">Pay with PayPal</h3>
+                  <div className="mt-4">
+                    <PayPalButton
+                      orderId={order._id}
+                      paymentToken={token}
+                      onPaymentSuccess={onPaymentSuccess}
+                      onPaymentError={onPaymentError}
+                    />
+                  </div>
                 </div>
               </div>
             )}
