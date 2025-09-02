@@ -4,7 +4,6 @@ const Product = require('../models/Product');
 const ActivityReservation = require('../models/ActivityReservation');
 const crypto = require('crypto');
 const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice, sendOrderStatusUpdate, sendPaymentReminder } = require('../utils/emailService');
-const paypal = require('@paypal/paypal-server-sdk');
 const { createOrder: createPayPalOrderUtil, captureOrder: capturePayPalOrderUtil } = require('../utils/paypal');
 
 // @desc    Create new order
@@ -517,56 +516,61 @@ const getOrderStats = async (req, res) => {
 };
 
 const createPayPalOrder = async (req, res) => {
-  const order = await Order.findById(req.params.id);
-
-  if (order) {
-    const result = await createPayPalOrderUtil(order);
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).send({ message: 'Order Not Found' });
+    }
+    const { receiverEmail } = req.body;
+    const result = await createPayPalOrderUtil(order, receiverEmail);
     if (result.success) {
       res.json({ orderID: result.order.id });
     } else {
-      res.status(500).send({ message: "Something went wrong", error: result.error });
+      res.status(500).send({ message: result.error || "Something went wrong" });
     }
-  } else {
-    res.status(404).send({ message: 'Order Not Found' });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
   }
 };
 
 const capturePayPalOrder = async (req, res) => {
-  const { paypalOrderID } = req.body;
-  const result = await capturePayPalOrderUtil(paypalOrderID);
-
-  if (result.success) {
-    const order = await Order.findById(req.params.id).populate('reservation');
-    if (order) {
-      order.isPaid = true;
-      order.paidAt = Date.now();
-      order.paymentResult = {
-        id: result.capture.id,
-        status: result.capture.status,
-        update_time: result.capture.update_time,
-        email_address: result.capture.payer.email_address,
-      };
-      if (order.status === 'pending') {
-        order.status = 'processing';
-      }
-      const updatedOrder = await order.save();
-
-      if (order.reservation) {
-        const reservation = await ActivityReservation.findById(order.reservation._id);
-        reservation.status = 'confirmed';
-        reservation.paymentStatus = 'paid';
-        await reservation.save();
-        await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
-      } else {
-        await sendOrderConfirmation(updatedOrder);
-      }
-
-      res.send({ message: 'Order Paid', order: updatedOrder });
-    } else {
-      res.status(404).send({ message: 'Order Not Found' });
+  try {
+    const { paypalOrderID } = req.body;
+    const result = await capturePayPalOrderUtil(paypalOrderID);
+    if (!result.success) {
+      return res.status(500).send({ message: result.error || "Something went wrong" });
     }
-  } else {
-    res.status(500).send({ message: "Something went wrong", error: result.error });
+
+    const captureData = result.capture;
+    if (captureData.status !== 'COMPLETED') {
+        return res.status(400).send({ message: 'PayPal payment not completed.' });
+    }
+
+    const order = await Order.findById(req.params.id).populate('user', 'email');
+    if (!order) {
+      return res.status(404).send({ message: 'Order Not Found' });
+    }
+
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.paymentResult = {
+      id: captureData.id,
+      status: captureData.status,
+      email_address: captureData.payer.email_address,
+      pricePaid: captureData.purchase_units[0]?.payments?.captures[0]?.amount?.value,
+    };
+    if (order.status === 'pending') {
+        order.status = 'processing';
+    }
+    await order.save();
+
+    // Assuming sendOrderConfirmation is the equivalent of sendPurchaseReceipt
+    await sendOrderConfirmation(order);
+
+    res.send({ message: 'Order Paid', order });
+
+  } catch (error) {
+    res.status(500).send({ message: error.message });
   }
 };
 
@@ -735,77 +739,85 @@ const getOrderByPaymentToken = async (req, res) => {
 };
 
 const createPayPalOrderByToken = async (req, res) => {
-  const paymentToken = crypto
-    .createHash('sha256')
-    .update(req.params.token)
-    .digest('hex');
+  try {
+    const paymentToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
 
-  const order = await Order.findOne({
-    paymentToken,
-    paymentTokenExpires: { $gt: Date.now() },
-  });
+    const order = await Order.findOne({
+      paymentToken,
+      paymentTokenExpires: { $gt: Date.now() },
+    });
 
-  if (order) {
-    const result = await createPayPalOrderUtil(order);
+    if (!order) {
+      return res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
+    }
+
+    const receiverEmail = process.env.PAYPAL_RECEIVER_EMAIL || 'support@laptopsolution.tech';
+    const result = await createPayPalOrderUtil(order, receiverEmail);
+
     if (result.success) {
       res.json({ orderID: result.order.id });
     } else {
-      res.status(500).send({ message: "Something went wrong", error: result.error });
+      res.status(500).send({ message: result.error || "Something went wrong" });
     }
-  } else {
-    res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
   }
 };
 
 const capturePayPalOrderByToken = async (req, res) => {
-  const { paypalOrderID } = req.body;
-  const paymentToken = crypto
-    .createHash('sha256')
-    .update(req.params.token)
-    .digest('hex');
+  try {
+    const { paypalOrderID } = req.body;
+    const paymentToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
 
-  const order = await Order.findOne({
-    paymentToken,
-    paymentTokenExpires: { $gt: Date.now() },
-  }).populate('reservation');
+    const order = await Order.findOne({
+      paymentToken,
+      paymentTokenExpires: { $gt: Date.now() },
+    }).populate('user', 'email');
 
-  if (order) {
-    const result = await capturePayPalOrderUtil(paypalOrderID);
-    if (result.success) {
-      order.isPaid = true;
-      order.paidAt = Date.now();
-      order.paymentResult = {
-        id: result.capture.id,
-        status: result.capture.status,
-        update_time: result.capture.update_time,
-        email_address: result.capture.payer.email_address,
-      };
-      if (order.status === 'pending') {
-        order.status = 'processing';
-      }
-
-      // Invalidate the payment token
-      order.paymentToken = undefined;
-      order.paymentTokenExpires = undefined;
-
-      const updatedOrder = await order.save();
-
-      if (order.reservation) {
-        const reservation = await ActivityReservation.findById(order.reservation._id);
-        reservation.status = 'confirmed';
-        reservation.paymentStatus = 'paid';
-        await reservation.save();
-        await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
-      } else {
-        await sendOrderConfirmation(updatedOrder);
-      }
-
-      res.send({ message: 'Order Paid', order: updatedOrder });
-    } else {
-      res.status(500).send({ message: "Something went wrong", error: result.error });
+    if (!order) {
+      return res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
     }
-  } else {
-    res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
+
+    const result = await capturePayPalOrderUtil(paypalOrderID);
+    if (!result.success) {
+      return res.status(500).send({ message: result.error || "Something went wrong" });
+    }
+
+    const captureData = result.capture;
+    if (captureData.status !== 'COMPLETED') {
+        return res.status(400).send({ message: 'PayPal payment not completed.' });
+    }
+
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.paymentResult = {
+      id: captureData.id,
+      status: captureData.status,
+      email_address: captureData.payer.email_address,
+      pricePaid: captureData.purchase_units[0]?.payments?.captures[0]?.amount?.value,
+    };
+    if (order.status === 'pending') {
+      order.status = 'processing';
+    }
+
+    // Invalidate the payment token
+    order.paymentToken = undefined;
+    order.paymentTokenExpires = undefined;
+
+    await order.save();
+
+    await sendOrderConfirmation(order);
+
+    res.send({ message: 'Order Paid', order });
+
+  } catch (error) {
+    res.status(500).send({ message: error.message });
   }
 };
 

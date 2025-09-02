@@ -3,14 +3,14 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { toast } from 'sonner';
 import api from '../lib/api';
 
-const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError }) => {
+const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError, receiverEmail }) => {
 
   const createPayPalOrder = async () => {
     const url = paymentToken
       ? `/orders/payment/${paymentToken}/create-paypal-order`
       : `/orders/${orderId}/create-paypal-order`;
     try {
-      const response = await api.post(url);
+      const response = await api.post(url, { receiverEmail });
       return response.data.orderID;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create PayPal order.');
@@ -51,14 +51,14 @@ const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError 
 };
 
 const PayPalWrapper = (props) => {
-  const [paypalClientId, setPaypalClientId] = useState(null);
+  const [paypalConfig, setPaypalConfig] = useState({ clientId: null, receiverEmail: null });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPaypalClientId = async () => {
+    const fetchPaypalConfig = async () => {
       try {
         const { data } = await api.get('/orders/config/paypal');
-        setPaypalClientId(data.clientId);
+        setPaypalConfig({ clientId: data.clientId, receiverEmail: data.receiverEmail });
       } catch (error) {
         toast.error('Failed to fetch PayPal configuration.');
         console.error('PayPal config fetch error:', error);
@@ -66,20 +66,20 @@ const PayPalWrapper = (props) => {
         setLoading(false);
       }
     };
-    fetchPaypalClientId();
+    fetchPaypalConfig();
   }, []);
 
   if (loading) {
     return <div>Loading PayPal...</div>;
   }
 
-  if (!paypalClientId) {
+  if (!paypalConfig.clientId) {
     return <div className="text-red-500">Could not load PayPal. Please try again later.</div>;
   }
 
   return (
-    <PayPalScriptProvider options={{ 'client-id': paypalClientId }}>
-      <PayPalButton {...props} />
+    <PayPalScriptProvider options={{ 'client-id': paypalConfig.clientId }}>
+      <PayPalButton {...props} receiverEmail={paypalConfig.receiverEmail} />
     </PayPalScriptProvider>
   );
 };
