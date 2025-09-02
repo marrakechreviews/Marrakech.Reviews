@@ -81,7 +81,7 @@ router.get('/stats', getOrderStats);
 // @desc    Get logged in user orders
 // @route   GET /api/orders/myorders
 // @access  Private
-router.get('/myorders', [
+router.get('/myorders', protect, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
   query('status').optional().isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled']).withMessage('Invalid status')
