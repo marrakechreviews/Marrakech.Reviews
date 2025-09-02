@@ -148,34 +148,9 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const enableBypass = () => {
-    localStorage.setItem('bypassLogin', 'true');
-    const mockUser = {
-      _id: 'bypass-admin',
-      name: 'Bypass Admin',
-      email: 'admin@bypass.com',
-      role: 'admin',
-      isActive: true
-    };
-    
-    dispatch({
-      type: 'LOGIN_SUCCESS',
-      payload: {
-        user: mockUser,
-        token: 'bypass-token',
-      },
-    });
-  };
-
-  const disableBypass = () => {
-    localStorage.removeItem('bypassLogin');
-    logout();
-  };
-
   const logout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
-    localStorage.removeItem('bypassLogin');
     dispatch({ type: 'LOGOUT' });
   };
 
@@ -183,8 +158,6 @@ export function AuthProvider({ children }) {
     ...state,
     login,
     logout,
-    enableBypass,
-    disableBypass,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

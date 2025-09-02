@@ -124,7 +124,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 overflow-y-auto">
+      <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
