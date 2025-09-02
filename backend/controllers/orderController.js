@@ -2,7 +2,7 @@ const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const ActivityReservation = require('../models/ActivityReservation');
-const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice } = require('../utils/emailService');
+const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice, sendOrderStatusUpdate, sendPaymentReminder } = require('../utils/emailService');
 const paypal = require('@paypal/paypal-server-sdk');
 const { client } = require('../utils/paypal');
 
@@ -436,7 +436,7 @@ const updateOrderStatus = async (req, res) => {
 
     const { status, trackingNumber, notes } = req.body;
 
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('user', 'name email');
 
     if (!order) {
       return res.status(404).json({
@@ -460,6 +460,14 @@ const updateOrderStatus = async (req, res) => {
     }
 
     const updatedOrder = await order.save();
+
+    // Send email notification
+    try {
+      await sendOrderStatusUpdate(updatedOrder);
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      // Don't fail the request if email fails
+    }
 
     res.json({
       success: true,
@@ -680,7 +688,31 @@ const generateInvoice = async (req, res) => {
     }
 };
 
+const sendPaymentReminderEmail = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('user', 'name email');
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.isPaid) {
+      return res.status(400).json({ success: false, message: 'Order is already paid' });
+    }
+
+    const paymentLink = `${process.env.WEBSITE_URL}/payment/order/${order._id}`;
+
+    await sendPaymentReminder(order, paymentLink);
+
+    res.json({ success: true, message: 'Payment reminder sent successfully' });
+  } catch (error) {
+    console.error('Send payment reminder error:', error);
+    res.status(500).json({ success: false, message: 'Server error while sending payment reminder' });
+  }
+};
+
 module.exports = {
+  sendPaymentReminderEmail,
   createOrderFromReservation,
   createOrder,
   getOrderById,

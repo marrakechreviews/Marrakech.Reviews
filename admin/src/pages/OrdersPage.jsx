@@ -27,7 +27,8 @@ import {
   Calendar,
   User,
   MapPin,
-  CreditCard
+  CreditCard,
+  Send
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ordersAPI, usersAPI, productsAPI } from '../lib/api';
@@ -97,6 +98,22 @@ const OrdersPage = () => {
       toast.error(error.response?.data?.message || 'Failed to mark as delivered');
     },
   });
+
+  const reminderMutation = useMutation({
+    mutationFn: (id) => ordersAPI.sendPaymentReminder(id),
+    onSuccess: () => {
+      toast.success('Payment reminder sent');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to send reminder');
+    },
+  });
+
+  const handleSendReminder = useCallback((orderId) => {
+    if (window.confirm('Send a payment reminder to the customer?')) {
+      reminderMutation.mutate(orderId);
+    }
+  }, [reminderMutation]);
 
   const handleViewOrder = useCallback((order) => {
     setSelectedOrder(order);
@@ -644,6 +661,17 @@ const OrdersPage = () => {
                           className="text-green-600 hover:text-green-700"
                         >
                           <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {!order.isPaid && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSendReminder(order._id)}
+                          className="text-blue-600 hover:text-blue-700"
+                          disabled={reminderMutation.isPending}
+                        >
+                          <Send className="h-4 w-4" />
                         </Button>
                       )}
                     </div>

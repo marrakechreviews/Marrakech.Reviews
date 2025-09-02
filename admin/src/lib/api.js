@@ -93,6 +93,7 @@ export const ordersAPI = {
   updateOrderStatus: (id, data) => api.put(`/orders/${id}/status`, data),
   markAsDelivered: (id) => api.put(`/orders/${id}/deliver`),
   getOrderStats: () => api.get('/orders/stats'),
+  sendPaymentReminder: (id) => api.post(`/orders/${id}/remind`),
 };
 
 // Reviews API

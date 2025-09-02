@@ -11,7 +11,8 @@ const {
   getOrderStats,
   createPayPalOrder,
   capturePayPalOrder,
-  createOrderFromReservation
+  createOrderFromReservation,
+  sendPaymentReminderEmail
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -145,6 +146,11 @@ router.put('/:id/status', [
   body('trackingNumber').optional().trim(),
   body('notes').optional().trim().isLength({ max: 500 }).withMessage('Notes cannot exceed 500 characters')
 ], updateOrderStatus);
+
+// @desc    Send payment reminder (Admin only)
+// @route   POST /api/orders/:id/remind
+// @access  Private/Admin
+router.post('/:id/remind', protect, admin, sendPaymentReminderEmail);
 
 module.exports = router;
 

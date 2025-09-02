@@ -767,7 +767,81 @@ const sendReservationConfirmationWithInvoice = async (order, reservation) => {
   }
 };
 
+/**
+ * Sends an order status update email to the customer.
+ * @param {object} orderData - The order data.
+ */
+const sendOrderStatusUpdate = async (orderData) => {
+  try {
+    const transporter = createTransporter();
+
+    const emailData = {
+      orderId: orderData._id.toString(),
+      customerName: orderData.user.name,
+      status: orderData.status,
+      trackingNumber: orderData.trackingNumber,
+      websiteUrl: process.env.WEBSITE_URL || 'https://Marrakech.Reviews'
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'MARRAKECH REVIEWS',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: orderData.user.email,
+      subject: `Your Order Status has been Updated - ${orderData._id}`,
+      html: getEmailTemplate('orderStatusUpdate', emailData)
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Order status update email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending order status update email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Sends a payment reminder email to the customer.
+ * @param {object} orderData - The order data.
+ * @param {string} paymentLink - The link for the customer to pay.
+ */
+const sendPaymentReminder = async (orderData, paymentLink) => {
+  try {
+    const transporter = createTransporter();
+
+    const emailData = {
+      orderId: orderData._id.toString(),
+      customerName: orderData.user.name,
+      totalPrice: orderData.totalPrice.toFixed(2),
+      paymentLink: paymentLink
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'MARRAKECH REVIEWS',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: orderData.user.email,
+      subject: `Action Required: Payment for Your Order ${orderData._id}`,
+      html: getEmailTemplate('paymentReminder', emailData)
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Payment reminder email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending payment reminder email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
+  sendPaymentReminder,
+  sendOrderStatusUpdate,
   sendReservationConfirmationWithInvoice,
   sendReservationPendingEmail,
   sendReservationConfirmation,
