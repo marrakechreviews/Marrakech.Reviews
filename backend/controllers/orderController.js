@@ -5,7 +5,7 @@ const ActivityReservation = require('../models/ActivityReservation');
 const crypto = require('crypto');
 const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice, sendOrderStatusUpdate, sendPaymentReminder } = require('../utils/emailService');
 const paypal = require('@paypal/paypal-server-sdk');
-const { client } = require('../utils/paypal');
+const { createOrder: createPayPalOrderUtil, captureOrder: capturePayPalOrderUtil } = require('../utils/paypal');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -520,23 +520,11 @@ const createPayPalOrder = async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (order) {
-    const request = new paypal.orders.OrdersCreateRequest();
-    request.prefer("return=representation");
-    request.requestBody({
-      intent: 'CAPTURE',
-      purchase_units: [{
-        amount: {
-          currency_code: 'USD',
-          value: order.totalPrice,
-        },
-      }],
-    });
-
-    try {
-      const payPalOrder = await client().execute(request);
-      res.json({ orderID: payPalOrder.result.id });
-    } catch (e) {
-      res.status(500).send({ message: "Something went wrong", error: e.message });
+    const result = await createPayPalOrderUtil(order);
+    if (result.success) {
+      res.json({ orderID: result.order.id });
+    } else {
+      res.status(500).send({ message: "Something went wrong", error: result.error });
     }
   } else {
     res.status(404).send({ message: 'Order Not Found' });
@@ -545,20 +533,18 @@ const createPayPalOrder = async (req, res) => {
 
 const capturePayPalOrder = async (req, res) => {
   const { paypalOrderID } = req.body;
-  const request = new paypal.orders.OrdersCaptureRequest(paypalOrderID);
-  request.requestBody({});
+  const result = await capturePayPalOrderUtil(paypalOrderID);
 
-  try {
-    const capture = await client().execute(request);
+  if (result.success) {
     const order = await Order.findById(req.params.id).populate('reservation');
     if (order) {
       order.isPaid = true;
       order.paidAt = Date.now();
       order.paymentResult = {
-        id: capture.result.id,
-        status: capture.result.status,
-        update_time: capture.result.update_time,
-        email_address: capture.result.payer.email_address,
+        id: result.capture.id,
+        status: result.capture.status,
+        update_time: result.capture.update_time,
+        email_address: result.capture.payer.email_address,
       };
       if (order.status === 'pending') {
         order.status = 'processing';
@@ -579,8 +565,8 @@ const capturePayPalOrder = async (req, res) => {
     } else {
       res.status(404).send({ message: 'Order Not Found' });
     }
-  } catch (e) {
-    res.status(500).send({ message: "Something went wrong", error: e.message });
+  } else {
+    res.status(500).send({ message: "Something went wrong", error: result.error });
   }
 };
 
@@ -760,23 +746,11 @@ const createPayPalOrderByToken = async (req, res) => {
   });
 
   if (order) {
-    const request = new paypal.orders.OrdersCreateRequest();
-    request.prefer("return=representation");
-    request.requestBody({
-      intent: 'CAPTURE',
-      purchase_units: [{
-        amount: {
-          currency_code: 'USD',
-          value: order.totalPrice,
-        },
-      }],
-    });
-
-    try {
-      const payPalOrder = await client().execute(request);
-      res.json({ orderID: payPalOrder.result.id });
-    } catch (e) {
-      res.status(500).send({ message: "Something went wrong", error: e.message });
+    const result = await createPayPalOrderUtil(order);
+    if (result.success) {
+      res.json({ orderID: result.order.id });
+    } else {
+      res.status(500).send({ message: "Something went wrong", error: result.error });
     }
   } else {
     res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
@@ -796,18 +770,15 @@ const capturePayPalOrderByToken = async (req, res) => {
   }).populate('reservation');
 
   if (order) {
-    const request = new paypal.orders.OrdersCaptureRequest(paypalOrderID);
-    request.requestBody({});
-
-    try {
-      const capture = await client().execute(request);
+    const result = await capturePayPalOrderUtil(paypalOrderID);
+    if (result.success) {
       order.isPaid = true;
       order.paidAt = Date.now();
       order.paymentResult = {
-        id: capture.result.id,
-        status: capture.result.status,
-        update_time: capture.result.update_time,
-        email_address: capture.result.payer.email_address,
+        id: result.capture.id,
+        status: result.capture.status,
+        update_time: result.capture.update_time,
+        email_address: result.capture.payer.email_address,
       };
       if (order.status === 'pending') {
         order.status = 'processing';
@@ -830,8 +801,8 @@ const capturePayPalOrderByToken = async (req, res) => {
       }
 
       res.send({ message: 'Order Paid', order: updatedOrder });
-    } catch (e) {
-      res.status(500).send({ message: "Something went wrong", error: e.message });
+    } else {
+      res.status(500).send({ message: "Something went wrong", error: result.error });
     }
   } else {
     res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
