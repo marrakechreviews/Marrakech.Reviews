@@ -4,7 +4,7 @@ const Product = require('../models/Product');
 const ActivityReservation = require('../models/ActivityReservation');
 const crypto = require('crypto');
 const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice, sendOrderStatusUpdate, sendPaymentReminder } = require('../utils/emailService');
-const { createOrder, captureOrder } = require('../utils/paypal');
+const { createOrder: createPayPalOrderUtil, captureOrder: capturePayPalOrderUtil } = require('../utils/paypal');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -522,7 +522,7 @@ const createPayPalOrder = async (req, res) => {
       return res.status(404).send({ message: 'Order Not Found' });
     }
     const { receiverEmail } = req.body;
-    const result = await createOrder(order, receiverEmail);
+    const result = await createPayPalOrderUtil(order, receiverEmail);
     if (result.success) {
       res.json({ orderID: result.order.id });
     } else {
@@ -536,7 +536,7 @@ const createPayPalOrder = async (req, res) => {
 const capturePayPalOrder = async (req, res) => {
   try {
     const { paypalOrderID } = req.body;
-    const result = await captureOrder(paypalOrderID);
+    const result = await capturePayPalOrderUtil(paypalOrderID);
     if (!result.success) {
       return res.status(500).send({ message: result.error || "Something went wrong" });
     }
@@ -759,7 +759,7 @@ const createPayPalOrderByToken = async (req, res) => {
     }
 
     const receiverEmail = process.env.PAYPAL_RECEIVER_EMAIL || 'support@laptopsolution.tech';
-    const result = await createOrder(order, receiverEmail);
+    const result = await createPayPalOrderUtil(order, receiverEmail);
 
     if (result.success) {
       res.json({ orderID: result.order.id });
@@ -788,7 +788,7 @@ const capturePayPalOrderByToken = async (req, res) => {
       return res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
     }
 
-    const result = await captureOrder(paypalOrderID);
+    const result = await capturePayPalOrderUtil(paypalOrderID);
     if (!result.success) {
       return res.status(500).send({ message: result.error || "Something went wrong" });
     }
