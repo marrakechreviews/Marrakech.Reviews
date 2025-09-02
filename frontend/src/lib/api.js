@@ -124,3 +124,11 @@ export const organizedTravelAPI = {
     return api.post('/organized-travel/reservations', reservationData);
   },
 };
+
+// Orders API
+export const ordersAPI = {
+  getOrder: (id) => api.get(`/orders/${id}`),
+  createOrder: (orderData) => api.post('/orders', orderData),
+  payOrder: (id, paymentResult) => api.put(`/orders/${id}/pay`, paymentResult),
+  getMyOrders: () => api.get('/orders/myorders'),
+};

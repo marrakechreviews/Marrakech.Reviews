@@ -21,6 +21,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import ThankYouPage from './pages/ThankYouPage';
 import TravelThankYouPage from './pages/TravelThankYouPage';
 import ReservationPaymentPage from './pages/ReservationPaymentPage';
+import OrderPaymentPage from './pages/OrderPaymentPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AccountPage from './pages/AccountPage';
@@ -72,6 +73,7 @@ function App() {
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />
                 <Route path="/payment/reservation/:token" element={<ReservationPaymentPage />} />
+                <Route path="/payment/order/:orderId" element={<OrderPaymentPage />} />
                 <Route path="/travel/thank-you" element={<TravelThankYouPage />} />
                 <Route path="/about" element={<AboutUsPage />} />
                 <Route path="/contact" element={<ContactUsPage />} />
