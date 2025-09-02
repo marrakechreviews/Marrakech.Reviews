@@ -38,18 +38,37 @@ app.use(helmet());
 
 // Rate limiting disabled for development
 
-// CORS configuration - More permissive for development
-let corsOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ["https://www.marrakech.reviews", "http://localhost:5000", "http://localhost:3000", "http://localhost:5173", "https://marrakech-reviews-sigma.vercel.app", "https://marrakech-reviews-backend.vercel.app/", "https://admin.marrakech.reviews"];
+// CORS configuration
+const allowedOrigins = [
+    "https://www.marrakech.reviews",
+    "http://localhost:5000",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://marrakech-reviews-sigma.vercel.app",
+    "https://marrakech-reviews-backend.vercel.app",
+    "https://admin.marrakech.reviews"
+];
+
+if (process.env.CORS_ORIGIN) {
+    const customOrigins = process.env.CORS_ORIGIN.split(',').map(origin => origin.trim());
+    allowedOrigins.push(...customOrigins);
+}
 
 app.use(cors({
-  origin: corsOrigins,
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  preflightContinue: false,
-  optionsSuccessStatus: 200
+    origin: (origin, callback) => {
+        // allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    preflightContinue: false,
+    optionsSuccessStatus: 200
 }));
 
 // Body parsing middleware
