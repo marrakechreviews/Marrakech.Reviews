@@ -8,5 +8,8 @@
       "config": { "outputDirectory": "dist" }
     }
   ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "installCommand": "pnpm install"
 }
