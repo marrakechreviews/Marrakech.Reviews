@@ -57,7 +57,7 @@ const PayPalWrapper = (props) => {
   useEffect(() => {
     const fetchPaypalClientId = async () => {
       try {
-        const { data } = await api.get('/config/paypal');
+        const { data } = await api.get('/orders/config/paypal');
         setPaypalClientId(data.clientId);
       } catch (error) {
         toast.error('Failed to fetch PayPal configuration.');
