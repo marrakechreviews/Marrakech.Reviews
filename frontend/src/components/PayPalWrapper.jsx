@@ -3,7 +3,7 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { toast } from 'sonner';
 import api from '../lib/api';
 
-const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError, orderData, creationUrl = '/orders', onClick }) => {
+const PayPalButton = ({ orderId, onPaymentSuccess, onPaymentError, orderData, creationUrl = '/orders', onClick }) => {
   const [internalOrderId, setInternalOrderId] = useState(orderId);
 
   useEffect(() => {
@@ -25,18 +25,14 @@ const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError,
       }
     }
 
-    if (!currentOrderId && !paymentToken) {
+    if (!currentOrderId) {
       toast.error('Order information is missing.');
       onPaymentError();
       return Promise.reject(new Error('Missing order ID'));
     }
 
-    const url = paymentToken
-      ? `/orders/payment/${paymentToken}/create-paypal-order`
-      : `/orders/${currentOrderId}/create-paypal-order`;
-
     try {
-      const res = await api.post(url);
+      const res = await api.post(`/orders/${currentOrderId}/create-paypal-order`);
       return res.data.orderID;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create PayPal order.');
@@ -46,11 +42,8 @@ const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError,
   };
 
   const onApprove = async (data, actions) => {
-    const url = paymentToken
-      ? `/orders/payment/${paymentToken}/capture-paypal-order`
-      : `/orders/${internalOrderId}/capture-paypal-order`;
     try {
-      const response = await api.put(url, {
+      const response = await api.put(`/orders/${internalOrderId}/capture-paypal-order`, {
         paypalOrderID: data.orderID,
       });
       toast.success('Payment successful!');
@@ -84,7 +77,7 @@ const PayPalWrapper = (props) => {
   useEffect(() => {
     const fetchPaypalClientId = async () => {
       try {
-        const { data } = await api.get('/orders/config/paypal');
+        const { data } = await api.get('/config/paypal');
         setPaypalClientId(data.clientId);
       } catch (error) {
         toast.error('Failed to fetch PayPal configuration.');
