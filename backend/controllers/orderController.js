@@ -589,18 +589,33 @@ const createOrderFromReservation = async (req, res) => {
   const reservation = await ActivityReservation.findById(reservationId).populate('activity');
 
   if (reservation) {
-    const price = isPartial ? 15 : reservation.totalPrice;
+    let orderItems;
+    let price;
 
-    const order = new Order({
-      user: req.user._id,
-      reservation: reservation._id,
-      orderItems: [{
-        name: reservation.activity.name,
+    if (isPartial) {
+      price = 15;
+      orderItems = [{
+        name: `${reservation.activity.name} (Partial Payment)`,
         qty: 1,
         image: reservation.activity.image,
         price: price,
         product: reservation.activity._id,
-      }],
+      }];
+    } else {
+      price = reservation.totalPrice;
+      orderItems = [{
+        name: reservation.activity.name,
+        qty: reservation.numberOfPersons,
+        image: reservation.activity.image,
+        price: reservation.totalPrice / reservation.numberOfPersons,
+        product: reservation.activity._id,
+      }];
+    }
+
+    const order = new Order({
+      user: req.user._id,
+      reservation: reservation._id,
+      orderItems: orderItems,
       shippingAddress: {
         fullName: reservation.customerInfo.name,
         address: 'N/A',
@@ -751,6 +766,8 @@ const getOrderByPaymentToken = async (req, res) => {
   }
 };
 
+
+
 const createPayPalOrderByToken = async (req, res) => {
   const paymentToken = crypto
     .createHash('sha256')
@@ -840,7 +857,6 @@ const capturePayPalOrderByToken = async (req, res) => {
     res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
   }
 };
-
 
 module.exports = {
   createPayPalOrderByToken,

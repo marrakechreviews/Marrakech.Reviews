@@ -3,28 +3,47 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { toast } from 'sonner';
 import api from '../lib/api';
 
-const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError }) => {
+const PayPalButton = ({ orderId, onPaymentSuccess, onPaymentError, orderData, creationUrl = '/orders', onClick }) => {
+  const [internalOrderId, setInternalOrderId] = useState(orderId);
 
-  const createPayPalOrder = async () => {
-    const url = paymentToken
-      ? `/orders/payment/${paymentToken}/create-paypal-order`
-      : `/orders/${orderId}/create-paypal-order`;
+  useEffect(() => {
+    setInternalOrderId(orderId);
+  }, [orderId]);
+
+  const createOrder = async (data, actions) => {
+    let currentOrderId = internalOrderId;
+
+    if (orderData && !currentOrderId) {
+      try {
+        const res = await api.post(creationUrl, orderData);
+        currentOrderId = res.data.data._id;
+        setInternalOrderId(currentOrderId);
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to create order.');
+        onPaymentError();
+        return Promise.reject(new Error('Order creation failed'));
+      }
+    }
+
+    if (!currentOrderId) {
+      toast.error('Order information is missing.');
+      onPaymentError();
+      return Promise.reject(new Error('Missing order ID'));
+    }
+
     try {
-      const response = await api.post(url);
-      return response.data.orderID;
+      const res = await api.post(`/orders/${currentOrderId}/create-paypal-order`);
+      return res.data.orderID;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create PayPal order.');
       onPaymentError();
-      return null;
+      return Promise.reject(new Error('PayPal order creation failed'));
     }
   };
 
-  const onApprove = async (data) => {
-    const url = paymentToken
-      ? `/orders/payment/${paymentToken}/capture-paypal-order`
-      : `/orders/${orderId}/capture-paypal-order`;
+  const onApprove = async (data, actions) => {
     try {
-      const response = await api.put(url, {
+      const response = await api.put(`/orders/${internalOrderId}/capture-paypal-order`, {
         paypalOrderID: data.orderID,
       });
       toast.success('Payment successful!');
@@ -43,9 +62,10 @@ const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError 
 
   return (
     <PayPalButtons
-      createOrder={createPayPalOrder}
+      createOrder={createOrder}
       onApprove={onApprove}
       onError={onError}
+      onClick={onClick}
     />
   );
 };

@@ -6,10 +6,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import { Checkbox } from '../components/ui/checkbox';
-import { Separator } from '../components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -18,17 +15,12 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import {
-  CreditCard,
-  Lock,
   ArrowLeft,
-  CheckCircle,
-  AlertCircle,
-  Loader2
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import api from '../lib/api';
-import PayPalButton from '../components/PayPalButton';
+import PayPalWrapper from '../components/PayPalWrapper';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -59,19 +51,15 @@ const CheckoutPage = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [createdOrderId, setCreatedOrderId] = useState(null);
 
   useEffect(() => {
     if (isLoading) {
-      // Wait for authentication status to be determined
       return;
     }
 
     if (!isAuthenticated) {
-      // Redirect to login page, but save the location they were trying to go to
       navigate('/login', { state: { from: location }, replace: true });
     } else if (items.length === 0) {
-      // If authenticated but cart is empty, redirect to cart
       navigate('/cart');
     }
   }, [isAuthenticated, isLoading, items, navigate, location]);
@@ -126,8 +114,8 @@ const CheckoutPage = () => {
     clearCart();
     navigate('/thank-you', {
       state: {
-        orderId: order.order._id,
-        orderNumber: order.order.orderNumber
+        orderId: order._id,
+        orderNumber: order.orderNumber
       }
     });
   };
@@ -136,20 +124,13 @@ const CheckoutPage = () => {
     setLoading(false);
   };
 
-  const handleCreateOrder = async () => {
+  const handlePayPalClick = (data, actions) => {
     if (!validateForm()) {
-      return;
+      toast.error('Please fill out all required fields correctly before proceeding.');
+      return actions.reject();
     }
     setLoading(true);
-    try {
-      const { data } = await api.post('/orders', orderData);
-      setCreatedOrderId(data._id);
-      toast.success('Order created. Proceed to payment.');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create order.');
-    } finally {
-      setLoading(false);
-    }
+    return actions.resolve();
   };
 
   if (items.length === 0) {
@@ -300,19 +281,15 @@ const CheckoutPage = () => {
                   <CardTitle>Payment</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 mb-4">You will be redirected to PayPal to complete your payment.</p>
-                  {!createdOrderId ? (
-                    <Button onClick={handleCreateOrder} disabled={loading}>
-                      {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      Proceed to PayPal
-                    </Button>
-                  ) : (
-                    <PayPalButton
-                      orderId={createdOrderId}
-                      onPaymentSuccess={onPaymentSuccess}
-                      onPaymentError={onPaymentError}
-                    />
-                  )}
+                  <p className="text-sm text-gray-600 mb-4">
+                    You will be redirected to PayPal to complete your payment securely.
+                  </p>
+                  <PayPalWrapper
+                    orderData={orderData}
+                    onClick={handlePayPalClick}
+                    onPaymentSuccess={onPaymentSuccess}
+                    onPaymentError={onPaymentError}
+                  />
                 </CardContent>
               </Card>
             </div>

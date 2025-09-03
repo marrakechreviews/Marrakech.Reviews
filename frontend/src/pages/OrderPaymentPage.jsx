@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ordersAPI } from '../lib/api';
-import PayPalButton from '../components/PayPalButton';
+import PayPalWrapper from '../components/PayPalWrapper';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -93,7 +93,7 @@ const OrderPaymentPage = () => {
                 </div>
 
                 <div className="mt-6">
-                  <PayPalButton
+                  <PayPalWrapper
                     orderId={order._id}
                     paymentToken={token}
                     onPaymentSuccess={onPaymentSuccess}
