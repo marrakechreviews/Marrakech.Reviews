@@ -59,7 +59,6 @@ const CheckoutPage = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [createdOrderId, setCreatedOrderId] = useState(null);
 
   useEffect(() => {
     if (isLoading) {
@@ -134,22 +133,6 @@ const CheckoutPage = () => {
 
   const onPaymentError = () => {
     setLoading(false);
-  };
-
-  const handleCreateOrder = async () => {
-    if (!validateForm()) {
-      return;
-    }
-    setLoading(true);
-    try {
-      const { data } = await api.post('/orders', orderData);
-      setCreatedOrderId(data._id);
-      toast.success('Order created. Proceed to payment.');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create order.');
-    } finally {
-      setLoading(false);
-    }
   };
 
 
@@ -301,21 +284,12 @@ const CheckoutPage = () => {
                   <CardTitle>Payment</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {!createdOrderId ? (
-                    <Button onClick={handleCreateOrder} disabled={loading} className="w-full">
-                      {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                      Proceed to Payment
-                    </Button>
-                  ) : (
-                    <div>
-                      <p className="text-center text-gray-600 mb-4">Your order has been created. Complete your payment with PayPal.</p>
-                      <PayPalButton
-                        orderId={createdOrderId}
-                        onPaymentSuccess={onPaymentSuccess}
-                        onPaymentError={onPaymentError}
-                      />
-                    </div>
-                  )}
+                  <PayPalButton
+                    orderData={orderData}
+                    validateForm={validateForm}
+                    onPaymentSuccess={onPaymentSuccess}
+                    onPaymentError={onPaymentError}
+                  />
                 </CardContent>
               </Card>
             </div>
