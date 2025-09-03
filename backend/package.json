@@ -41,5 +41,10 @@
     "mongoose": "^8.18.0",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "mongodb-memory-server": "10.2.0"
+    }
   }
 }
