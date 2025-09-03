@@ -6,24 +6,6 @@ import api from '../lib/api';
 const PayPalButton = ({ orderData, onPaymentSuccess, onPaymentError, receiverEmail, validateForm }) => {
   const [loading, setLoading] = useState(false);
 
-  const createLocalOrder = async () => {
-    if (validateForm && !validateForm()) {
-      return null;
-    }
-    setLoading(true);
-    try {
-      const { data } = await api.post('/orders', orderData);
-      toast.success('Order created. Proceed to payment.');
-      return data.data._id;
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create order.');
-      onPaymentError();
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const createPayPalOrder = async () => {
     const localOrderId = await createLocalOrder();
     if (!localOrderId) return null;
