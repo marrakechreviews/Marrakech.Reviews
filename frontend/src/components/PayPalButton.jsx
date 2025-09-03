@@ -3,15 +3,14 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { toast } from 'sonner';
 import api from '../lib/api';
 
-const PayPalButton = ({ orderData, onPaymentSuccess, onPaymentError, receiverEmail, validateForm }) => {
-  const [loading, setLoading] = useState(false);
+const PayPalButton = ({ orderId, paymentToken, onPaymentSuccess, onPaymentError }) => {
 
   const createPayPalOrder = async () => {
-    const localOrderId = await createLocalOrder();
-    if (!localOrderId) return null;
-
+    const url = paymentToken
+      ? `/orders/payment/${paymentToken}/create-paypal-order`
+      : `/orders/${orderId}/create-paypal-order`;
     try {
-      const response = await api.post(`/orders/${localOrderId}/create-paypal-order`, { receiverEmail });
+      const response = await api.post(url);
       return response.data.orderID;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create PayPal order.');
@@ -20,34 +19,16 @@ const PayPalButton = ({ orderData, onPaymentSuccess, onPaymentError, receiverEma
     }
   };
 
-  const [createdOrderId, setCreatedOrderId] = useState(null);
-
-  const createLocalOrder = async () => {
-    if (validateForm && !validateForm()) {
-      return null;
-    }
-    setLoading(true);
-    try {
-      const { data } = await api.post('/orders', orderData);
-      toast.success('Order created. Proceed to payment.');
-      setCreatedOrderId(data.data._id);
-      return data.data._id;
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create order.');
-      onPaymentError();
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const onApprove = async (data) => {
+    const url = paymentToken
+      ? `/orders/payment/${paymentToken}/capture-paypal-order`
+      : `/orders/${orderId}/capture-paypal-order`;
     try {
-      const response = await api.put(`/orders/${createdOrderId}/capture-paypal-order`, {
+      const response = await api.put(url, {
         paypalOrderID: data.orderID,
       });
       toast.success('Payment successful!');
-      onPaymentSuccess(response.data);
+      onPaymentSuccess(response.data.order);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Payment failed.');
       onPaymentError();
@@ -70,14 +51,14 @@ const PayPalButton = ({ orderData, onPaymentSuccess, onPaymentError, receiverEma
 };
 
 const PayPalWrapper = (props) => {
-  const [paypalConfig, setPaypalConfig] = useState({ clientId: null, receiverEmail: null });
+  const [paypalClientId, setPaypalClientId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPaypalConfig = async () => {
+    const fetchPaypalClientId = async () => {
       try {
-        const { data } = await api.get('/orders/config/paypal');
-        setPaypalConfig({ clientId: data.clientId, receiverEmail: data.receiverEmail });
+        const { data } = await api.get('/config/paypal');
+        setPaypalClientId(data.clientId);
       } catch (error) {
         toast.error('Failed to fetch PayPal configuration.');
         console.error('PayPal config fetch error:', error);
@@ -85,21 +66,20 @@ const PayPalWrapper = (props) => {
         setLoading(false);
       }
     };
-    fetchPaypalConfig();
+    fetchPaypalClientId();
   }, []);
 
   if (loading) {
     return <div>Loading PayPal...</div>;
   }
 
-  console.log("PayPal Client ID:", paypalConfig.clientId);
-  if (!paypalConfig.clientId || !paypalConfig.clientId.startsWith('A')) {
-    return <div className="text-red-500">Could not load PayPal. Invalid Client ID.</div>;
+  if (!paypalClientId) {
+    return <div className="text-red-500">Could not load PayPal. Please try again later.</div>;
   }
 
   return (
-    <PayPalScriptProvider options={{ 'client-id': paypalConfig.clientId }}>
-      <PayPalButton {...props} receiverEmail={paypalConfig.receiverEmail} />
+    <PayPalScriptProvider options={{ 'client-id': paypalClientId }}>
+      <PayPalButton {...props} />
     </PayPalScriptProvider>
   );
 };

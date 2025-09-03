@@ -37,7 +37,7 @@ const CheckoutPage = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('PayPal');
+  const paymentMethod = 'PayPal';
   const [formData, setFormData] = useState({
     // Shipping Information
     firstName: '',
@@ -59,6 +59,7 @@ const CheckoutPage = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [createdOrderId, setCreatedOrderId] = useState(null);
 
   useEffect(() => {
     if (isLoading) {
@@ -135,6 +136,21 @@ const CheckoutPage = () => {
     setLoading(false);
   };
 
+  const handleCreateOrder = async () => {
+    if (!validateForm()) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data } = await api.post('/orders', orderData);
+      setCreatedOrderId(data._id);
+      toast.success('Order created. Proceed to payment.');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create order.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (items.length === 0) {
     return null;
@@ -278,18 +294,25 @@ const CheckoutPage = () => {
                 </CardContent>
               </Card>
 
-              {/* Payment */}
+              {/* Payment Method */}
               <Card>
                 <CardHeader>
                   <CardTitle>Payment</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <PayPalButton
-                    orderData={orderData}
-                    validateForm={validateForm}
-                    onPaymentSuccess={onPaymentSuccess}
-                    onPaymentError={onPaymentError}
-                  />
+                  <p className="text-gray-600 mb-4">You will be redirected to PayPal to complete your payment.</p>
+                  {!createdOrderId ? (
+                    <Button onClick={handleCreateOrder} disabled={loading}>
+                      {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Proceed to PayPal
+                    </Button>
+                  ) : (
+                    <PayPalButton
+                      orderId={createdOrderId}
+                      onPaymentSuccess={onPaymentSuccess}
+                      onPaymentError={onPaymentError}
+                    />
+                  )}
                 </CardContent>
               </Card>
             </div>

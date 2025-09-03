@@ -25,10 +25,7 @@ const router = express.Router();
 // @route   GET /api/orders/config/paypal
 // @access  Public
 router.get('/config/paypal', (req, res) => {
-  res.json({
-    clientId: process.env.PAYPAL_CLIENT_ID || 'sb',
-    receiverEmail: process.env.PAYPAL_RECEIVER_EMAIL
-  });
+  res.json({ clientId: process.env.PAYPAL_CLIENT_ID || 'sb' });
 });
 
 // @desc    Create order from reservation

@@ -104,7 +104,7 @@ const orderSchema = new mongoose.Schema({
   },
   isPartial: {
     type: Boolean,
-    default: false
+    default: false,
   },
   paidAt: {
     type: Date
@@ -137,7 +137,9 @@ const orderSchema = new mongoose.Schema({
     type: Date,
   },
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 // Indexes for better query performance
@@ -155,6 +157,12 @@ orderSchema.virtual('orderNumber').get(function() {
 
 // Pre-save middleware to calculate prices
 orderSchema.pre('save', function(next) {
+  // Price calculation should only happen for new orders that haven't had their prices set.
+  // In the new client-side flow, prices are calculated on the frontend and passed in.
+  if (!this.isNew || this.totalPrice > 0) {
+    return next();
+  }
+
   // Calculate items price
   this.itemsPrice = this.orderItems.reduce((acc, item) => {
     return acc + (item.price * item.qty);
@@ -168,8 +176,8 @@ orderSchema.pre('save', function(next) {
 
   // Calculate total price
   this.totalPrice = Number((
-    this.itemsPrice + 
-    this.taxPrice + 
+    this.itemsPrice +
+    this.taxPrice +
     this.shippingPrice
   ).toFixed(2));
 
