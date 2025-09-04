@@ -139,7 +139,7 @@ export default function ActivityDetailPage() {
       };
       
       const reservationResponse = await activitiesAPI.createReservation(activity._id, reservationData);
-      const reservationId = reservationResponse.data.reservation._id;
+      const reservationId = reservationResponse.data._id;
 
       const isPartial = paymentType === 'partial';
       const orderResponse = await api.post('/orders/from-reservation', {
