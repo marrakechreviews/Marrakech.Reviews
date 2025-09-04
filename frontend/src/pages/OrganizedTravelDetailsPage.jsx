@@ -77,6 +77,11 @@ const OrganizedTravelDetailsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error('You must be logged in to make a reservation.');
+      navigate('/login', { state: { from: location }, replace: true });
+      return;
+    }
     setSubmitting(true);
 
     try {
