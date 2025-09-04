@@ -4,8 +4,7 @@ const Product = require('../models/Product');
 const ActivityReservation = require('../models/ActivityReservation');
 const crypto = require('crypto');
 const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice, sendOrderStatusUpdate, sendPaymentReminder } = require('../utils/emailService');
-const paypal = require('@paypal/paypal-server-sdk');
-const { client } = require('../utils/paypal');
+const { createOrder: createPayPalOrderUtil, captureOrder: capturePayPalOrderUtil } = require('../utils/paypal');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -517,70 +516,74 @@ const getOrderStats = async (req, res) => {
 };
 
 const createPayPalOrder = async (req, res) => {
-  const order = await Order.findById(req.params.id);
-
-  if (order) {
-    const request = new paypal.orders.OrdersCreateRequest();
-    request.prefer("return=representation");
-    request.requestBody({
-      intent: 'CAPTURE',
-      purchase_units: [{
-        amount: {
-          currency_code: 'USD',
-          value: order.totalPrice,
-        },
-      }],
-    });
-
-    try {
-      const payPalOrder = await client().execute(request);
-      res.json({ orderID: payPalOrder.result.id });
-    } catch (e) {
-      res.status(500).send({ message: "Something went wrong", error: e.message });
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order Not Found' });
     }
-  } else {
-    res.status(404).send({ message: 'Order Not Found' });
+
+    const result = await createPayPalOrderUtil(order);
+    if (result.success) {
+      res.json({ orderID: result.order.id });
+    } else {
+      res.status(500).json({ message: result.error || 'Failed to create PayPal order' });
+    }
+  } catch (error) {
+    console.error('Error creating PayPal order:', error);
+    res.status(500).json({ message: 'Server error while creating PayPal order' });
   }
 };
 
 const capturePayPalOrder = async (req, res) => {
-  const { paypalOrderID } = req.body;
-  const request = new paypal.orders.OrdersCaptureRequest(paypalOrderID);
-  request.requestBody({});
-
   try {
-    const capture = await client().execute(request);
-    const order = await Order.findById(req.params.id).populate('reservation');
-    if (order) {
-      order.isPaid = true;
-      order.paidAt = Date.now();
-      order.paymentResult = {
-        id: capture.result.id,
-        status: capture.result.status,
-        update_time: capture.result.update_time,
-        email_address: capture.result.payer.email_address,
-      };
-      if (order.status === 'pending') {
-        order.status = 'processing';
-      }
-      const updatedOrder = await order.save();
+    const { paypalOrderID } = req.body;
+    const result = await capturePayPalOrderUtil(paypalOrderID);
 
-      if (order.reservation) {
-        const reservation = await ActivityReservation.findById(order.reservation._id);
-        reservation.status = 'confirmed';
-        reservation.paymentStatus = 'paid';
-        await reservation.save();
-        await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
-      } else {
-        await sendOrderConfirmation(updatedOrder);
-      }
-
-      res.send({ message: 'Order Paid', order: updatedOrder });
-    } else {
-      res.status(404).send({ message: 'Order Not Found' });
+    if (!result.success || !result.capture) {
+      return res.status(500).json({ message: result.error || 'Failed to capture PayPal payment.' });
     }
-  } catch (e) {
-    res.status(500).send({ message: "Something went wrong", error: e.message });
+
+    const captureData = result.capture;
+    if (captureData.status !== 'COMPLETED') {
+      return res.status(400).json({ message: 'PayPal payment not completed.' });
+    }
+
+    const order = await Order.findById(req.params.id).populate('reservation');
+    if (!order) {
+      return res.status(404).json({ message: 'Order Not Found' });
+    }
+
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.paymentResult = {
+      id: captureData.id,
+      status: captureData.status,
+      update_time: captureData.update_time,
+      email_address: captureData.payer.email_address,
+    };
+
+    if (order.status === 'pending') {
+      order.status = 'processing';
+    }
+
+    const updatedOrder = await order.save();
+
+    if (order.reservation) {
+      const reservation = await ActivityReservation.findById(order.reservation._id);
+      reservation.status = 'confirmed';
+      reservation.paymentStatus = 'paid';
+      await reservation.save();
+      await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
+    } else {
+      await updatedOrder.populate('user', 'name email');
+      await sendOrderConfirmation(updatedOrder);
+    }
+
+    res.json({ message: 'Order Paid', order: updatedOrder });
+
+  } catch (error) {
+    console.error('Error capturing PayPal order:', error);
+    res.status(500).json({ message: 'Server error while capturing PayPal order' });
   }
 };
 
@@ -769,92 +772,92 @@ const getOrderByPaymentToken = async (req, res) => {
 
 
 const createPayPalOrderByToken = async (req, res) => {
-  const paymentToken = crypto
-    .createHash('sha256')
-    .update(req.params.token)
-    .digest('hex');
+  try {
+    const paymentToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
 
-  const order = await Order.findOne({
-    paymentToken,
-    paymentTokenExpires: { $gt: Date.now() },
-  });
-
-  if (order) {
-    const request = new paypal.orders.OrdersCreateRequest();
-    request.prefer("return=representation");
-    request.requestBody({
-      intent: 'CAPTURE',
-      purchase_units: [{
-        amount: {
-          currency_code: 'USD',
-          value: order.totalPrice,
-        },
-      }],
+    const order = await Order.findOne({
+      paymentToken,
+      paymentTokenExpires: { $gt: Date.now() },
     });
 
-    try {
-      const payPalOrder = await client().execute(request);
-      res.json({ orderID: payPalOrder.result.id });
-    } catch (e) {
-      res.status(500).send({ message: "Something went wrong", error: e.message });
+    if (!order) {
+      return res.status(404).json({ message: 'Order Not Found or payment token invalid/expired' });
     }
-  } else {
-    res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
+
+    const result = await createPayPalOrderUtil(order);
+    if (result.success) {
+      res.json({ orderID: result.order.id });
+    } else {
+      res.status(500).json({ message: result.error || 'Failed to create PayPal order' });
+    }
+  } catch (error) {
+    console.error('Error creating PayPal order by token:', error);
+    res.status(500).json({ message: 'Server error while creating PayPal order' });
   }
 };
 
 const capturePayPalOrderByToken = async (req, res) => {
-  const { paypalOrderID } = req.body;
-  const paymentToken = crypto
-    .createHash('sha256')
-    .update(req.params.token)
-    .digest('hex');
+  try {
+    const { paypalOrderID } = req.body;
+    const paymentToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
 
-  const order = await Order.findOne({
-    paymentToken,
-    paymentTokenExpires: { $gt: Date.now() },
-  }).populate('reservation');
+    const order = await Order.findOne({
+      paymentToken,
+      paymentTokenExpires: { $gt: Date.now() },
+    }).populate('reservation');
 
-  if (order) {
-    const request = new paypal.orders.OrdersCaptureRequest(paypalOrderID);
-    request.requestBody({});
-
-    try {
-      const capture = await client().execute(request);
-      order.isPaid = true;
-      order.paidAt = Date.now();
-      order.paymentResult = {
-        id: capture.result.id,
-        status: capture.result.status,
-        update_time: capture.result.update_time,
-        email_address: capture.result.payer.email_address,
-      };
-      if (order.status === 'pending') {
-        order.status = 'processing';
-      }
-
-      // Invalidate the payment token
-      order.paymentToken = undefined;
-      order.paymentTokenExpires = undefined;
-
-      const updatedOrder = await order.save();
-
-      if (order.reservation) {
-        const reservation = await ActivityReservation.findById(order.reservation._id);
-        reservation.status = 'confirmed';
-        reservation.paymentStatus = 'paid';
-        await reservation.save();
-        await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
-      } else {
-        await sendOrderConfirmation(updatedOrder);
-      }
-
-      res.send({ message: 'Order Paid', order: updatedOrder });
-    } catch (e) {
-      res.status(500).send({ message: "Something went wrong", error: e.message });
+    if (!order) {
+      return res.status(404).json({ message: 'Order Not Found or payment token invalid/expired' });
     }
-  } else {
-    res.status(404).send({ message: 'Order Not Found or payment token invalid/expired' });
+
+    const result = await capturePayPalOrderUtil(paypalOrderID);
+    if (!result.success || !result.capture) {
+      return res.status(500).json({ message: result.error || 'Failed to capture PayPal payment.' });
+    }
+
+    const captureData = result.capture;
+    if (captureData.status !== 'COMPLETED') {
+      return res.status(400).json({ message: 'PayPal payment not completed.' });
+    }
+
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.paymentResult = {
+      id: captureData.id,
+      status: captureData.status,
+      update_time: captureData.update_time,
+      email_address: captureData.payer.email_address,
+    };
+    if (order.status === 'pending') {
+      order.status = 'processing';
+    }
+
+    order.paymentToken = undefined;
+    order.paymentTokenExpires = undefined;
+
+    const updatedOrder = await order.save();
+
+    if (order.reservation) {
+      const reservation = await ActivityReservation.findById(order.reservation._id);
+      reservation.status = 'confirmed';
+      reservation.paymentStatus = 'paid';
+      await reservation.save();
+      await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
+    } else {
+      await sendOrderConfirmation(updatedOrder);
+    }
+
+    res.json({ message: 'Order Paid', order: updatedOrder });
+
+  } catch (error) {
+    console.error('Error capturing PayPal order by token:', error);
+    res.status(500).json({ message: 'Server error while capturing PayPal order' });
   }
 };
 
