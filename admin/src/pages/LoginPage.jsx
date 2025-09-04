@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import './LoginPage.css';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +32,7 @@ export default function LoginPage() {
     setError('');
     setIsLoading(true);
 
-    const result = await login(email, password);
+    const result = await login(email, password, rememberMe);
 
     if (!result.success) {
       setError(result.message);
@@ -108,6 +110,16 @@ export default function LoginPage() {
                     )}
                   </Button>
                 </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={setRememberMe} />
+                <label
+                  htmlFor="remember-me"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Remember me for 7 days
+                </label>
               </div>
 
               <Button

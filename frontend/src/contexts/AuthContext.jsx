@@ -126,10 +126,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (email, password, rememberMe = false) => {
     dispatch({ type: 'LOGIN_START' });
     try {
-      const response = await authAPI.login({ email, password });
+      const response = await authAPI.login({ email, password, rememberMe });
       
       if (response.data.success) {
         const { data } = response.data;

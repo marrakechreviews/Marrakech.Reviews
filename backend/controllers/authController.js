@@ -39,7 +39,8 @@ const googleLogin = async (req, res) => {
             await user.save();
         }
 
-        const jwtToken = generateToken(user._id);
+        const expiresIn = '7d';
+        const jwtToken = generateToken(user._id, expiresIn);
 
         res.status(200).json({
             success: true,
@@ -133,7 +134,7 @@ const login = async (req, res) => {
       });
     }
 
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
 
     // Check for user and include password in the query
     const user = await User.findOne({ email }).select('+password');
@@ -163,6 +164,8 @@ const login = async (req, res) => {
       });
     }
 
+    const expiresIn = rememberMe ? '7d' : '1d';
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -172,7 +175,7 @@ const login = async (req, res) => {
         email: user.email,
         role: user.role,
         image: user.image,
-        token: generateToken(user._id)
+        token: generateToken(user._id, expiresIn)
       }
     });
   } catch (error) {

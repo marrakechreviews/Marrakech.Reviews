@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Checkbox } from '../components/ui/checkbox';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import api from '../lib/api';
@@ -17,6 +18,7 @@ const LoginPage = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const from = location.state?.from?.pathname || '/';
@@ -30,7 +32,7 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const result = await login(email, password);
+    const result = await login(email, password, rememberMe);
     setLoading(false);
     if (!result.success) {
       toast.error(result.message || 'Login failed. Please check your credentials.');
@@ -84,6 +86,15 @@ const LoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={setRememberMe} />
+                <label
+                  htmlFor="remember-me"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Remember me for 7 days
+                </label>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Signing In...' : 'Sign In'}
