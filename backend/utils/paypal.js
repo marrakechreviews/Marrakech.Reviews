@@ -26,7 +26,7 @@ const createOrder = async (orderData) => {
       purchase_units: [{
         amount: {
           currency_code: 'USD',
-          value: orderData.totalPrice.toString(),
+          value: orderData.totalPrice.toFixed(2),
         },
         description: `Order ${orderData._id}`,
         invoice_id: orderData._id.toString(),
