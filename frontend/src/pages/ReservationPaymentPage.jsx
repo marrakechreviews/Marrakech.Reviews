@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
-import PayPalWrapper from '../components/PayPalWrapper';
+import PayPalButton from '../components/PayPalButton';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const ReservationPaymentPage = () => {
   const { token } = useParams();
@@ -36,6 +37,7 @@ const ReservationPaymentPage = () => {
   }, [token]);
 
   const onPaymentSuccess = (data) => {
+    toast.success('Payment successful!');
     navigate('/thank-you', {
       state: {
         orderId: data.order._id,
@@ -57,21 +59,23 @@ const ReservationPaymentPage = () => {
         isPartial: isPartial,
       });
       setCreatedOrderId(data.data._id);
+      toast.success('Order created. Proceed to payment.');
     } catch (error) {
       setError('Failed to create order. Please try again.');
+      toast.error('Failed to create order. Please try again.');
     } finally {
       setIsCreatingOrder(false);
     }
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="text-center py-12">Loading...</div>;
   }
 
   if (error) {
     return (
-      <div className="text-center p-8">
-        <p className="text-red-500">{error}</p>
+      <div className="text-center py-12">
+        <p className="text-red-600 mb-4">{error}</p>
         <Button onClick={() => navigate('/')} className="mt-4">Go to Homepage</Button>
       </div>
     );
@@ -82,7 +86,7 @@ const ReservationPaymentPage = () => {
       <Helmet>
         <title>Pay for Reservation - Marrakech Reviews</title>
       </Helmet>
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4 max-w-2xl">
         <Card>
           <CardHeader>
             <CardTitle>Pay for Your Reservation</CardTitle>
@@ -90,33 +94,34 @@ const ReservationPaymentPage = () => {
           <CardContent>
             {reservation && (
               <div>
+                <h2 className="text-lg font-semibold mb-2">Reservation Summary</h2>
                 <p><strong>Activity:</strong> {reservation.activity.name}</p>
                 <p><strong>Date:</strong> {new Date(reservation.reservationDate).toLocaleDateString()}</p>
                 <p><strong>Guests:</strong> {reservation.numberOfPersons}</p>
-                <p><strong>Total:</strong> ${reservation.totalPrice}</p>
+                <p className="font-bold text-lg mt-2"><strong>Total:</strong> ${reservation.totalPrice.toFixed(2)}</p>
 
-                <div className="my-4">
-                  <Label>Payment Options</Label>
-                  <RadioGroup defaultValue="full" onValueChange={setPaymentType} className="mt-2 space-y-2">
-                    <div className="flex items-center space-x-2">
+                <div className="my-6">
+                  <Label className="text-base font-semibold">Payment Options</Label>
+                  <RadioGroup defaultValue="full" onValueChange={setPaymentType} className="mt-2 space-y-3">
+                    <div className="flex items-center space-x-3 p-3 border rounded-md">
                       <RadioGroupItem value="full" id="r1" />
-                      <Label htmlFor="r1">Full Payment (${reservation.totalPrice})</Label>
+                      <Label htmlFor="r1" className="text-sm">Full Payment (${reservation.totalPrice.toFixed(2)})</Label>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3 p-3 border rounded-md">
                       <RadioGroupItem value="partial" id="r2" />
-                      <Label htmlFor="r2">Partial Payment ($15 to reserve)</Label>
+                      <Label htmlFor="r2" className="text-sm">Partial Payment ($15.00 to reserve)</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-6">
                   {!createdOrderId ? (
-                    <Button onClick={handleCreateReservationOrder} disabled={isCreatingOrder}>
+                    <Button onClick={handleCreateReservationOrder} disabled={isCreatingOrder} className="w-full">
                       {isCreatingOrder ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       Proceed to Payment
                     </Button>
                   ) : (
-                    <PayPalWrapper
+                    <PayPalButton
                       orderId={createdOrderId}
                       onPaymentSuccess={onPaymentSuccess}
                       onPaymentError={onPaymentError}

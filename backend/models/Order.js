@@ -157,12 +157,6 @@ orderSchema.virtual('orderNumber').get(function() {
 
 // Pre-save middleware to calculate prices
 orderSchema.pre('save', function(next) {
-  // Price calculation should only happen for new orders that haven't had their prices set.
-  // In the new client-side flow, prices are calculated on the frontend and passed in.
-  if (!this.isNew || this.totalPrice > 0) {
-    return next();
-  }
-
   // Calculate items price
   this.itemsPrice = this.orderItems.reduce((acc, item) => {
     return acc + (item.price * item.qty);

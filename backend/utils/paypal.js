@@ -1,6 +1,8 @@
 const axios = require('axios');
 
-const PAYPAL_API_BASE = 'https://api-m.sandbox.paypal.com';
+const PAYPAL_API_BASE = process.env.NODE_ENV === 'production'
+  ? 'https://api-m.paypal.com'
+  : 'https://api-m.sandbox.paypal.com';
 
 const getPayPalAccessToken = async () => {
   const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
@@ -18,33 +20,7 @@ const getPayPalAccessToken = async () => {
   }
 };
 
-const createOrder = async (orderData) => {
-  const accessToken = await getPayPalAccessToken();
-  try {
-    const response = await axios.post(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
-      intent: 'CAPTURE',
-      purchase_units: [{
-        amount: {
-          currency_code: 'USD',
-          value: orderData.totalPrice.toFixed(2),
-        },
-        description: `Order ${orderData._id}`,
-        invoice_id: orderData._id.toString(),
-      }],
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-    return { success: true, order: response.data };
-  } catch (error) {
-    console.error('PayPal create order error:', error.response ? error.response.data : error.message);
-    return { success: false, error: 'Failed to create PayPal order.' };
-  }
-};
-
-const captureOrder = async (paypalOrderID) => {
+const capturePayPalOrder = async (paypalOrderID) => {
   const accessToken = await getPayPalAccessToken();
   try {
     const response = await axios.post(`${PAYPAL_API_BASE}/v2/checkout/orders/${paypalOrderID}/capture`, {}, {
@@ -60,4 +36,4 @@ const captureOrder = async (paypalOrderID) => {
   }
 };
 
-module.exports = { createOrder, captureOrder };
+module.exports = { getPayPalAccessToken, capturePayPalOrder };

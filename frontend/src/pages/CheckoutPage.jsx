@@ -16,11 +16,12 @@ import {
 } from '../components/ui/select';
 import {
   ArrowLeft,
+  Loader2
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import api from '../lib/api';
-import PayPalWrapper from '../components/PayPalWrapper';
+import PayPalButton from '../components/PayPalButton';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -31,7 +32,6 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const paymentMethod = 'PayPal';
   const [formData, setFormData] = useState({
-    // Shipping Information
     firstName: '',
     lastName: '',
     email: '',
@@ -41,22 +41,18 @@ const CheckoutPage = () => {
     state: '',
     postalCode: '',
     country: 'Morocco',
-
-    // Order Notes
     notes: '',
-
-    // Agreements
     agreeTerms: false,
     subscribeNewsletter: false
   });
 
   const [errors, setErrors] = useState({});
+  const [createdOrderId, setCreatedOrderId] = useState(null);
 
   useEffect(() => {
     if (isLoading) {
       return;
     }
-
     if (!isAuthenticated) {
       navigate('/login', { state: { from: location }, replace: true });
     } else if (items.length === 0) {
@@ -65,42 +61,26 @@ const CheckoutPage = () => {
   }, [isAuthenticated, isLoading, items, navigate, location]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
+    setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    const requiredFields = [
-      'firstName', 'lastName', 'email', 'phone',
-      'address', 'city', 'postalCode', 'country'
-    ];
-
+    const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'postalCode', 'country'];
     requiredFields.forEach(field => {
       if (!formData[field].trim()) {
         newErrors[field] = 'This field is required';
       }
     });
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.email && !emailRegex.test(formData.email)) {
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-
     if (!formData.agreeTerms) {
       newErrors.agreeTerms = 'You must agree to the terms and conditions';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -110,12 +90,12 @@ const CheckoutPage = () => {
   const tax = subtotal * 0.1;
   const finalTotal = subtotal + shipping + tax;
 
-  const onPaymentSuccess = (order) => {
+  const onPaymentSuccess = (data) => {
     clearCart();
     navigate('/thank-you', {
       state: {
-        orderId: order._id,
-        orderNumber: order.orderNumber
+        orderId: data.order._id,
+        orderNumber: data.order.orderNumber
       }
     });
   };
@@ -124,13 +104,20 @@ const CheckoutPage = () => {
     setLoading(false);
   };
 
-  const handlePayPalClick = (data, actions) => {
+  const handleCreateOrder = async () => {
     if (!validateForm()) {
-      toast.error('Please fill out all required fields correctly before proceeding.');
-      return actions.reject();
+      return;
     }
     setLoading(true);
-    return actions.resolve();
+    try {
+      const { data } = await api.post('/orders', orderData);
+      setCreatedOrderId(data.data._id);
+      toast.success('Order created. Proceed to payment.');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create order.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (items.length === 0) {
@@ -166,15 +153,10 @@ const CheckoutPage = () => {
         <title>Checkout | Your Store</title>
         <meta name="description" content="Complete your purchase securely with our checkout process." />
       </Helmet>
-
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/cart')}
-              className="mb-4"
-            >
+            <Button variant="ghost" onClick={() => navigate('/cart')} className="mb-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Cart
             </Button>
@@ -183,14 +165,10 @@ const CheckoutPage = () => {
               Complete your order ({itemsCount} {itemsCount === 1 ? 'item' : 'items'})
             </p>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-              {/* Shipping Information */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Shipping Information</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Shipping Information</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -234,9 +212,7 @@ const CheckoutPage = () => {
                   <div>
                     <Label htmlFor="country">Country</Label>
                     <Select value={formData.country} onValueChange={(value) => handleInputChange('country', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a country" />
-                      </SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Select a country" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Morocco">Morocco</SelectItem>
                         <SelectItem value="USA">United States</SelectItem>
@@ -249,24 +225,13 @@ const CheckoutPage = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Agreements */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Agreements</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Agreements</CardTitle></CardHeader>
                 <CardContent>
                   <div className="flex items-start space-x-2">
-                    <Checkbox
-                      id="agreeTerms"
-                      checked={formData.agreeTerms}
-                      onCheckedChange={(checked) => handleInputChange('agreeTerms', checked)}
-                    />
+                    <Checkbox id="agreeTerms" checked={formData.agreeTerms} onCheckedChange={(checked) => handleInputChange('agreeTerms', checked)} />
                     <div className="grid gap-1.5 leading-none">
-                      <label
-                        htmlFor="agreeTerms"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
+                      <label htmlFor="agreeTerms" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                         I agree to the <a href="/policies" target="_blank" className="text-blue-600 hover:underline">terms and conditions</a>
                       </label>
                     </div>
@@ -274,30 +239,26 @@ const CheckoutPage = () => {
                   {errors.agreeTerms && <p className="text-red-500 text-sm mt-2">{errors.agreeTerms}</p>}
                 </CardContent>
               </Card>
-
-              {/* Payment Method */}
               <Card>
-                <CardHeader>
-                  <CardTitle>Payment</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Payment</CardTitle></CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-600 mb-4">
-                    You will be redirected to PayPal to complete your payment securely.
-                  </p>
-                  <PayPalWrapper
-                    orderData={orderData}
-                    onClick={handlePayPalClick}
-                    onPaymentSuccess={onPaymentSuccess}
-                    onPaymentError={onPaymentError}
-                  />
+                  <p className="text-sm text-gray-600 mb-4">You will be redirected to PayPal to complete your payment.</p>
+                  {!createdOrderId ? (
+                    <Button onClick={handleCreateOrder} disabled={loading}>
+                      {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Proceed to PayPal
+                    </Button>
+                  ) : (
+                    <PayPalButton
+                      orderId={createdOrderId}
+                      onPaymentSuccess={onPaymentSuccess}
+                      onPaymentError={onPaymentError}
+                    />
+                  )}
                 </CardContent>
               </Card>
             </div>
-
-            {/* Order Summary */}
-            <div className="lg:col-span-1">
-              {/* ... */}
-            </div>
+            <div className="lg:col-span-1">{/* ... */}</div>
           </div>
         </div>
       </div>

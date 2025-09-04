@@ -4,7 +4,8 @@ const Product = require('../models/Product');
 const ActivityReservation = require('../models/ActivityReservation');
 const crypto = require('crypto');
 const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice, sendOrderStatusUpdate, sendPaymentReminder } = require('../utils/emailService');
-const { createOrder: createPayPalOrderUtil, captureOrder: capturePayPalOrderUtil } = require('../utils/paypal');
+const { getPayPalAccessToken, capturePayPalOrder: capturePayPalOrderUtil } = require('../utils/paypal');
+const axios = require('axios');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -519,17 +520,36 @@ const createPayPalOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
     if (!order) {
-      return res.status(404).json({ message: 'Order Not Found' });
+      return res.status(404).json({ message: 'Order not found' });
     }
 
-    const result = await createPayPalOrderUtil(order);
-    if (result.success) {
-      res.json({ orderID: result.order.id });
-    } else {
-      res.status(500).json({ message: result.error || 'Failed to create PayPal order' });
-    }
+    const accessToken = await getPayPalAccessToken();
+    const PAYPAL_API_BASE = process.env.NODE_ENV === 'production'
+      ? 'https://api-m.paypal.com'
+      : 'https://api-m.sandbox.paypal.com';
+
+    const response = await axios.post(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'USD',
+          value: order.totalPrice.toFixed(2),
+        },
+        payee: {
+          email_address: process.env.PAYPAL_RECEIVER_EMAIL,
+        },
+      }],
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    res.json({ orderID: response.data.id });
+
   } catch (error) {
-    console.error('Error creating PayPal order:', error);
+    console.error('Error creating PayPal order:', error.response ? error.response.data : error.message);
     res.status(500).json({ message: 'Server error while creating PayPal order' });
   }
 };
@@ -560,6 +580,7 @@ const capturePayPalOrder = async (req, res) => {
       status: captureData.status,
       update_time: captureData.update_time,
       email_address: captureData.payer.email_address,
+      pricePaid: captureData.purchase_units[0]?.payments?.captures[0]?.amount?.value,
     };
 
     if (order.status === 'pending') {
@@ -570,10 +591,12 @@ const capturePayPalOrder = async (req, res) => {
 
     if (order.reservation) {
       const reservation = await ActivityReservation.findById(order.reservation._id);
-      reservation.status = 'confirmed';
-      reservation.paymentStatus = 'paid';
-      await reservation.save();
-      await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
+      if(reservation) {
+        reservation.status = 'confirmed';
+        reservation.paymentStatus = 'paid';
+        await reservation.save();
+        await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
+      }
     } else {
       await updatedOrder.populate('user', 'name email');
       await sendOrderConfirmation(updatedOrder);
@@ -769,8 +792,6 @@ const getOrderByPaymentToken = async (req, res) => {
   }
 };
 
-
-
 const createPayPalOrderByToken = async (req, res) => {
   try {
     const paymentToken = crypto
@@ -787,12 +808,30 @@ const createPayPalOrderByToken = async (req, res) => {
       return res.status(404).json({ message: 'Order Not Found or payment token invalid/expired' });
     }
 
-    const result = await createPayPalOrderUtil(order);
-    if (result.success) {
-      res.json({ orderID: result.order.id });
-    } else {
-      res.status(500).json({ message: result.error || 'Failed to create PayPal order' });
-    }
+    const accessToken = await getPayPalAccessToken();
+    const PAYPAL_API_BASE = process.env.NODE_ENV === 'production'
+      ? 'https://api-m.paypal.com'
+      : 'https://api-m.sandbox.paypal.com';
+
+    const response = await axios.post(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'USD',
+          value: order.totalPrice.toFixed(2),
+        },
+        payee: {
+          email_address: process.env.PAYPAL_RECEIVER_EMAIL,
+        },
+      }],
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    res.json({ orderID: response.data.id });
   } catch (error) {
     console.error('Error creating PayPal order by token:', error);
     res.status(500).json({ message: 'Server error while creating PayPal order' });
@@ -833,6 +872,7 @@ const capturePayPalOrderByToken = async (req, res) => {
       status: captureData.status,
       update_time: captureData.update_time,
       email_address: captureData.payer.email_address,
+      pricePaid: captureData.purchase_units[0]?.payments?.captures[0]?.amount?.value,
     };
     if (order.status === 'pending') {
       order.status = 'processing';
@@ -845,10 +885,12 @@ const capturePayPalOrderByToken = async (req, res) => {
 
     if (order.reservation) {
       const reservation = await ActivityReservation.findById(order.reservation._id);
-      reservation.status = 'confirmed';
-      reservation.paymentStatus = 'paid';
-      await reservation.save();
-      await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
+      if(reservation){
+        reservation.status = 'confirmed';
+        reservation.paymentStatus = 'paid';
+        await reservation.save();
+        await sendReservationConfirmationWithInvoice(updatedOrder, reservation);
+      }
     } else {
       await sendOrderConfirmation(updatedOrder);
     }
@@ -860,6 +902,7 @@ const capturePayPalOrderByToken = async (req, res) => {
     res.status(500).json({ message: 'Server error while capturing PayPal order' });
   }
 };
+
 
 module.exports = {
   createPayPalOrderByToken,
