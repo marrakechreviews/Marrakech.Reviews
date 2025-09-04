@@ -50,6 +50,9 @@ const googleLogin = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 image: user.image,
+                address: user.address,
+                phone: user.phone,
+                createdAt: user.createdAt,
                 token: jwtToken,
             },
         });
@@ -101,6 +104,10 @@ const register = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          image: user.image,
+          address: user.address,
+          phone: user.phone,
+          createdAt: user.createdAt,
           token: generateToken(user._id)
         }
       });
@@ -175,6 +182,9 @@ const login = async (req, res) => {
         email: user.email,
         role: user.role,
         image: user.image,
+        address: user.address,
+        phone: user.phone,
+        createdAt: user.createdAt,
         token: generateToken(user._id, expiresIn)
       }
     });
