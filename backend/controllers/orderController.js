@@ -2,6 +2,7 @@ const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const ActivityReservation = require('../models/ActivityReservation');
+const TravelReservation = require('../models/TravelReservation');
 const crypto = require('crypto');
 const { sendOrderConfirmation, sendOrderNotification, sendReservationConfirmationWithInvoice, sendOrderStatusUpdate, sendPaymentReminder } = require('../utils/emailService');
 const { getPayPalAccessToken, capturePayPalOrder: capturePayPalOrderUtil } = require('../utils/paypal');
@@ -904,7 +905,62 @@ const capturePayPalOrderByToken = async (req, res) => {
 };
 
 
+const createOrderFromTravelReservation = async (req, res) => {
+  const { travelReservationId, isPartial } = req.body;
+  const reservation = await TravelReservation.findById(travelReservationId).populate('programId');
+
+  if (reservation) {
+    let orderItems;
+    let price;
+
+    if (isPartial) {
+      price = 15;
+      orderItems = [{
+        name: `${reservation.programId.title} (Partial Payment)`,
+        qty: 1,
+        image: reservation.programId.heroImage,
+        price: price,
+        product: reservation.programId._id,
+      }];
+    } else {
+      price = reservation.totalPrice;
+      orderItems = [{
+        name: reservation.programId.title,
+        qty: reservation.numberOfTravelers,
+        image: reservation.programId.heroImage,
+        price: reservation.totalPrice / reservation.numberOfTravelers,
+        product: reservation.programId._id,
+      }];
+    }
+
+    const order = new Order({
+      user: req.user._id,
+      travelReservation: reservation._id,
+      orderItems: orderItems,
+      shippingAddress: {
+        fullName: `${reservation.firstName} ${reservation.lastName}`,
+        address: 'N/A',
+        city: 'N/A',
+        postalCode: 'N/A',
+        country: 'N/A',
+      },
+      paymentMethod: 'PayPal',
+      itemsPrice: price,
+      taxPrice: 0,
+      shippingPrice: 0,
+      totalPrice: price,
+      isPartial: !!isPartial,
+    });
+
+    const createdOrder = await order.save();
+    res.status(201).json({ success: true, data: createdOrder });
+  } else {
+    res.status(404).send({ message: 'Travel Reservation Not Found' });
+  }
+};
+
 module.exports = {
+  createOrderFromTravelReservation,
   createPayPalOrderByToken,
   capturePayPalOrderByToken,
   getOrderByPaymentToken,

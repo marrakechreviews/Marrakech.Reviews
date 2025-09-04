@@ -52,9 +52,14 @@ const UserReservations = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className="font-semibold">${reservation.totalPrice.toFixed(2)}</p>
-                                    <Badge variant={reservation.status === 'confirmed' ? 'success' : 'secondary'}>
-                                        {reservation.status}
+                                    <Badge variant={reservation.paymentStatus === 'paid' ? 'success' : 'secondary'}>
+                                        {reservation.paymentStatus}
                                     </Badge>
+                                    {reservation.paymentStatus === 'pending' && reservation.paymentToken && (
+                                        <a href={`/payment/order/token/${reservation.paymentToken}`} className="text-sm text-blue-500 hover:underline mt-2 block">
+                                            Pay Now
+                                        </a>
+                                    )}
                                 </div>
                             </div>
                         ))}

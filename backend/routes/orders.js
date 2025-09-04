@@ -12,6 +12,7 @@ const {
   createPayPalOrder,
   capturePayPalOrder,
   createOrderFromReservation,
+  createOrderFromTravelReservation,
   sendPaymentReminderEmail,
   getOrderByPaymentToken,
   createPayPalOrderByToken,
@@ -32,6 +33,11 @@ router.get('/config/paypal', (req, res) => {
 // @route   POST /api/orders/from-reservation
 // @access  Private
 router.post('/from-reservation', protect, createOrderFromReservation);
+
+// @desc    Create order from travel reservation
+// @route   POST /api/orders/from-travel-reservation
+// @access  Private
+router.post('/from-travel-reservation', protect, createOrderFromTravelReservation);
 
 // @desc    Create new order
 // @route   POST /api/orders

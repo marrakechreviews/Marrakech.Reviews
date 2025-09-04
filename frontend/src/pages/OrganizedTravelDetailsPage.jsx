@@ -26,6 +26,10 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { organizedTravelAPI } from '../lib/api';
+import PayPalButton from '../components/PayPalButton';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import { toast } from 'sonner';
+import api from '../lib/api';
 
 const OrganizedTravelDetailsPage = () => {
   const { destination } = useParams();
@@ -59,6 +63,9 @@ const OrganizedTravelDetailsPage = () => {
     }));
   };
 
+  const [createdOrderId, setCreatedOrderId] = useState(null);
+  const [paymentType, setPaymentType] = useState('full');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -68,22 +75,24 @@ const OrganizedTravelDetailsPage = () => {
         ...formData,
         destination,
         programId: travelProgram?._id,
-        programName: travelProgram?.title,
         totalPrice: travelProgram?.price * formData.numberOfTravelers
       };
 
-      const response = await organizedTravelAPI.createReservation(reservationData);
+      const reservationResponse = await organizedTravelAPI.createReservation(reservationData);
+      const travelReservationId = reservationResponse.data.reservation._id;
 
-      // Pass the response data to the thank you page
-      navigate('/travel/thank-you', {
-        state: {
-          reservationData: { ...reservationData, reservationId: response.data.reservation.reservationId }
-        }
+      const isPartial = paymentType === 'partial';
+      const orderResponse = await api.post('/orders/from-travel-reservation', {
+        travelReservationId,
+        isPartial,
       });
+
+      setCreatedOrderId(orderResponse.data.data._id);
+      toast.success('Reservation created. Proceed to payment.');
+
     } catch (err) {
       console.error('Error submitting reservation:', err);
-      // You might want to use a toast notification here instead of an alert
-      alert('Failed to submit reservation. Please try again.');
+      toast.error('Failed to create reservation. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -446,26 +455,44 @@ const OrganizedTravelDetailsPage = () => {
                   </div>
 
                   <div className="border-t pt-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="font-semibold">Total Price:</span>
-                      <span className="text-2xl font-bold text-red-600">
-                        ${(travelProgram?.price || 599) * formData.numberOfTravelers}
-                      </span>
-                    </div>
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={submitting}
-                    >
-                      {submitting ? 'Submitting...' : 'Reserve Now'}
-                    </Button>
+                    {!createdOrderId ? (
+                      <>
+                        <div className="my-4">
+                          <Label className="text-base font-semibold">Payment Options</Label>
+                          <RadioGroup defaultValue="full" onValueChange={setPaymentType} className="mt-2 space-y-3">
+                            <div className="flex items-center space-x-3 p-3 border rounded-md">
+                              <RadioGroupItem value="full" id="r1" />
+                              <Label htmlFor="r1" className="text-sm">Full Payment (${(travelProgram?.price || 0) * formData.numberOfTravelers})</Label>
+                            </div>
+                            <div className="flex items-center space-x-3 p-3 border rounded-md">
+                              <RadioGroupItem value="partial" id="r2" />
+                              <Label htmlFor="r2" className="text-sm">Partial Payment ($15.00 to reserve)</Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                        <div className="flex justify-between items-center mb-4">
+                          <span className="font-semibold">Total Price:</span>
+                          <span className="text-2xl font-bold text-red-600">
+                            ${(travelProgram?.price || 599) * formData.numberOfTravelers}
+                          </span>
+                        </div>
+                        <Button
+                          type="submit"
+                          className="w-full"
+                          disabled={submitting}
+                        >
+                          {submitting ? 'Submitting...' : 'Reserve and Proceed to Payment'}
+                        </Button>
+                      </>
+                    ) : (
+                      <PayPalButton
+                        orderId={createdOrderId}
+                        onPaymentSuccess={() => navigate('/thank-you')}
+                        onPaymentError={() => toast.error('Payment failed. Please try again.')}
+                      />
+                    )}
                   </div>
                 </form>
-
-                <div className="mt-4 text-sm text-gray-600 text-center">
-                  <p>Secure booking • No payment required now</p>
-                  <p>We'll contact you to confirm details</p>
-                </div>
               </CardContent>
             </Card>
           </div>
