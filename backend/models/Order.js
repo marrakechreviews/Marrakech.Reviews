@@ -36,6 +36,10 @@ const orderSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ActivityReservation',
   },
+  travelReservation: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TravelReservation',
+  },
   orderItems: [orderItemSchema],
   shippingAddress: {
     fullName: {
@@ -157,6 +161,16 @@ orderSchema.virtual('orderNumber').get(function() {
 
 // Pre-save middleware to calculate prices
 orderSchema.pre('save', function(next) {
+  // For orders from reservations, prices are set manually in the controller.
+  if (this.reservation || this.travelReservation) {
+    return next();
+  }
+
+  // This should only run for regular cart checkouts
+  if (!this.isNew) {
+    return next(); // Only calculate for new orders
+  }
+
   // Calculate items price
   this.itemsPrice = this.orderItems.reduce((acc, item) => {
     return acc + (item.price * item.qty);
