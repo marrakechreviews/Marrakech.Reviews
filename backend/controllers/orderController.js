@@ -620,7 +620,7 @@ const createOrderFromReservation = async (req, res) => {
     let price;
 
     if (isPartial) {
-      price = 15;
+      price = 10;
       orderItems = [{
         name: `${reservation.activity.name} (Partial Payment)`,
         qty: 1,

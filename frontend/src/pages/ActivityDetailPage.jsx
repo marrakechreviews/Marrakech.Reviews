@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../contexts/AuthContext';
 import { Helmet } from 'react-helmet-async';
 import { 
   MapPin, 
@@ -32,11 +33,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { activitiesAPI } from '../lib/api';
+import api from '../lib/api';
+import { toast } from 'sonner';
+import PayPalButton from '../components/PayPalButton';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 
 export default function ActivityDetailPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      navigate('/login', { state: { from: location }, replace: true });
+    }
+  }, [isAuthenticated, isAuthLoading, navigate, location]);
+
   const { data: activity, isLoading: loading, error } = useQuery({
     queryKey: ['activity', slug],
     queryFn: () => activitiesAPI.getActivityBySlug(slug),
@@ -55,6 +68,8 @@ export default function ActivityDetailPage() {
   });
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState(null);
+  const [paymentType, setPaymentType] = useState('full');
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -106,6 +121,12 @@ export default function ActivityDetailPage() {
       return;
     }
     
+    if (!isAuthenticated) {
+      toast.error('You must be logged in to make a reservation.');
+      navigate('/login', { state: { from: location }, replace: true });
+      return;
+    }
+
     setSubmitting(true);
     
     try {
@@ -113,22 +134,26 @@ export default function ActivityDetailPage() {
         customerInfo: formData,
         reservationDate: selectedDate.toISOString(),
         numberOfPersons,
+        totalPrice: activity.price * numberOfPersons,
         notes: formData.notes
       };
       
-      const response = await activitiesAPI.createReservation(activity._id, reservationData);
-      
-      navigate('/thank-you', { 
-        state: { 
-          reservationData: response.data,
-          type: 'activity'
-        } 
+      const reservationResponse = await activitiesAPI.createReservation(activity._id, reservationData);
+      const reservationId = reservationResponse.data.reservation._id;
+
+      const isPartial = paymentType === 'partial';
+      const orderResponse = await api.post('/orders/from-reservation', {
+        reservationId,
+        isPartial,
       });
+
+      setCreatedOrderId(orderResponse.data.data._id);
+      toast.success('Reservation created. Proceed to payment.');
       
     } catch (error) {
       console.error('Reservation error:', error);
       const errorMessage = error.response?.data?.message || 'There was an error submitting your reservation. Please try again.';
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -594,22 +619,50 @@ export default function ActivityDetailPage() {
                       </div>
                     </div>
 
-                    {/* Important Notice */}
-                    <Alert>
-                      <Info className="h-4 w-4" />
-                      <AlertDescription>
-                        This is a reservation request. You will receive a confirmation email with payment instructions and final details.
-                      </AlertDescription>
-                    </Alert>
+                    {/* Payment Options */}
+                    {!createdOrderId && (
+                      <div className="my-4">
+                        <Label className="text-base font-semibold">Payment Options</Label>
+                        <RadioGroup defaultValue="full" onValueChange={setPaymentType} className="mt-2 space-y-3">
+                          <div className="flex items-center space-x-3 p-3 border rounded-md">
+                            <RadioGroupItem value="full" id="r1" />
+                            <Label htmlFor="r1" className="text-sm">Full Payment (${totalPrice.toFixed(2)})</Label>
+                          </div>
+                          <div className="flex items-center space-x-3 p-3 border rounded-md">
+                            <RadioGroupItem value="partial" id="r2" />
+                            <Label htmlFor="r2" className="text-sm">Partial Payment ($10.00 to reserve)</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    )}
 
-                    <Button 
-                      type="submit" 
-                      size="lg" 
-                      className="w-full" 
-                      disabled={submitting}
-                    >
-                      {submitting ? 'Submitting...' : 'Submit Reservation Request'}
-                    </Button>
+                    {!createdOrderId ? (
+                      <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full"
+                        disabled={submitting}
+                      >
+                        {submitting ? 'Submitting...' : 'Reserve and Proceed to Payment'}
+                      </Button>
+                    ) : (
+                      <div className="mt-4">
+                        <PayPalButton
+                          orderId={createdOrderId}
+                          onPaymentSuccess={(data) => {
+                            toast.success('Payment successful!');
+                            navigate('/thank-you', {
+                              state: {
+                                orderId: data.order._id,
+                                orderNumber: data.order.orderNumber,
+                                type: 'activity'
+                              }
+                            });
+                          }}
+                          onPaymentError={() => toast.error('Payment failed. Please try again.')}
+                        />
+                      </div>
+                    )}
                   </form>
                 </CardContent>
               </Card>
