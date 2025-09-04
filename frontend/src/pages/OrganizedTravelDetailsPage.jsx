@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../contexts/AuthContext';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -34,8 +35,16 @@ import api from '../lib/api';
 const OrganizedTravelDetailsPage = () => {
   const { destination } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   
+  useEffect(() => {
+    if (!isAuthLoading && !isAuthenticated) {
+      navigate('/login', { state: { from: location }, replace: true });
+    }
+  }, [isAuthenticated, isAuthLoading, navigate, location]);
+
   const { data: travelProgram, isLoading: loading, error } = useQuery({
     queryKey: ['organizedTravel', destination],
     queryFn: () => organizedTravelAPI.getTravelProgramByDestination(destination),
