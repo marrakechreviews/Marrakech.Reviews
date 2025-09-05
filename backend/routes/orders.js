@@ -111,7 +111,7 @@ router.get('/', [
 // @desc    Get order by ID
 // @route   GET /api/orders/:id
 // @access  Private
-router.get('/:id', getOrderById);
+router.get('/:id', protect, getOrderById);
 
 // @desc    Update order to paid
 // @route   PUT /api/orders/:id/pay
