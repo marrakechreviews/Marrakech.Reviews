@@ -55,8 +55,8 @@ const UserReservations = () => {
                                     <Badge variant={reservation.paymentStatus === 'paid' ? 'success' : 'secondary'}>
                                         {reservation.paymentStatus}
                                     </Badge>
-                                    {reservation.paymentStatus === 'pending' && reservation.paymentToken && (
-                                        <a href={`/payment/order/token/${reservation.paymentToken}`} className="text-sm text-blue-500 hover:underline mt-2 block">
+                                    {reservation.paymentStatus === 'pending' && reservation.status === 'confirmed' && reservation.paymentToken && (
+                                        <a href={`/payment/reservation/token/${reservation.paymentToken}`} className="text-sm text-blue-500 hover:underline mt-2 block">
                                             Pay Now
                                         </a>
                                     )}

@@ -10,6 +10,10 @@ const activityReservationSchema = new mongoose.Schema({
     ref: 'Activity',
     required: [true, 'Activity is required']
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   customerInfo: {
     name: {
       type: String,
