@@ -208,7 +208,7 @@ export function AuthProvider({ children }) {
     formData.append('image', imageFile);
 
     try {
-      const response = await authAPI.post('/auth/profile/image', formData, {
+      const response = await api.post('/auth/profile/image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

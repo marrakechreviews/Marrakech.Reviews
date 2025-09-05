@@ -263,7 +263,7 @@ const createReservation = asyncHandler(async (req, res) => {
     const paymentTokenExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
 
     // Create reservation
-    const reservation = new ActivityReservation({
+    const reservationData = {
       reservationId,
       activity: activity._id,
       customerInfo,
@@ -274,7 +274,13 @@ const createReservation = asyncHandler(async (req, res) => {
       paymentMethod: 'PayPal',
       paymentToken,
       paymentTokenExpires,
-    });
+    };
+
+    if (req.user) {
+      reservationData.user = req.user._id;
+    }
+
+    const reservation = new ActivityReservation(reservationData);
 
     const createdReservation = await reservation.save();
     await createdReservation.populate('activity', 'name location duration');

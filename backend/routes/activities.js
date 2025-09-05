@@ -17,7 +17,7 @@ const {
   createReservationAdmin,
   getActivityStats
 } = require('../controllers/activityController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, admin, optionalAuth } = require('../middleware/authMiddleware');
 
 // Public routes
 router.get('/', getActivities);
@@ -32,7 +32,7 @@ router.get('/reservations', protect, admin, getReservations);
 router.get('/reservations/:id', protect, admin, getReservation);
 router.put('/reservations/:id', protect, admin, updateReservation);
 router.delete('/reservations/:id', protect, admin, deleteReservation);
-router.post('/:id/reserve', createReservation);
+router.post('/:id/reserve', optionalAuth, createReservation);
 
 // Public routes with params - must be after specific routes
 router.get('/:slug', getActivity);

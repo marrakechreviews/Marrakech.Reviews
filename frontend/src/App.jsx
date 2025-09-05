@@ -31,6 +31,7 @@ import FAQPage from './pages/FAQPage';
 import ShippingInfoPage from './pages/ShippingInfoPage';
 import ReturnsPage from './pages/ReturnsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import OrderDetailPage from './pages/OrderDetailPage';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import './App.css';
@@ -71,6 +72,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/account" element={<AccountPage />} />
+                <Route path="/orders/:id" element={<OrderDetailPage />} />
                 <Route path="/thank-you" element={<ThankYouPage />} />
                 <Route path="/payment/reservation/:token" element={<ReservationPaymentPage />} />
                 <Route path="/payment/order/token/:token" element={<OrderPaymentPage />} />
