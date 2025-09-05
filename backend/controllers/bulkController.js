@@ -135,7 +135,8 @@ exports.importActivities = async (req, res) => {
         await Activity.insertMany(activities);
         res.status(201).send({ message: `${activities.length} activities imported successfully.` });
       } catch (error) {
-        res.status(500).send({ message: 'Error importing activities.', error: error.message });
+        console.error('Error importing activities:', JSON.stringify(error, null, 2));
+        res.status(500).send({ message: 'Error importing activities.', error: error.message, details: error });
       } finally {
         fs.unlinkSync(filePath);
       }
