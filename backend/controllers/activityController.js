@@ -205,11 +205,8 @@ const deleteActivity = asyncHandler(async (req, res) => {
     throw new Error('Activity not found');
   }
 
-  // Soft delete - just mark as inactive
-  activity.isActive = false;
-  await activity.save();
-
-  res.json({ message: 'Activity deleted successfully' });
+  await activity.deleteOne();
+  res.json({ message: 'Activity removed' });
 });
 
 // @desc    Create activity reservation

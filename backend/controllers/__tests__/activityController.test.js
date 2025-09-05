@@ -24,6 +24,7 @@ jest.mock('../../middleware/authMiddleware', () => ({
     next();
   }),
   admin: jest.fn((req, res, next) => next()),
+  optionalAuth: jest.fn((req, res, next) => next()),
 }));
 
 const app = express();
@@ -104,5 +105,31 @@ describe('Activity Controller', () => {
     // Check if the reservation was updated in the database
     const updatedReservation = await ActivityReservation.findById(reservation._id);
     expect(updatedReservation.status).toBe('confirmed');
+  });
+
+  it('should delete an activity', async () => {
+    const activityToDelete = new Activity({
+      name: 'Activity to be deleted',
+      slug: 'activity-to-be-deleted',
+      description: 'This activity will be deleted',
+      shortDescription: 'A short description for the activity to be deleted.',
+      price: 50,
+      marketPrice: 60,
+      category: 'City Tours',
+      location: 'Test Location',
+      duration: '1 hour',
+      image: 'test-image.jpg',
+      maxParticipants: 10,
+    });
+    await activityToDelete.save();
+
+    const response = await request(app)
+      .delete(`/api/activities/${activityToDelete._id}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('Activity removed');
+
+    const deletedActivity = await Activity.findById(activityToDelete._id);
+    expect(deletedActivity).toBeNull();
   });
 });
