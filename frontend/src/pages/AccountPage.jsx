@@ -8,6 +8,8 @@ import { Label } from '../components/ui/label';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useIsMobile } from '../hooks/use-mobile';
 
 import UserReservations from '../components/UserReservations';
 import UserOrders from '../components/UserOrders';
@@ -19,6 +21,8 @@ const AccountPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { user, isAuthenticated, isLoading, updateProfile, logout, updateProfileImage } = useAuth();
+    const isMobile = useIsMobile();
+    const [activeTab, setActiveTab] = useState("profile");
 
     const [formData, setFormData] = useState({
         name: '',
@@ -97,15 +101,31 @@ const AccountPage = () => {
                         <Button variant="outline" onClick={logout}>Logout</Button>
                     </div>
 
-                    <Tabs defaultValue="profile" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 md:grid-cols-6">
-                            <TabsTrigger value="profile">Profile</TabsTrigger>
-                            <TabsTrigger value="orders">Orders</TabsTrigger>
-                            <TabsTrigger value="reservations">Reservations</TabsTrigger>
-                            <TabsTrigger value="add-review">Add Review</TabsTrigger>
-                            <TabsTrigger value="security">Security</TabsTrigger>
-                            <TabsTrigger value="support">Support</TabsTrigger>
-                        </TabsList>
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        {isMobile ? (
+                            <Select value={activeTab} onValueChange={setActiveTab}>
+                                <SelectTrigger className="w-full mb-4">
+                                    <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="profile">Profile</SelectItem>
+                                    <SelectItem value="orders">Orders</SelectItem>
+                                    <SelectItem value="reservations">Reservations</SelectItem>
+                                    <SelectItem value="add-review">Add Review</SelectItem>
+                                    <SelectItem value="security">Security</SelectItem>
+                                    <SelectItem value="support">Support</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <TabsList className="grid w-full grid-cols-6">
+                                <TabsTrigger value="profile">Profile</TabsTrigger>
+                                <TabsTrigger value="orders">Orders</TabsTrigger>
+                                <TabsTrigger value="reservations">Reservations</TabsTrigger>
+                                <TabsTrigger value="add-review">Add Review</TabsTrigger>
+                                <TabsTrigger value="security">Security</TabsTrigger>
+                                <TabsTrigger value="support">Support</TabsTrigger>
+                            </TabsList>
+                        )}
 
                         <TabsContent value="profile">
                             <Card>
