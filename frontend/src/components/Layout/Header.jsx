@@ -45,7 +45,7 @@ export default function Header() {
     { name: 'Home', href: '/' },
     { name: 'Products', href: '/products' },
     { name: 'Activities', href: '/activities' },
-    { name: 'Travels', href: '/travels' },
+    { name: 'Travel', href: '/travels' },
     { name: 'Articles', href: '/articles' },
     { name: 'AI Generator', href: '/article-generator' },
     { name: 'Instagram', href: '/instagram' },
@@ -131,8 +131,8 @@ export default function Header() {
                   <DropdownMenuItem onClick={() => navigate('/account')}>
                     My Account
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/wishlist')}>
-                    Wish List
+                  <DropdownMenuItem onClick={() => navigate('/orders')}>
+                    My Orders
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>

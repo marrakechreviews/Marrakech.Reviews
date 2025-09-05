@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import Search from 'lucide-react/dist/esm/icons/search';
 import ShoppingBag from 'lucide-react/dist/esm/icons/shopping-bag';
 import User from 'lucide-react/dist/esm/icons/user';
@@ -31,6 +39,12 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { itemsCount } = useCart();
+  const { isAuthenticated, user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const { data: settings } = useQuery({
     queryKey: ['settings'],
@@ -48,7 +62,8 @@ export default function Layout({ children }) {
 
   const navigation = [
     { name: 'Home', href: '/' },
-    // { name: 'Products', href: '/products' },
+    { name: 'Products', href: '/products' },
+    { name: 'Travels', href: '/travels' },
     { name: 'Articles', href: '/articles' },
     { name: 'Activities', href: '/Activities' },
     { name: 'About', href: '/about' },
@@ -143,19 +158,54 @@ export default function Layout({ children }) {
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="hidden md:flex">
-                <User className="h-4 w-4 mr-2" />
-                Account
-              </Button>
-              <Button variant="ghost" size="sm" className="hidden md:flex">
-                <Heart className="h-4 w-4 mr-2" />
-                Wishlist
-              </Button>
+            <div className="flex items-center space-x-2">
+              {isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary-foreground">
+                          {user?.name?.charAt(0)?.toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="hidden sm:inline">{user?.name}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => navigate('/account')}>
+                      My Account
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/wishlist')}>
+                      Wish List
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <div className="hidden sm:flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/login')}
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => navigate('/register')}
+                  >
+                    Register
+                  </Button>
+                </div>
+              )}
+
               <Button variant="ghost" size="sm" asChild className="relative">
                 <Link to="/cart">
-                  <ShoppingBag className="h-4 w-4 mr-2" />
-                  Cart
+                  <ShoppingBag className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-2">Cart</span>
                   {itemsCount > 0 && (
                     <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center text-xs">
                       {itemsCount}
@@ -192,20 +242,50 @@ export default function Layout({ children }) {
                 </Link>
               ))}
               <div className="border-t pt-2 mt-2">
-                <Link
-                  to="/account"
-                  className="block px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Account
-                </Link>
-                <Link
-                  to="/wishlist"
-                  className="block px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Wishlist
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to="/account"
+                      className="block px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      My Account
+                    </Link>
+                    <Link
+                      to="/wishlist"
+                      className="block px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Wish List
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md"
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="block px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="block px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Register
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
