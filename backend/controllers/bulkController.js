@@ -100,39 +100,43 @@ exports.importActivities = async (req, res) => {
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
-        const activities = results.map(item => {
-          const slug = item.name
-            .toLowerCase()
-            .replace(/[^a-z0-9 -]/g, '') // Remove special characters
-            .replace(/\s+/g, '-') // Replace spaces with hyphens
-            .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
+        const activities = results
+          .filter(item => item.name && item.name.trim() !== '')
+          .map(item => {
+            const slug = item.name
+              .toLowerCase()
+              .replace(/[^a-z0-9 -]/g, '') // Remove special characters
+              .replace(/\s+/g, '-') // Replace spaces with hyphens
+              .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
 
-          return {
-            name: item.name,
-            slug: slug,
-            description: item.description,
-            shortDescription: item.shortDescription,
-            price: parseFloat(item.price),
-            marketPrice: parseFloat(item.marketPrice),
-            currency: item.currency,
-            category: item.category,
-            location: item.location,
-            duration: item.duration,
-            maxParticipants: parseInt(item.maxParticipants),
-            minParticipants: parseInt(item.minParticipants),
-            image: item.image,
-            images: item.images ? item.images.split(',').map(img => img.trim()) : [],
-            isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
-            isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
-            tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
-            difficulty: item.difficulty,
-            seoTitle: item.seoTitle,
-            seoDescription: item.seoDescription,
-            seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
-          };
-        });
+            return {
+              name: item.name,
+              slug: slug,
+              description: item.description,
+              shortDescription: item.shortDescription,
+              price: parseFloat(item.price),
+              marketPrice: parseFloat(item.marketPrice),
+              currency: item.currency,
+              category: item.category,
+              location: item.location,
+              duration: item.duration,
+              maxParticipants: parseInt(item.maxParticipants),
+              minParticipants: parseInt(item.minParticipants),
+              image: item.image,
+              images: item.images ? item.images.split(',').map(img => img.trim()) : [],
+              isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
+              isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
+              tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+              difficulty: item.difficulty,
+              seoTitle: item.seoTitle,
+              seoDescription: item.seoDescription,
+              seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
+            };
+          });
 
-        await Activity.insertMany(activities);
+        if (activities.length > 0) {
+          await Activity.insertMany(activities);
+        }
         res.status(201).send({ message: `${activities.length} activities imported successfully.` });
       } catch (error) {
         console.error('Error importing activities:', JSON.stringify(error, null, 2));
