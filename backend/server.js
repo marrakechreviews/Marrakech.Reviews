@@ -84,6 +84,7 @@ if (process.env.NODE_ENV === "development") {
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 // API routes
+app.options("/api/auth/*", cors());
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.options("/api/products", cors());
