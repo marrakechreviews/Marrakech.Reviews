@@ -118,7 +118,7 @@ export default function Sidebar() {
       <div className="flex items-center gap-2 p-6 border-b border-border">
         <Store className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-xl font-bold">E-commerce</h1>
+          <h1 className="text-xl font-bold">Marrakech Reviews</h1>
           <p className="text-sm text-muted-foreground">Admin Dashboard</p>
         </div>
       </div>
