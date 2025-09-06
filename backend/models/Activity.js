@@ -4,8 +4,7 @@ const activitySchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Activity name is required'],
-    trim: true,
-    maxlength: [100, 'Activity name cannot be more than 100 characters']
+    trim: true
   },
   slug: {
     type: String,
@@ -19,8 +18,7 @@ const activitySchema = new mongoose.Schema({
   },
   shortDescription: {
     type: String,
-    required: [true, 'Short description is required'],
-    maxlength: [300, 'Short description cannot be more than 300 characters']
+    required: [true, 'Short description is required']
   },
   price: {
     type: Number,
@@ -154,12 +152,10 @@ const activitySchema = new mongoose.Schema({
     email: String
   },
   seoTitle: {
-    type: String,
-    maxlength: [60, 'SEO title cannot be more than 60 characters']
+    type: String
   },
   seoDescription: {
-    type: String,
-    maxlength: [160, 'SEO description cannot be more than 160 characters']
+    type: String
   },
   seoKeywords: [{
     type: String,
