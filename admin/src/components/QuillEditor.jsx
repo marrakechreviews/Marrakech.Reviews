@@ -33,7 +33,7 @@ const QuillEditor = ({ value, onChange, placeholder = "Start writing your articl
               formData.append('image', file);
 
               try {
-                const response = await fetch('http://localhost:5000/api/upload/image', {
+                const response = await fetch('https://marrakech-reviews-backend.vercel.app/api/upload/image', {
                   method: 'POST',
                   body: formData,
                   headers: {
@@ -45,7 +45,7 @@ const QuillEditor = ({ value, onChange, placeholder = "Start writing your articl
                 if (result.success) {
                   const quill = this.quill;
                   const range = quill.getSelection();
-                  quill.insertEmbed(range.index, 'image', `http://localhost:5000${result.data.url}`);
+                  quill.insertEmbed(range.index, 'image', `https://marrakech-reviews-backend.vercel.app${result.data.url}`);
                 } else {
                   console.error('Upload failed:', result.message);
                 }

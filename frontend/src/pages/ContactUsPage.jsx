@@ -37,7 +37,7 @@ const ContactUsPage = () => {
     setIsSubmitting(true);
     
    try {
-     const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/contact`, {
+     const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://marrakech-reviews-backend.vercel.app/api'}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

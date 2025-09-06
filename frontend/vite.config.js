@@ -55,12 +55,12 @@ export default defineConfig({
       },
       // Proxy API requests if needed
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://marrakech-reviews-backend.vercel.app',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/sitemap.xml': {
-        target: 'http://localhost:5000',
+        target: 'https://marrakech-reviews-backend.vercel.app',
         changeOrigin: true,
       },
     },

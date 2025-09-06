@@ -8,7 +8,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Loader2, Plus, X, Download, Eye, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://marrakech-reviews-backend.vercel.app/api';
 
 const ArticleGeneratorPage = () => {
   const [urls, setUrls] = useState(['']);
