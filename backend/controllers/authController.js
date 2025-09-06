@@ -89,10 +89,12 @@ const register = async (req, res) => {
     }
 
     // Create user
+    const isFirstUser = (await User.countDocuments({})) === 0;
     const user = await User.create({
       name,
       email,
-      password
+      password,
+      role: isFirstUser ? 'admin' : 'user',
     });
 
     if (user) {

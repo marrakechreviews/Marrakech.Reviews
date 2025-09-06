@@ -15,12 +15,16 @@ const {
   updateReservation,
   deleteReservation,
   createReservationAdmin,
-  getActivityStats
+  getActivityStats,
+  scrapeActivities,
+  importActivities
 } = require('../controllers/activityController');
 const { protect, admin, optionalAuth } = require('../middleware/authMiddleware');
 
 // Public routes
 router.get('/', getActivities);
+router.post('/scrape', protect, admin, scrapeActivities);
+router.post('/import', protect, admin, importActivities);
 router.get('/featured', getFeaturedActivities);
 router.get('/categories', getActivityCategories);
 router.get('/stats', protect, admin, getActivityStats);
