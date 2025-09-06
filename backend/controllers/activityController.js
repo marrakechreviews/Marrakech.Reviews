@@ -1,6 +1,3 @@
-const fs = require('fs');
-const csv = require('csv-parser');
-const path = require('path');
 const Activity = require('../models/Activity');
 const ActivityReservation = require('../models/ActivityReservation');
 const { sendReservationConfirmation, sendAdminNotification, sendReservationUpdateNotification, sendReservationPendingEmail } = require('../utils/emailService');
@@ -493,6 +490,10 @@ const deleteReservation = asyncHandler(async (req, res) => {
   res.json({ message: 'Reservation removed' });
 });
 
+const fs = require('fs');
+const csv = require('csv-parser');
+const path = require('path');
+
 const importActivities = asyncHandler(async (req, res) => {
   const results = [];
   const filePath = path.join(__dirname, '..', 'activities_data.csv');
@@ -516,6 +517,12 @@ const importActivities = asyncHandler(async (req, res) => {
             marketPrice: parseFloat(activityData.marketPrice) || 0,
             minParticipants: parseInt(activityData.minParticipants) || 1,
             maxParticipants: parseInt(activityData.maxParticipants) || 10,
+            isActive: activityData.isActive === 'TRUE',
+            isFeatured: activityData.isFeatured === 'FALSE' ? false : true,
+            category: 'Adventure Sports', // Default category
+            description: activityData.description.substring(0, 2000),
+            seoTitle: activityData.seoTitle.substring(0, 60),
+            location: activityData.location || 'Marrakech',
           });
           await newActivity.save();
           importedCount++;

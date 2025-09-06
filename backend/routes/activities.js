@@ -16,18 +16,16 @@ const {
   deleteReservation,
   createReservationAdmin,
   getActivityStats,
-  scrapeActivities,
   importActivities
 } = require('../controllers/activityController');
 const { protect, admin, optionalAuth } = require('../middleware/authMiddleware');
 
 // Public routes
 router.get('/', getActivities);
-router.post('/scrape', protect, admin, scrapeActivities);
-router.post('/import', protect, admin, importActivities);
 router.get('/featured', getFeaturedActivities);
 router.get('/categories', getActivityCategories);
 router.get('/stats', protect, admin, getActivityStats);
+router.post('/import', protect, admin, importActivities);
 
 // Reservation routes
 // Note: /reservations route must come before /:slug to avoid conflicts
