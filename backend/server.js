@@ -46,6 +46,9 @@ const allowedOrigins = [
     "http://localhost:5173",
     "https://marrakech-reviews-sigma.vercel.app",
     "https://marrakech-reviews-backend.vercel.app",
+    "https://backend-marrakech-reviews.vercel.app",
+    "https://admin-marrakech-reviews.vercel.app",
+    "https://frontend-marrakech-reviews.vercel.app",
     "https://admin.marrakech.reviews"
 ];
 
