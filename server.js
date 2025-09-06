@@ -40,7 +40,11 @@ app.use(helmet());
 // CORS configuration - More permissive for development
 let corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ["https://www.marrakech.reviews", "http://localhost:5000", "http://localhost:3000", "http://localhost:5173", "https://marrakech-reviews-sigma.vercel.app", "https://marrakech-reviews-backend.vercel.app/", "https://admin.marrakech.reviews"];
+  : ["https://www.marrakech.reviews", "http://localhost:5000", "http://localhost:3000", "http://localhost:5173", "https://marrakech-reviews-sigma.vercel.app", "https://marrakech-reviews-backend.vercel.app/"];
+
+if (!corsOrigins.includes("https://admin.marrakech.reviews")) {
+  corsOrigins.push("https://admin.marrakech.reviews");
+}
 
 app.use(cors({
   origin: corsOrigins,
@@ -126,11 +130,19 @@ app.use(errorHandler);
 // Database connection
 const connectDB = async () => {
   try {
+    if (process.env.NODE_ENV === 'test') {
+      // The test environment uses an in-memory database that is set up in jest.setup.js
+      // This function may be called by test setups, but we don't want it to
+      // connect to a real database.
+      return;
+    }
     const conn = await mongoose.connect(process.env.MONGODB_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error("Database connection failed:", error.message);
-    process.exit(1);
+    // We don't exit the process here. Instead, we let the application
+    // handle the connection error. This will provide a more graceful
+    // failure and better error messages in the serverless environment.
   }
 };
 

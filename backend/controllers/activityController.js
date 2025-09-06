@@ -490,6 +490,55 @@ const deleteReservation = asyncHandler(async (req, res) => {
   res.json({ message: 'Reservation removed' });
 });
 
+const fs = require('fs');
+const csv = require('csv-parser');
+const path = require('path');
+
+const importActivities = asyncHandler(async (req, res) => {
+  const results = [];
+  const filePath = path.join(__dirname, '..', 'activities_data.csv');
+
+  fs.createReadStream(filePath)
+    .pipe(csv({ separator: '\t' }))
+    .on('data', (data) => results.push(data))
+    .on('end', async () => {
+      let importedCount = 0;
+      let skippedCount = 0;
+
+      for (const activityData of results) {
+        const existingActivity = await Activity.findOne({ name: activityData.name });
+        if (!existingActivity) {
+          const newActivity = new Activity({
+            ...activityData,
+            slug: activityData.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+            images: activityData.images ? activityData.images.split(',') : [],
+            tags: activityData.tags ? activityData.tags.split(',') : [],
+            price: parseFloat(activityData.price) || 0,
+            marketPrice: parseFloat(activityData.marketPrice) || 0,
+            minParticipants: parseInt(activityData.minParticipants) || 1,
+            maxParticipants: parseInt(activityData.maxParticipants) || 10,
+            isActive: activityData.isActive === 'TRUE',
+            isFeatured: activityData.isFeatured === 'FALSE' ? false : true,
+            category: 'Adventure Sports', // Default category
+            description: activityData.description.substring(0, 2000),
+            seoTitle: activityData.seoTitle.substring(0, 60),
+            location: activityData.location || 'Marrakech',
+          });
+          await newActivity.save();
+          importedCount++;
+        } else {
+          skippedCount++;
+        }
+      }
+
+      res.json({
+        message: `Import complete. Imported ${importedCount} new activities, skipped ${skippedCount} duplicates.`,
+        importedCount,
+        skippedCount,
+      });
+    });
+});
+
 module.exports = {
   getActivities,
   getActivity,
@@ -505,5 +554,6 @@ module.exports = {
   updateReservation,
   deleteReservation,
   createReservationAdmin,
-  getActivityStats
+  getActivityStats,
+  importActivities
 };

@@ -16,6 +16,7 @@ import UserOrders from '../components/UserOrders';
 import UpdatePasswordForm from '../components/UpdatePasswordForm';
 import AddReviewForm from '../components/AddReviewForm';
 import OpenTicketForm from '../components/OpenTicketForm';
+import AdminImport from '../components/AdminImport';
 
 const AccountPage = () => {
     const navigate = useNavigate();
@@ -124,6 +125,7 @@ const AccountPage = () => {
                                 <TabsTrigger value="add-review">Add Review</TabsTrigger>
                                 <TabsTrigger value="security">Security</TabsTrigger>
                                 <TabsTrigger value="support">Support</TabsTrigger>
+                                {user?.isAdmin && <TabsTrigger value="admin">Admin</TabsTrigger>}
                             </TabsList>
                         )}
 
@@ -225,6 +227,11 @@ const AccountPage = () => {
                         <TabsContent value="support">
                             <OpenTicketForm />
                         </TabsContent>
+                        {user?.isAdmin && (
+                            <TabsContent value="admin">
+                                <AdminImport />
+                            </TabsContent>
+                        )}
                     </Tabs>
                 </div>
             </div>

@@ -179,7 +179,6 @@ activitySchema.index({ location: 1 });
 activitySchema.index({ price: 1 });
 activitySchema.index({ rating: -1 });
 activitySchema.index({ createdAt: -1 });
-activitySchema.index({ slug: 1 });
 activitySchema.index({ isActive: 1 });
 activitySchema.index({ isFeatured: 1 });
 

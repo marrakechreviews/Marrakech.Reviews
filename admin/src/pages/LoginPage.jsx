@@ -134,14 +134,14 @@ export default function LoginPage() {
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
+                {/* <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
                     Or
                   </span>
-                </div>
+                </div> */}
               </div>
 
-              <Button
+              {/* <Button
                 type="button"
                 variant="outline"
                 className="w-full"
@@ -149,14 +149,14 @@ export default function LoginPage() {
                 disabled={isLoading}
               >
                 Bypass Login (Development)
-              </Button>
+              </Button> */}
             </form>
 
-            <div className="mt-6 p-4 bg-muted rounded-lg">
+            {/* <div className="mt-6 p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">Demo Admin Credentials:</p>
               <p className="text-sm font-mono">Email: admin@example.com</p>
               <p className="text-sm font-mono">Password: admin123</p>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>
