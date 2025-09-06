@@ -130,6 +130,12 @@ app.use(errorHandler);
 // Database connection
 const connectDB = async () => {
   try {
+    if (process.env.NODE_ENV === 'test') {
+      // The test environment uses an in-memory database that is set up in jest.setup.js
+      // This function may be called by test setups, but we don't want it to
+      // connect to a real database.
+      return;
+    }
     const conn = await mongoose.connect(process.env.MONGODB_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
