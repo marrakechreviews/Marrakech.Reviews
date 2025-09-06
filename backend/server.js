@@ -128,16 +128,9 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Database connection
-const { MongoMemoryServer } = require('mongodb-memory-server');
-
 const connectDB = async () => {
   try {
-    const mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    const conn = await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error("Database connection failed:", error.message);
