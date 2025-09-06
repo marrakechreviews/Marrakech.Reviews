@@ -15,8 +15,7 @@ const activitySchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: [true, 'Activity description is required'],
-    maxlength: [2000, 'Description cannot be more than 2000 characters']
+    required: [true, 'Activity description is required']
   },
   shortDescription: {
     type: String,

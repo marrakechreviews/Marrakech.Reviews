@@ -13,7 +13,7 @@ exports.importArticles = async (req, res) => {
   const results = [];
   const filePath = req.file.path;
 
-  fs.createReadStream(filePath)
+  fs.createReadStream(filePath, { encoding: 'utf-8' })
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
@@ -49,7 +49,7 @@ exports.importProducts = async (req, res) => {
   const results = [];
   const filePath = req.file.path;
 
-  fs.createReadStream(filePath)
+  fs.createReadStream(filePath, { encoding: 'utf-8' })
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
@@ -95,7 +95,7 @@ exports.importActivities = async (req, res) => {
   const results = [];
   const filePath = req.file.path;
 
-  fs.createReadStream(filePath)
+  fs.createReadStream(filePath, { encoding: 'utf-8' })
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
@@ -155,7 +155,7 @@ exports.importOrganizedTravels = async (req, res) => {
   const results = [];
   const filePath = req.file.path;
 
-  fs.createReadStream(filePath)
+  fs.createReadStream(filePath, { encoding: 'utf-8' })
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
