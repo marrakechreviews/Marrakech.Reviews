@@ -9,6 +9,7 @@ const {
   createActivity,
   updateActivity,
   deleteActivity,
+  bulkDeleteActivities,
   createReservation,
   getReservations,
   getReservation,
@@ -43,6 +44,7 @@ router.get('/:id/availability', checkAvailability);
 
 // Admin routes
 router.post('/', protect, admin, createActivity);
+router.post('/bulk-delete', protect, admin, bulkDeleteActivities);
 router.put('/:id', protect, admin, updateActivity);
 router.delete('/:id', protect, admin, deleteActivity);
 

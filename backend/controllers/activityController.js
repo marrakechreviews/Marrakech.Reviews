@@ -539,6 +539,27 @@ const importActivities = asyncHandler(async (req, res) => {
     });
 });
 
+// @desc    Bulk delete activities
+// @route   POST /api/activities/bulk-delete
+// @access  Private/Admin
+const bulkDeleteActivities = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    res.status(400);
+    throw new Error('No activity IDs provided');
+  }
+
+  const result = await Activity.deleteMany({ _id: { $in: ids } });
+
+  if (result.deletedCount === 0) {
+    res.status(404);
+    throw new Error('No activities found for deletion. They may have been already deleted.');
+  }
+
+  res.json({ message: `${result.deletedCount} activities deleted successfully.` });
+});
+
 module.exports = {
   getActivities,
   getActivity,
@@ -555,5 +576,6 @@ module.exports = {
   deleteReservation,
   createReservationAdmin,
   getActivityStats,
-  importActivities
+  importActivities,
+  bulkDeleteActivities
 };

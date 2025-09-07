@@ -148,6 +148,7 @@ export const activitiesAPI = {
   createActivity: (data) => api.post('/activities', data),
   updateActivity: (id, data) => api.put(`/activities/${id}`, data),
   deleteActivity: (id) => api.delete(`/activities/${id}`),
+  bulkDeleteActivities: (ids) => api.post('/activities/bulk-delete', { ids }),
   getActivityCategories: () => api.get('/activities/categories'),
   getReservations: (params) => api.get('/activities/reservations', { params }),
   createReservation: (data) => api.post('/activities/reservations', data),

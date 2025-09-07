@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -41,6 +42,7 @@ export default function ActivitiesManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
+  const [selectedActivityIds, setSelectedActivityIds] = useState([]);
 
   const [categories, setCategories] = useState([
     "Desert Tours",
@@ -144,6 +146,36 @@ export default function ActivitiesManagementPage() {
       } catch (error) {
         console.error("Failed to delete activity:", error);
         toast.error('Failed to delete activity. Please try again.');
+      }
+    }
+  };
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedActivityIds(activities.map(a => a._id));
+    } else {
+      setSelectedActivityIds([]);
+    }
+  };
+
+  const handleSelectOne = (checked, id) => {
+    if (checked) {
+      setSelectedActivityIds(prev => [...prev, id]);
+    } else {
+      setSelectedActivityIds(prev => prev.filter(activityId => activityId !== id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedActivityIds.length} selected activities?`)) {
+      try {
+        await activitiesAPI.bulkDeleteActivities(selectedActivityIds);
+        toast.success(`${selectedActivityIds.length} activities deleted successfully!`);
+        setActivities(prev => prev.filter(activity => !selectedActivityIds.includes(activity._id)));
+        setSelectedActivityIds([]);
+      } catch (error) {
+        console.error("Failed to bulk delete activities:", error);
+        toast.error('Failed to delete selected activities. Please try again.');
       }
     }
   };
@@ -407,10 +439,21 @@ export default function ActivitiesManagementPage() {
           <h1 className="text-3xl font-bold">Activities Management</h1>
           <p className="text-gray-600">Manage your activities and tours</p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Activity
-        </Button>
+        <div className="flex items-center space-x-2">
+          {selectedActivityIds.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedActivityIds.length})
+            </Button>
+          )}
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Activity
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -558,6 +601,12 @@ export default function ActivitiesManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedActivityIds.length === activities.length && activities.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>Activity</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Location</TableHead>
@@ -592,6 +641,12 @@ export default function ActivitiesManagementPage() {
                 ) : (
                   activities.map((activity) => (
                     <TableRow key={activity._id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedActivityIds.includes(activity._id)}
+                          onCheckedChange={(checked) => handleSelectOne(checked, activity._id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">{activity.name}</div>
