@@ -1,5 +1,6 @@
 const csv = require('csv-parser');
 const fs = require('fs');
+const iconv = require('iconv-lite');
 const Article = require('../models/Article');
 const Product = require('../models/Product');
 const Activity = require('../models/Activity');
@@ -13,7 +14,8 @@ exports.importArticles = async (req, res) => {
   const results = [];
   const filePath = req.file.path;
 
-  fs.createReadStream(filePath, { encoding: 'windows-1252' })
+  fs.createReadStream(filePath)
+    .pipe(iconv.decodeStream('windows-1252'))
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
@@ -49,7 +51,8 @@ exports.importProducts = async (req, res) => {
   const results = [];
   const filePath = req.file.path;
 
-  fs.createReadStream(filePath, { encoding: 'windows-1252' })
+  fs.createReadStream(filePath)
+    .pipe(iconv.decodeStream('windows-1252'))
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
@@ -95,7 +98,8 @@ exports.importActivities = async (req, res) => {
   const results = [];
   const filePath = req.file.path;
 
-  fs.createReadStream(filePath, { encoding: 'windows-1252' })
+  fs.createReadStream(filePath)
+    .pipe(iconv.decodeStream('windows-1252'))
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
@@ -155,7 +159,8 @@ exports.importOrganizedTravels = async (req, res) => {
   const results = [];
   const filePath = req.file.path;
 
-  fs.createReadStream(filePath, { encoding: 'windows-1252' })
+  fs.createReadStream(filePath)
+    .pipe(iconv.decodeStream('windows-1252'))
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
