@@ -38,7 +38,7 @@ exports.importArticles = async (req, res) => {
       } catch (error) {
         res.status(500).send({ message: 'Error importing articles.', error: error.message });
       } finally {
-        // fs.unlinkSync(filePath); // Clean up uploaded file - temporarily disabled for debugging
+        fs.unlinkSync(filePath); // Clean up uploaded file
       }
     });
 };
@@ -85,7 +85,7 @@ exports.importProducts = async (req, res) => {
       } catch (error) {
         res.status(500).send({ message: 'Error importing products.', error: error.message });
       } finally {
-        // fs.unlinkSync(filePath); // Temporarily disabled for debugging
+        fs.unlinkSync(filePath);
       }
     });
 };
@@ -146,7 +146,7 @@ exports.importActivities = async (req, res) => {
         console.error('Error importing activities:', JSON.stringify(error, null, 2));
         res.status(500).send({ message: 'Error importing activities.', error: error.message, details: error });
       } finally {
-        // fs.unlinkSync(filePath); // Temporarily disabled for debugging
+        fs.unlinkSync(filePath);
       }
     });
 };
@@ -192,7 +192,7 @@ exports.importOrganizedTravels = async (req, res) => {
       } catch (error) {
         res.status(500).send({ message: 'Error importing organized travels.', error: error.message });
       } finally {
-        // fs.unlinkSync(filePath); // Temporarily disabled for debugging
+        fs.unlinkSync(filePath);
       }
     });
 };
