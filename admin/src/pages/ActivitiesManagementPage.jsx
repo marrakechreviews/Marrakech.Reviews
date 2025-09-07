@@ -139,9 +139,11 @@ export default function ActivitiesManagementPage() {
     if (window.confirm('Are you sure you want to delete this activity?')) {
       try {
         await activitiesAPI.deleteActivity(activityId);
+        toast.success('Activity deleted successfully!');
         setActivities(prev => prev.filter(activity => activity._id !== activityId));
       } catch (error) {
         console.error("Failed to delete activity:", error);
+        toast.error('Failed to delete activity. Please try again.');
       }
     }
   };

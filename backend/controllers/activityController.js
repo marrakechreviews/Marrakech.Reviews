@@ -198,14 +198,13 @@ const updateActivity = asyncHandler(async (req, res) => {
 // @route   DELETE /api/activities/:id
 // @access  Private/Admin
 const deleteActivity = asyncHandler(async (req, res) => {
-  const activity = await Activity.findById(req.params.id);
+  const activity = await Activity.findByIdAndDelete(req.params.id);
 
   if (!activity) {
     res.status(404);
     throw new Error('Activity not found');
   }
 
-  await activity.deleteOne();
   res.json({ message: 'Activity removed' });
 });
 
