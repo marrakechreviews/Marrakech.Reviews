@@ -1,4 +1,7 @@
 {
+  "name": "root",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
   "devDependencies": {
     "@shelf/jest-mongodb": "^5.2.2",
     "jest": "^30.0.5",
