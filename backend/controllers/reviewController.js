@@ -70,11 +70,11 @@ const getReviews = async (req, res) => {
 
     const { refId, refModel } = req.query;
 
-    if (!refId || !refModel) {
-      return res.status(400).json({ success: false, message: 'refId and refModel are required query parameters' });
+    if ((refId && !refModel) || (!refId && refModel)) {
+        return res.status(400).json({ success: false, message: 'Both refId and refModel are required if one is provided' });
     }
 
-    if (!['Product', 'Activity', 'OrganizedTravel', 'Article'].includes(refModel)) {
+    if (refModel && !['Product', 'Activity', 'OrganizedTravel', 'Article'].includes(refModel)) {
       return res.status(400).json({ success: false, message: 'Invalid reference model' });
     }
 
@@ -90,10 +90,13 @@ const getReviews = async (req, res) => {
     }
 
     const filter = {
-      refId: mongoose.Types.ObjectId(refId),
-      refModel,
       isApproved: true
     };
+
+    if (refId && refModel) {
+      filter.refId = mongoose.Types.ObjectId(refId);
+      filter.refModel = refModel;
+    }
 
     const reviews = await Review.find(filter)
       .populate('user', 'name image')
@@ -255,12 +258,20 @@ const getAllReviews = async (req, res) => {
     if (req.query.isApproved !== undefined) {
       filter.isApproved = req.query.isApproved === 'true';
     }
-    if (req.query.refId) {
-      filter.refId = req.query.refId;
+
+    // Handle legacy 'product' parameter for backward compatibility
+    if (req.query.product && req.query.product !== 'all') {
+      filter.refId = req.query.product;
+      filter.refModel = 'Product';
+    } else {
+      if (req.query.refId && req.query.refId !== 'all') {
+        filter.refId = req.query.refId;
+      }
+      if (req.query.refModel && req.query.refModel !== 'all') {
+        filter.refModel = req.query.refModel;
+      }
     }
-    if (req.query.refModel) {
-      filter.refModel = req.query.refModel;
-    }
+
     if (req.query.user) {
       filter.user = req.query.user;
     }
