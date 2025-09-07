@@ -29,16 +29,19 @@ import {
   FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { reviewsAPI, productsAPI, articlesAPI } from '../lib/api';
+import { reviewsAPI, productsAPI, articlesAPI, activitiesAPI, organizedTravelAPI } from '../lib/api';
+import CsvImportForm from '../components/CsvImportForm';
 
 const ReviewsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [approvalFilter, setApprovalFilter] = useState('all');
-  const [productFilter, setProductFilter] = useState('all');
+  const [refModelFilter, setRefModelFilter] = useState('all');
+  const [refIdFilter, setRefIdFilter] = useState('all');
   const [sortBy, setSortBy] = useState('-createdAt');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isEmbedDialogOpen, setIsEmbedDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -56,32 +59,56 @@ const ReviewsPage = () => {
 
   // Fetch reviews
   const { data: reviewsResponse, isLoading, error } = useQuery({
-    queryKey: ['reviews', searchTerm, approvalFilter, productFilter, sortBy],
+    queryKey: ['reviews', searchTerm, approvalFilter, refModelFilter, refIdFilter, sortBy],
     queryFn: () => reviewsAPI.getReviews({ 
       search: searchTerm,
       isApproved: approvalFilter === 'approved' ? true : approvalFilter === 'pending' ? false : undefined,
-      product: productFilter || undefined,
+      refModel: refModelFilter !== 'all' ? refModelFilter : undefined,
+      refId: refIdFilter !== 'all' ? refIdFilter : undefined,
       sort: sortBy,
       limit: 50
     }),
   });
 
-  // Fetch products for filter
+  // Fetch items for filters
   const { data: productsResponse } = useQuery({
     queryKey: ['products-list'],
-    queryFn: () => productsAPI.getProducts({ limit: 50 }),
+    queryFn: () => productsAPI.getProducts({ limit: 100 }),
   });
-
-  // Fetch articles for embedding
   const { data: articlesResponse } = useQuery({
     queryKey: ['articles-list'],
-    queryFn: () => articlesAPI.getArticles({ limit: 50 }),
+    queryFn: () => articlesAPI.getArticles({ limit: 100 }),
+  });
+  const { data: activitiesResponse } = useQuery({
+    queryKey: ['activities-list'],
+    queryFn: () => activitiesAPI.getActivities({ limit: 100 }),
+  });
+  const { data: organizedTravelsResponse } = useQuery({
+    queryKey: ['organized-travels-list'],
+    queryFn: () => organizedTravelAPI.getAllTravelPrograms({ limit: 100 }),
   });
 
   const reviews = reviewsResponse?.data?.data || [];
   const totalReviews = reviewsResponse?.data?.pagination?.total || 0;
   const products = productsResponse?.data?.data || [];
   const articles = articlesResponse?.data?.articles || [];
+  const activities = activitiesResponse?.data?.data || [];
+  const organizedTravels = organizedTravelsResponse?.data?.data || [];
+
+  const getRefModelItems = () => {
+    switch (refModelFilter) {
+      case 'Product':
+        return products;
+      case 'Activity':
+        return activities;
+      case 'OrganizedTravel':
+        return organizedTravels;
+      case 'Article':
+        return articles;
+      default:
+        return [];
+    }
+  };
 
   // Approve/Disapprove review mutation
   const approveMutation = useMutation({
@@ -124,7 +151,8 @@ const ReviewsPage = () => {
       name: review.name || '',
       rating: review.rating || 5,
       comment: review.comment || '',
-      product: review.product?._id || review.product || '',
+      refModel: review.refModel,
+      refId: review.refId?._id || review.refId,
       isApproved: review.isApproved !== false
     });
     setIsEditDialogOpen(true);
@@ -223,20 +251,40 @@ const ReviewsPage = () => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="review-product">Product *</Label>
-        <Select value={formData.product} onValueChange={handleFieldChange('product')}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select product" />
-          </SelectTrigger>
-          <SelectContent>
-            {products.map(product => (
-              <SelectItem key={product._id} value={product._id}>
-                {product.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="review-refModel">Reference Type *</Label>
+          <Select value={formData.refModel} onValueChange={handleFieldChange('refModel')}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Product">Product</SelectItem>
+              <SelectItem value="Activity">Activity</SelectItem>
+              <SelectItem value="OrganizedTravel">Organized Travel</SelectItem>
+              <SelectItem value="Article">Article</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="review-refId">Reference Item *</Label>
+          <Select value={formData.refId} onValueChange={handleFieldChange('refId')} disabled={!formData.refModel}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select item" />
+            </SelectTrigger>
+            <SelectContent>
+              {(formData.refModel === 'Product' ? products :
+                formData.refModel === 'Activity' ? activities :
+                formData.refModel === 'OrganizedTravel' ? organizedTravels :
+                formData.refModel === 'Article' ? articles : []
+              ).map(item => (
+                <SelectItem key={item._id} value={item._id}>
+                  {item.name || item.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -396,6 +444,20 @@ const ReviewsPage = () => {
           <p className="text-muted-foreground">Manage customer reviews and feedback</p>
         </div>
         <div className="flex gap-2">
+          <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Import from CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Reviews from CSV</DialogTitle>
+              </DialogHeader>
+              <CsvImportForm onFinished={() => setIsImportDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" onClick={() => setIsEmbedDialogOpen(true)}>
             <FileText className="h-4 w-4 mr-2" />
             Embed in Article
@@ -487,15 +549,27 @@ const ReviewsPage = () => {
             <SelectItem value="pending">Pending</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={productFilter} onValueChange={setProductFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="All Products" />
+        <Select value={refModelFilter} onValueChange={(value) => { setRefModelFilter(value); setRefIdFilter('all'); }}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Products</SelectItem>
-            {products.map(product => (
-              <SelectItem key={product._id} value={product._id}>
-                {product.name}
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="Product">Products</SelectItem>
+            <SelectItem value="Activity">Activities</SelectItem>
+            <SelectItem value="OrganizedTravel">Organized Travels</SelectItem>
+            <SelectItem value="Article">Articles</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={refIdFilter} onValueChange={setRefIdFilter} disabled={refModelFilter === 'all'}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Select Item" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Items</SelectItem>
+            {getRefModelItems().map(item => (
+              <SelectItem key={item._id} value={item._id}>
+                {item.name || item.title}
               </SelectItem>
             ))}
           </SelectContent>
@@ -520,7 +594,7 @@ const ReviewsPage = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Review</TableHead>
-                <TableHead>Product</TableHead>
+                <TableHead>Reference</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
@@ -553,9 +627,12 @@ const ReviewsPage = () => {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Package className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">
-                        {review.product?.name || 'Unknown Product'}
-                      </span>
+                      <div>
+                        <span className="font-medium">
+                          {review.refId?.name || review.refId?.title || 'Unknown Item'}
+                        </span>
+                        <div className="text-sm text-muted-foreground">{review.refModel}</div>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>

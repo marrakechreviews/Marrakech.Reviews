@@ -225,9 +225,9 @@ const OrganizedTravelDetailsPage = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Program Details */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-3 space-y-8">
             {/* Overview */}
             <Card>
               <CardHeader>
@@ -360,7 +360,7 @@ const OrganizedTravelDetailsPage = () => {
           </div>
 
           {/* Reservation Form */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

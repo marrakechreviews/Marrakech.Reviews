@@ -6,7 +6,8 @@ const {
   updateReview,
   deleteReview,
   getAllReviews,
-  approveReview
+  approveReview,
+  bulkImportReviews
 } = require('../controllers/reviewController');
 const { protect, admin, optionalAuth } = require('../middleware/authMiddleware');
 
@@ -59,6 +60,11 @@ router.post('/', protect, reviewImageUpload, [
     .isIn(['Product', 'Activity', 'OrganizedTravel', 'Article'])
     .withMessage('A valid reference model is required')
 ], createReview);
+
+// @desc    Bulk import reviews
+// @route   POST /api/reviews/bulk-import
+// @access  Private/Admin
+router.post('/bulk-import', protect, admin, bulkImportReviews);
 
 // @desc    Update a review
 // @route   PUT /api/reviews/:id

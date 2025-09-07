@@ -101,6 +101,7 @@ export const reviewsAPI = {
   getReviews: (params) => api.get('/reviews', { params }),
   approveReview: (id, isApproved) => api.put(`/reviews/${id}/approve`, { isApproved }),
   deleteReview: (id) => api.delete(`/reviews/${id}`),
+  bulkImportReviews: (data) => api.post('/reviews/bulk-import', data),
 };
 
 // Upload API
@@ -161,7 +162,7 @@ export const activitiesAPI = {
 
 // Organized Travel API
 export const organizedTravelAPI = {
-  getPrograms: (params) => api.get('/organized-travel/admin/programs', { params }),
+  getAllTravelPrograms: (params) => api.get('/organized-travel/admin/programs', { params }),
   createProgram: (data) => api.post('/organized-travel/admin/programs', data),
   updateProgram: (id, data) => api.put(`/organized-travel/admin/programs/${id}`, data),
   deleteProgram: (id) => api.delete(`/organized-travel/admin/programs/${id}`),

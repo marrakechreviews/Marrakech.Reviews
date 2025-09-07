@@ -344,12 +344,45 @@ const approveReview = async (req, res) => {
   }
 };
 
+const bulkImportReviews = async (req, res) => {
+  const { reviews } = req.body;
+
+  if (!reviews || !Array.isArray(reviews)) {
+    return res.status(400).json({ success: false, message: 'Invalid request body' });
+  }
+
+  let successCount = 0;
+  let errorCount = 0;
+  const errors = [];
+
+  // Add user id to each review
+  const reviewsWithUser = reviews.map(r => ({ ...r, user: req.user._id }));
+
+  try {
+    const result = await Review.insertMany(reviewsWithUser, { ordered: false });
+    successCount = result.length;
+  } catch (error) {
+    successCount = error.result.nInserted;
+    errorCount = error.result.writeErrors.length;
+    errors.push(...error.result.writeErrors);
+  }
+
+  res.status(201).json({
+    success: true,
+    message: `Import complete. ${successCount} reviews imported, ${errorCount} failed.`,
+    successCount,
+    errorCount,
+    errors,
+  });
+};
+
 module.exports = {
   createReview,
   getReviews,
   updateReview,
   deleteReview,
   getAllReviews,
-  approveReview
+  approveReview,
+  bulkImportReviews,
 };
 
