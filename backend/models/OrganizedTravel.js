@@ -143,7 +143,7 @@ const organizedTravelSchema = new mongoose.Schema({
   },
   seoDescription: {
     type: String,
-    maxlength: [160, "SEO description cannot be more than 160 characters"]
+    maxlength: [1600, "SEO description cannot be more than 160 characters"]
   },
   seoKeywords: [{
     type: String,
