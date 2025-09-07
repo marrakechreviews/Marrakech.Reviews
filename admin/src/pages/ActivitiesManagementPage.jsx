@@ -65,7 +65,8 @@ export default function ActivitiesManagementPage() {
       const params = {
         search: searchTerm,
         category: filterCategory === 'all' ? '' : filterCategory,
-        isActive: 'all'
+        isActive: 'all',
+        limit: 1000,
       };
       if (filterStatus === 'active') params.isActive = true;
       if (filterStatus === 'inactive') params.isActive = false;
