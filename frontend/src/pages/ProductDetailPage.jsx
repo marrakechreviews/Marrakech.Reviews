@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ProductCard from '../components/ProductCard';
+import ReviewsList from '../components/ReviewsList';
 import api, { productsAPI, reviewsAPI } from '../lib/api';
 import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
@@ -58,10 +59,11 @@ export default function ProductDetailPage() {
     enabled: !!product?.category,
   });
 
-  const { data: reviews } = useQuery({
-    queryKey: ['reviews', product?._id],
-    queryFn: () => reviewsAPI.getProductReviews(product._id).then(res => res.data.data),
-    enabled: !!product?._id,
+  const { data: reviews, isLoading: reviewsLoading } = useQuery({
+    queryKey: ['reviews', 'product', product?._id],
+    queryFn: () => reviewsAPI.getReviews({ refId: product._id, refModel: 'Product' }),
+    select: (response) => response.data.data,
+    enabled: !!product,
   });
 
   if (isLoading) {
@@ -437,6 +439,21 @@ export default function ProductDetailPage() {
               </div>
             </div>
           </div>
+
+          <Tabs defaultValue="description" className="mt-12">
+            <TabsList>
+              <TabsTrigger value="description">Full Description</TabsTrigger>
+              <TabsTrigger value="reviews">Reviews ({reviews?.length || 0})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="description" className="mt-4">
+              <div className="prose max-w-none">
+                <p>{product.longDescription || product.description}</p>
+              </div>
+            </TabsContent>
+            <TabsContent value="reviews" className="mt-4">
+              <ReviewsList reviews={reviews} isLoading={reviewsLoading} />
+            </TabsContent>
+          </Tabs>
 
           {/* Related Products */}
           {relatedProducts && relatedProducts.length > 0 && (

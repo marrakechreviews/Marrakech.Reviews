@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
+import ImageLightbox from '../components/ImageLightbox';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -26,9 +27,10 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import { organizedTravelAPI } from '../lib/api';
+import { organizedTravelAPI, reviewsAPI } from '../lib/api';
 import PayPalButton from '../components/PayPalButton';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import ReviewsList from '../components/ReviewsList';
 import { toast } from 'sonner';
 import api from '../lib/api';
 
@@ -38,6 +40,13 @@ const OrganizedTravelDetailsPage = () => {
   const location = useLocation();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const handleImageClick = (index) => {
+    setSelectedImageIndex(index);
+    setLightboxOpen(true);
+  };
   
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
@@ -50,6 +59,13 @@ const OrganizedTravelDetailsPage = () => {
     queryFn: () => organizedTravelAPI.getTravelProgramByDestination(destination),
     select: (response) => response.data,
     enabled: !!destination,
+  });
+
+  const { data: reviews, isLoading: reviewsLoading } = useQuery({
+    queryKey: ['reviews', 'organizedTravel', travelProgram?._id],
+    queryFn: () => reviewsAPI.getReviews({ refId: travelProgram._id, refModel: 'OrganizedTravel' }),
+    select: (response) => response.data.data,
+    enabled: !!travelProgram,
   });
 
   const [formData, setFormData] = useState({
@@ -324,12 +340,23 @@ const OrganizedTravelDetailsPage = () => {
                         src={image}
                         alt={`${destination} gallery ${index + 1}`}
                         className="w-full h-32 object-cover rounded-lg hover:scale-105 transition-transform cursor-pointer"
+                        onClick={() => handleImageClick(index)}
                       />
                     ))}
                   </div>
                 </CardContent>
               </Card>
             )}
+            <ImageLightbox
+              images={travelProgram.gallery}
+              selectedIndex={selectedImageIndex}
+              isOpen={lightboxOpen}
+              onOpenChange={setLightboxOpen}
+            />
+
+            <div className="mt-8">
+                <ReviewsList reviews={reviews} isLoading={reviewsLoading} />
+            </div>
           </div>
 
           {/* Reservation Form */}

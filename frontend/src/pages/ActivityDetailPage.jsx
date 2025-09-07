@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import ImageLightbox from '../components/ImageLightbox';
 import { useAuth } from '../contexts/AuthContext';
 import { Helmet } from 'react-helmet-async';
 import { 
@@ -32,11 +33,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
-import { activitiesAPI } from '../lib/api';
+import { activitiesAPI, reviewsAPI } from '../lib/api';
 import api from '../lib/api';
 import { toast } from 'sonner';
 import PayPalButton from '../components/PayPalButton';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import ReviewsList from '../components/ReviewsList';
 
 export default function ActivityDetailPage() {
   const { slug } = useParams();
@@ -57,6 +59,13 @@ export default function ActivityDetailPage() {
     enabled: !!slug,
   });
 
+  const { data: reviews, isLoading: reviewsLoading } = useQuery({
+    queryKey: ['reviews', 'activity', activity?._id],
+    queryFn: () => reviewsAPI.getReviews({ refId: activity._id, refModel: 'Activity' }),
+    select: (response) => response.data.data,
+    enabled: !!activity,
+  });
+
   const [selectedDate, setSelectedDate] = useState(null);
   const [numberOfPersons, setNumberOfPersons] = useState(2);
   const [formData, setFormData] = useState({
@@ -70,6 +79,13 @@ export default function ActivityDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState(null);
   const [paymentType, setPaymentType] = useState('full');
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  const handleImageClick = (index) => {
+    setSelectedImageIndex(index);
+    setLightboxOpen(true);
+  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -294,15 +310,16 @@ export default function ActivityDetailPage() {
             <span className="text-gray-900 font-medium">{activity.name}</span>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column - Images and Details */}
-            <div>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Left Column - Images and Description */}
+            <div className="lg:col-span-3">
               {/* Main Image */}
               <div className="relative mb-4">
                 <img
                   src={activity.images[0]}
                   alt={activity.name}
-                  className="w-full h-96 object-cover rounded-lg"
+                  className="w-full h-96 object-cover rounded-lg cursor-pointer"
+                  onClick={() => handleImageClick(0)}
                 />
                 <div className="absolute top-4 right-4 flex gap-2">
                   <Button size="sm" variant="secondary" className="h-8 w-8 p-0">
@@ -338,11 +355,54 @@ export default function ActivityDetailPage() {
                       src={image}
                       alt={`${activity.name} ${index + 2}`}
                       className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => handleImageClick(index + 1)}
                     />
                   ))}
                 </div>
               )}
 
+              <ImageLightbox
+                images={activity.images}
+                selectedIndex={selectedImageIndex}
+                isOpen={lightboxOpen}
+                onOpenChange={setLightboxOpen}
+              />
+
+              {/* Full Description */}
+              <Card className="mt-8">
+                <CardHeader>
+                  <CardTitle>About This Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {activity.description && (
+                    <div className="prose max-w-none">
+                      {activity.description.split('\n\n').map((paragraph, index) => (
+                        <p key={index} className="mb-4 text-gray-700 leading-relaxed">
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+
+                  {activity.requirements && activity.requirements.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-semibold mb-2">Requirements</h4>
+                      <ul className="space-y-1">
+                        {activity.requirements.map((requirement, index) => (
+                          <li key={index} className="flex items-center gap-2 text-sm">
+                            <Info className="h-4 w-4 text-blue-500" />
+                            {requirement}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column - Booking Form and Details */}
+            <div className="lg:col-span-2">
               {/* Activity Details */}
               <Card className="mb-6">
                 <CardHeader>
@@ -400,10 +460,7 @@ export default function ActivityDetailPage() {
                   )}
                 </CardContent>
               </Card>
-            </div>
 
-            {/* Right Column - Booking Form */}
-            <div>
               {/* Activity Header */}
               <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -679,40 +736,14 @@ export default function ActivityDetailPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Reviews */}
+              <div className="mt-8">
+                <ReviewsList reviews={reviews} isLoading={reviewsLoading} />
+              </div>
             </div>
           </div>
 
-          {/* Full Description */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>About This Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {activity.description && (
-                <div className="prose max-w-none">
-                  {activity.description.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="mb-4 text-gray-700 leading-relaxed">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              )}
-
-              {activity.requirements && activity.requirements.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="font-semibold mb-2">Requirements</h4>
-                  <ul className="space-y-1">
-                    {activity.requirements.map((requirement, index) => (
-                      <li key={index} className="flex items-center gap-2 text-sm">
-                        <Info className="h-4 w-4 text-blue-500" />
-                        {requirement}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
     </>

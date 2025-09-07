@@ -21,10 +21,15 @@ const reviewSchema = new mongoose.Schema({
     required: true,
     ref: 'User'
   },
-  product: {
+  refId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'Product'
+    refPath: 'refModel'
+  },
+  refModel: {
+    type: String,
+    required: true,
+    enum: ['Product', 'Activity', 'OrganizedTravel', 'Article']
   },
   isApproved: {
     type: Boolean,
@@ -41,24 +46,27 @@ const reviewSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Compound index to ensure one review per user per product
-reviewSchema.index({ user: 1, product: 1 }, { unique: true });
+// Compound index to ensure one review per user per item
+reviewSchema.index({ user: 1, refId: 1, refModel: 1 }, { unique: true });
 
-// Index for product reviews
-reviewSchema.index({ product: 1, isApproved: 1, createdAt: -1 });
+// Index for reviews
+reviewSchema.index({ refId: 1, refModel: 1, isApproved: 1, createdAt: -1 });
 
-// Static method to calculate average rating for a product
-reviewSchema.statics.calcAverageRating = async function(productId) {
+// Static method to calculate average rating for a referenced item
+reviewSchema.statics.calcAverageRating = async function(refId, refModel) {
+  if (!refModel) return;
+
   const stats = await this.aggregate([
     {
       $match: { 
-        product: productId,
+        refId: refId,
+        refModel: refModel,
         isApproved: true
       }
     },
     {
       $group: {
-        _id: '$product',
+        _id: '$refId',
         averageRating: { $avg: '$rating' },
         numReviews: { $sum: 1 }
       }
@@ -66,36 +74,37 @@ reviewSchema.statics.calcAverageRating = async function(productId) {
   ]);
 
   try {
+    const Model = mongoose.model(refModel);
     if (stats.length > 0) {
-      await this.model('Product').findByIdAndUpdate(productId, {
+      await Model.findByIdAndUpdate(refId, {
         rating: Math.round(stats[0].averageRating * 10) / 10, // Round to 1 decimal place
         numReviews: stats[0].numReviews
       });
     } else {
-      await this.model('Product').findByIdAndUpdate(productId, {
+      await Model.findByIdAndUpdate(refId, {
         rating: 0,
         numReviews: 0
       });
     }
   } catch (error) {
-    console.error('Error updating product rating:', error);
+    console.error(`Error updating ${refModel} rating:`, error);
   }
 };
 
 // Call calcAverageRating after save
 reviewSchema.post('save', function() {
-  this.constructor.calcAverageRating(this.product);
+  this.constructor.calcAverageRating(this.refId, this.refModel);
 });
 
 // Call calcAverageRating after remove
 reviewSchema.post('remove', function() {
-  this.constructor.calcAverageRating(this.product);
+  this.constructor.calcAverageRating(this.refId, this.refModel);
 });
 
 // Call calcAverageRating after findOneAndDelete
 reviewSchema.post('findOneAndDelete', function(doc) {
   if (doc) {
-    doc.constructor.calcAverageRating(doc.product);
+    doc.constructor.calcAverageRating(doc.refId, doc.refModel);
   }
 });
 

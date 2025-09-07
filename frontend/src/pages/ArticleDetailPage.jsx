@@ -1,8 +1,9 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { articlesAPI } from '../lib/api';
+import { articlesAPI, reviewsAPI } from '../lib/api';
 import { Badge } from '../components/ui/badge';
+import ReviewsList from '../components/ReviewsList';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import Calendar from 'lucide-react/dist/esm/icons/calendar';
@@ -25,6 +26,13 @@ const ArticleDetailPage = () => {
     retry: (failureCount, error) => {
       return error.response?.status !== 404 && failureCount < 2;
     }
+  });
+
+  const { data: reviews, isLoading: reviewsLoading } = useQuery({
+    queryKey: ['reviews', 'article', article?._id],
+    queryFn: () => reviewsAPI.getReviews({ refId: article._id, refModel: 'Article' }),
+    select: (response) => response.data.data,
+    enabled: !!article,
   });
 
   const formatDate = (dateString) => {
@@ -253,8 +261,13 @@ const ArticleDetailPage = () => {
         </div>
       )}
 
+      {/* Reviews */}
+      <div className="mt-8">
+        <ReviewsList reviews={reviews} isLoading={reviewsLoading} />
+      </div>
+
       {/* Article Footer */}
-      <footer className="border-t pt-8">
+      <footer className="border-t pt-8 mt-8">
         <div className="flex justify-between items-center">
           <div>
             <p className="text-sm text-muted-foreground">

@@ -2,7 +2,7 @@ const express = require('express');
 const { body, query } = require('express-validator');
 const {
   createReview,
-  getProductReviews,
+  getReviews,
   updateReview,
   deleteReview,
   getAllReviews,
@@ -12,16 +12,26 @@ const { protect, admin, optionalAuth } = require('../middleware/authMiddleware')
 
 const router = express.Router();
 
-// @desc    Get all reviews (Admin only)
+// @desc    Get reviews
 // @route   GET /api/reviews
-// @access  Private/Admin
-router.get('/', protect, admin, [
+// @access  Public (for item reviews), Private/Admin (for all reviews)
+router.get('/', optionalAuth, (req, res, next) => {
+  // If user is admin and authenticated, use the admin controller
+  if (req.user && req.user.role === 'admin') {
+    return getAllReviews(req, res, next);
+  }
+  // Otherwise, use the public controller
+  return getReviews(req, res, next);
+}, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
+  query('sort').optional().isIn(['rating', '-rating', 'createdAt', '-createdAt', 'isHelpful', '-isHelpful']).withMessage('Invalid sort field'),
+  query('refId').optional().isMongoId().withMessage('Valid refId required'),
+  query('refModel').optional().isString().withMessage('Valid refModel required'),
   query('isApproved').optional().isBoolean().withMessage('isApproved must be a boolean'),
-  query('product').optional().isMongoId().withMessage('Valid product ID required'),
   query('user').optional().isMongoId().withMessage('Valid user ID required')
-], getAllReviews);
+]);
+
 
 const createUploader = require('../middleware/upload');
 const reviewImageUpload = createUploader({
@@ -42,19 +52,13 @@ router.post('/', protect, reviewImageUpload, [
     .trim()
     .isLength({ min: 10, max: 1000 })
     .withMessage('Comment must be between 10 and 1000 characters'),
-  body('product')
+  body('refId')
     .isMongoId()
-    .withMessage('Valid product ID is required')
+    .withMessage('A valid reference ID is required'),
+  body('refModel')
+    .isIn(['Product', 'Activity', 'OrganizedTravel', 'Article'])
+    .withMessage('A valid reference model is required')
 ], createReview);
-
-// @desc    Get reviews for a product
-// @route   GET /api/reviews/product/:productId
-// @access  Public
-router.get('/product/:productId', optionalAuth, [
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
-  query('sort').optional().isIn(['rating', '-rating', 'createdAt', '-createdAt', 'isHelpful', '-isHelpful']).withMessage('Invalid sort field')
-], getProductReviews);
 
 // @desc    Update a review
 // @route   PUT /api/reviews/:id

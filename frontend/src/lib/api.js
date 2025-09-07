@@ -75,8 +75,11 @@ export default api;
 
 // Reviews API
 export const reviewsAPI = {
-  getProductReviews: (productId) => api.get(`/products/${productId}/reviews`),
-  submitReview: (productId, reviewData) => api.post(`/products/${productId}/reviews`, reviewData),
+  getReviews: ({ refId, refModel, ...params }) => {
+    const queryParams = new URLSearchParams({ refId, refModel, ...params });
+    return api.get(`/reviews?${queryParams.toString()}`);
+  },
+  submitReview: (reviewData) => api.post('/reviews', reviewData),
 };
 
 

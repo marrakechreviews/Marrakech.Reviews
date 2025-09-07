@@ -6,54 +6,33 @@ const Order = require('../models/Order');
 // @desc    Create a review
 // @route   POST /api/reviews
 // @access  Private
+const mongoose = require('mongoose');
+
 const createReview = async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
     }
 
-    const { rating, comment, product } = req.body;
+    const { rating, comment, refId, refModel } = req.body;
 
-    // Check if product exists
-    const productExists = await Product.findById(product);
-    if (!productExists) {
-      return res.status(404).json({
-        success: false,
-        message: 'Product not found'
-      });
+    // Validate refModel
+    if (!['Product', 'Activity', 'OrganizedTravel', 'Article'].includes(refModel)) {
+      return res.status(400).json({ success: false, message: 'Invalid reference model' });
     }
 
-    // Check if user has already reviewed this product
-    const existingReview = await Review.findOne({
-      user: req.user._id,
-      product
-    });
+    // Check if referenced item exists
+    const Model = mongoose.model(refModel);
+    const itemExists = await Model.findById(refId);
+    if (!itemExists) {
+      return res.status(404).json({ success: false, message: `${refModel} not found` });
+    }
 
+    // Check if user has already reviewed this item
+    const existingReview = await Review.findOne({ user: req.user._id, refId, refModel });
     if (existingReview) {
-      return res.status(400).json({
-        success: false,
-        message: 'You have already reviewed this product'
-      });
-    }
-
-    // Optional: Check if user has purchased this product
-    const hasPurchased = await Order.findOne({
-      user: req.user._id,
-      'orderItems.product': product,
-      isPaid: true
-    });
-
-    if (!hasPurchased) {
-      return res.status(400).json({
-        success: false,
-        message: 'You can only review products you have purchased'
-      });
+      return res.status(400).json({ success: false, message: `You have already reviewed this ${refModel.toLowerCase()}` });
     }
 
     // Create review
@@ -62,7 +41,8 @@ const createReview = async (req, res) => {
       rating,
       comment,
       user: req.user._id,
-      product,
+      refId,
+      refModel,
     };
 
     if (req.files) {
@@ -71,53 +51,47 @@ const createReview = async (req, res) => {
 
     const review = await Review.create(reviewData);
 
-    res.status(201).json({
-      success: true,
-      message: 'Review created successfully',
-      data: review
-    });
+    res.status(201).json({ success: true, message: 'Review created successfully', data: review });
   } catch (error) {
     console.error('Create review error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while creating review'
-    });
+    res.status(500).json({ success: false, message: 'Server error while creating review' });
   }
 };
 
-// @desc    Get reviews for a product
-// @route   GET /api/reviews/product/:productId
+// @desc    Get reviews for a specific item
+// @route   GET /api/reviews
 // @access  Public
-const getProductReviews = async (req, res) => {
+const getReviews = async (req, res) => {
   try {
-    // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
+    }
+
+    const { refId, refModel } = req.query;
+
+    if (!refId || !refModel) {
+      return res.status(400).json({ success: false, message: 'refId and refModel are required query parameters' });
+    }
+
+    if (!['Product', 'Activity', 'OrganizedTravel', 'Article'].includes(refModel)) {
+      return res.status(400).json({ success: false, message: 'Invalid reference model' });
     }
 
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Build sort object
-    let sort = {};
+    let sort = { createdAt: -1 };
     if (req.query.sort) {
-      const sortField = req.query.sort.startsWith('-') 
-        ? req.query.sort.substring(1) 
-        : req.query.sort;
       const sortOrder = req.query.sort.startsWith('-') ? -1 : 1;
-      sort[sortField] = sortOrder;
-    } else {
-      sort = { createdAt: -1 }; // Default sort by newest
+      const sortField = req.query.sort.replace(/^-/, '');
+      sort = { [sortField]: sortOrder };
     }
 
     const filter = {
-      product: req.params.productId,
+      refId: mongoose.Types.ObjectId(refId),
+      refModel,
       isApproved: true
     };
 
@@ -131,50 +105,24 @@ const getProductReviews = async (req, res) => {
     const total = await Review.countDocuments(filter);
     const totalPages = Math.ceil(total / limit);
 
-    // Get rating distribution
     const ratingStats = await Review.aggregate([
-      {
-        $match: { 
-          product: mongoose.Types.ObjectId(req.params.productId),
-          isApproved: true
-        }
-      },
-      {
-        $group: {
-          _id: '$rating',
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $sort: { _id: -1 }
-      }
+      { $match: filter },
+      { $group: { _id: '$rating', count: { $sum: 1 } } },
+      { $sort: { _id: -1 } }
     ]);
 
     res.json({
       success: true,
       data: reviews,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1
-      },
+      pagination: { page, limit, total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
       ratingStats
     });
   } catch (error) {
-    console.error('Get product reviews error:', error);
+    console.error('Get reviews error:', error);
     if (error.name === 'CastError') {
-      return res.status(404).json({
-        success: false,
-        message: 'Invalid product ID'
-      });
+      return res.status(400).json({ success: false, message: 'Invalid refId' });
     }
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching reviews'
-    });
+    res.status(500).json({ success: false, message: 'Server error while fetching reviews' });
   }
 };
 
@@ -307,8 +255,11 @@ const getAllReviews = async (req, res) => {
     if (req.query.isApproved !== undefined) {
       filter.isApproved = req.query.isApproved === 'true';
     }
-    if (req.query.product) {
-      filter.product = req.query.product;
+    if (req.query.refId) {
+      filter.refId = req.query.refId;
+    }
+    if (req.query.refModel) {
+      filter.refModel = req.query.refModel;
     }
     if (req.query.user) {
       filter.user = req.query.user;
@@ -316,7 +267,7 @@ const getAllReviews = async (req, res) => {
 
     const reviews = await Review.find(filter)
       .populate('user', 'name email')
-      .populate('product', 'name image')
+      .populate('refId')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -395,7 +346,7 @@ const approveReview = async (req, res) => {
 
 module.exports = {
   createReview,
-  getProductReviews,
+  getReviews,
   updateReview,
   deleteReview,
   getAllReviews,
