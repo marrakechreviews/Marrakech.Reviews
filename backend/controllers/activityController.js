@@ -77,6 +77,7 @@ const getActivities = asyncHandler(async (req, res) => {
 
   const total = await Activity.countDocuments(query);
 
+  res.setHeader('Cache-Control', 'no-store');
   res.json({
     activities,
     pagination: {
