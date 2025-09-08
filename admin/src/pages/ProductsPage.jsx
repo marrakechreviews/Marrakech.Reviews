@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import { productsAPI, productGeneratorAPI } from '../lib/api';
 import { Checkbox } from '../components/ui/checkbox';
+import { Button } from '../components/ui/button';
 
 const EnhancedSimpleProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
