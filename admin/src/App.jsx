@@ -18,7 +18,7 @@ import ActivitiesManagementPage from './pages/ActivitiesManagementPage';
 import ReservationsManagementPage from './pages/ReservationsManagementPage';
 import ActivityReservationsManagementPage from './pages/ActivityReservationsManagementPage';
 import FlightReservationsManagementPage from './pages/FlightReservationsManagementPage';
-import OrganizedTravelPage from './pages/OrganizedTravelPage';
+import OrganizedTravelManagementPage from './pages/OrganizedTravelManagementPage';
 import HomepageSectionsManagementPage from './pages/HomepageSectionsManagementPage';
 import CustomersListPage from './pages/CustomersListPage';
 import EnhancedReviewsPage from './pages/EnhancedReviewsPage';
@@ -75,7 +75,7 @@ function App() {
                         <Route path="/reservations" element={<ReservationsManagementPage />} />
                         <Route path="/activity-reservations" element={<ActivityReservationsManagementPage />} />
                         <Route path="/flights" element={<FlightReservationsManagementPage />} />
-                        <Route path="/organized-travel" element={<OrganizedTravelPage />} />
+                        <Route path="/organized-travel" element={<OrganizedTravelManagementPage />} />
                         <Route path="/customers" element={<CustomersListPage />} />
                         <Route path="/enhanced-reviews" element={<EnhancedReviewsPage />} />
                         <Route path="/instagram" element={<InstagramManagementPage />} />
