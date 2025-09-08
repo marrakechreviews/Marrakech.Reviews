@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const crypto = require('crypto');
 
 const itineraryDaySchema = new mongoose.Schema({
   day: {
@@ -19,6 +20,11 @@ const itineraryDaySchema = new mongoose.Schema({
 });
 
 const organizedTravelSchema = new mongoose.Schema({
+  refId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   title: {
     type: String,
     required: true,
@@ -190,8 +196,13 @@ organizedTravelSchema.statics.getFeatured = function(limit = 6) {
     .limit(limit);
 };
 
-// Pre-save middleware to update slug
+// Pre-save middleware to update slug and generate refId
 organizedTravelSchema.pre('save', function(next) {
+  // Generate refId for new documents
+  if (this.isNew && !this.refId) {
+    this.refId = crypto.randomBytes(8).toString('hex');
+  }
+
   if (this.isModified('title')) {
     this.slug = this.title
       .toLowerCase()

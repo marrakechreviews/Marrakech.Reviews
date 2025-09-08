@@ -269,6 +269,22 @@ const ArticlesPage = () => {
     }
   };
 
+  const handleExport = () => {
+    articlesAPI.exportArticles()
+      .then(response => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'articles.csv');
+        document.body.appendChild(link);
+        link.click();
+        toast.success('Articles exported successfully');
+      })
+      .catch(error => {
+        toast.error('Failed to export articles');
+      });
+  };
+
   // Reset form data
   const resetForm = useCallback(() => {
     setFormData({
@@ -850,6 +866,12 @@ const ArticlesPage = () => {
                   Sample
                 </a>
               </Button>
+            </div>
+            <div className="flex items-center space-x-4">
+                <Button onClick={handleExport}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export to CSV
+                </Button>
             </div>
           </CardContent>
         </Card>

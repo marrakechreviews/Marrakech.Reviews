@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const activitySchema = new mongoose.Schema({
+  refId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   name: {
     type: String,
     required: [true, 'Activity name is required'],
@@ -193,8 +199,13 @@ activitySchema.virtual('savings').get(function() {
   return 0;
 });
 
-// Pre-save middleware to generate slug
+// Pre-save middleware to generate slug and refId
 activitySchema.pre('save', function(next) {
+  // Generate refId for new documents
+  if (this.isNew && !this.refId) {
+    this.refId = crypto.randomBytes(8).toString('hex');
+  }
+
   if (this.isNew || this.isModified('name')) {
     this.slug = this.name
       .toLowerCase()

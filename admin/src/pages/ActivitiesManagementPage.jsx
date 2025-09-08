@@ -122,6 +122,22 @@ export default function ActivitiesManagementPage() {
     }
   };
 
+  const handleExport = () => {
+    activitiesAPI.exportActivities()
+      .then(response => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'activities.csv');
+        document.body.appendChild(link);
+        link.click();
+        toast.success('Activities exported successfully');
+      })
+      .catch(error => {
+        toast.error('Failed to export activities');
+      });
+  };
+
   const handleToggleStatus = async (activityId, field) => {
     const activity = activities.find(a => a._id === activityId);
     if (!activity) return;
@@ -587,6 +603,12 @@ export default function ActivitiesManagementPage() {
                   Download Sample
                 </a>
               </Button>
+            </div>
+            <div className="flex items-center space-x-4">
+                <Button onClick={handleExport}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Export to CSV
+                </Button>
             </div>
           </CardContent>
         </Card>

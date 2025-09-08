@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { Parser } = require('json2csv');
 const OrganizedTravel = require("../models/OrganizedTravel");
 const TravelReservation = require("../models/TravelReservation");
 const { protect, admin } = require("../middleware/authMiddleware");
@@ -8,6 +9,36 @@ const {
   sendTravelAdminNotification,
   sendReservationUpdateNotification
 } = require('../utils/emailService');
+
+// @desc    Export organized travels to CSV
+// @route   GET /api/organized-travel/export
+// @access  Private/Admin
+router.get("/export", protect, admin, async (req, res) => {
+  try {
+    const travels = await OrganizedTravel.find({});
+    const travelsData = travels.map(travel => {
+      return {
+        refId: travel.refId,
+        title: travel.title,
+        destination: travel.destination,
+        price: travel.price,
+        duration: travel.duration,
+        isActive: travel.isActive,
+        createdAt: travel.createdAt.toDateString(),
+      };
+    });
+
+    const fields = ['refId', 'title', 'destination', 'price', 'duration', 'isActive', 'createdAt'];
+    const json2csvParser = new Parser({ fields });
+    const csv = json2csvParser.parse(travelsData);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment('organized-travels.csv');
+    res.send(csv);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // @desc    Get all organized travel programs
 // @route   GET /api/organized-travel

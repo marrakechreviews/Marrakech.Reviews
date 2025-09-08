@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const { Parser } = require('json2csv');
 const Article = require("../models/Article");
 const User = require("../models/User");
 
@@ -136,6 +137,32 @@ const deleteArticle = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Export articles to CSV
+// @route   GET /api/articles/export
+// @access  Private/Admin
+const exportArticles = asyncHandler(async (req, res) => {
+  const articles = await Article.find({}).populate('author', 'name');
+  const articlesData = articles.map(article => {
+    return {
+      refId: article.refId,
+      title: article.title,
+      author: article.author ? article.author.name : 'N/A',
+      category: article.category,
+      tags: article.tags.join(', '),
+      isPublished: article.isPublished,
+      createdAt: article.createdAt.toDateString(),
+    };
+  });
+
+  const fields = ['refId', 'title', 'author', 'category', 'tags', 'isPublished', 'createdAt'];
+  const json2csvParser = new Parser({ fields });
+  const csv = json2csvParser.parse(articlesData);
+
+  res.header('Content-Type', 'text/csv');
+  res.attachment('articles.csv');
+  res.send(csv);
+});
+
 module.exports = {
   getArticles,
   getArticleById,
@@ -143,6 +170,7 @@ module.exports = {
   createArticle,
   updateArticle,
   deleteArticle,
+  exportArticles,
 };
 
 

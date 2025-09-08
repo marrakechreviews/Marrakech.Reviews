@@ -175,6 +175,22 @@ export default function OrganizedTravelManagementPage() {
     setIsFormOpen(true);
   };
 
+  const handleExport = () => {
+    organizedTravelAPI.exportOrganizedTravels()
+      .then(response => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'organized-travels.csv');
+        document.body.appendChild(link);
+        link.click();
+        toast.success('Organized travels exported successfully');
+      })
+      .catch(error => {
+        toast.error('Failed to export organized travels');
+      });
+  };
+
   const ProgramForm = ({ program, onSave, onCancel }) => {
     const [formData, setFormData] = useState(
       program
@@ -328,6 +344,10 @@ export default function OrganizedTravelManagementPage() {
         <Button onClick={openCreateForm}>
           <Plus className="h-4 w-4 mr-2" />
           Add Program
+        </Button>
+        <Button onClick={handleExport}>
+            <Plus className="h-4 w-4 mr-2" />
+            Export to CSV
         </Button>
       </div>
 

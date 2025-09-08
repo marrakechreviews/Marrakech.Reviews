@@ -140,6 +140,7 @@ export const articlesAPI = {
   bulkImportArticles: (formData) => api.post('/bulk/articles', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  exportArticles: () => api.get('/articles/export', { responseType: 'blob' }),
 };
 
 // Activities API
@@ -158,6 +159,7 @@ export const activitiesAPI = {
   bulkImportActivities: (formData) => api.post('/bulk/activities', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  exportActivities: () => api.get('/activities/export', { responseType: 'blob' }),
 };
 
 // Organized Travel API
@@ -173,6 +175,7 @@ export const organizedTravelAPI = {
   bulkImportPrograms: (formData) => api.post('/bulk/organized-travels', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  exportOrganizedTravels: () => api.get('/organized-travel/export', { responseType: 'blob' }),
 };
 
 // Settings API

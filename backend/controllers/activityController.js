@@ -3,6 +3,7 @@ const ActivityReservation = require('../models/ActivityReservation');
 const { sendReservationConfirmation, sendAdminNotification, sendReservationUpdateNotification, sendReservationPendingEmail } = require('../utils/emailService');
 const asyncHandler = require('express-async-handler');
 const crypto = require('crypto');
+const { Parser } = require('json2csv');
 
 // @desc    Get all activities
 // @route   GET /api/activities
@@ -560,6 +561,32 @@ const bulkDeleteActivities = asyncHandler(async (req, res) => {
   res.json({ message: `${result.deletedCount} activities deleted successfully.` });
 });
 
+// @desc    Export activities to CSV
+// @route   GET /api/activities/export
+// @access  Private/Admin
+const exportActivities = asyncHandler(async (req, res) => {
+  const activities = await Activity.find({});
+  const activitiesData = activities.map(activity => {
+    return {
+      refId: activity.refId,
+      name: activity.name,
+      category: activity.category,
+      price: activity.price,
+      location: activity.location,
+      isActive: activity.isActive,
+      createdAt: activity.createdAt.toDateString(),
+    };
+  });
+
+  const fields = ['refId', 'name', 'category', 'price', 'location', 'isActive', 'createdAt'];
+  const json2csvParser = new Parser({ fields });
+  const csv = json2csvParser.parse(activitiesData);
+
+  res.header('Content-Type', 'text/csv');
+  res.attachment('activities.csv');
+  res.send(csv);
+});
+
 module.exports = {
   getActivities,
   getActivity,
@@ -577,5 +604,6 @@ module.exports = {
   createReservationAdmin,
   getActivityStats,
   importActivities,
-  bulkDeleteActivities
+  bulkDeleteActivities,
+  exportActivities,
 };

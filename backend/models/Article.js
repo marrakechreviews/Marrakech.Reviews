@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const articleSchema = new mongoose.Schema({
+  refId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   title: {
     type: String,
     required: [true, 'Article title is required'],
@@ -56,8 +62,13 @@ const articleSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Pre-save middleware to generate slug and set publishedAt date
+// Pre-save middleware to generate slug, set publishedAt date, and generate refId
 articleSchema.pre('save', function(next) {
+  // Generate refId if it's a new document
+  if (this.isNew && !this.refId) {
+    this.refId = crypto.randomBytes(8).toString('hex');
+  }
+
   // Generate slug if it's a new document or if the title has been modified
   if (this.isNew || this.isModified('title')) {
     this.slug = this.title
