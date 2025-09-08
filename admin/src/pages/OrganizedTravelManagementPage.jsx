@@ -128,10 +128,11 @@ export default function OrganizedTravelManagementPage() {
       const params = {
         search: searchTerm,
       };
-      if (filterStatus === 'active') params.isActive = true;
-      if (filterStatus === 'inactive') params.isActive = false;
+      if (filterStatus) {
+        params.isActive = filterStatus;
+      }
 
-      const response = await organizedTravelAPI.getPrograms(params);
+      const response = await organizedTravelAPI.getAllTravelPrograms(params);
       setPrograms(response.data);
     } catch (error) {
       console.error("Failed to fetch programs:", error);
