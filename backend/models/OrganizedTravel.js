@@ -196,6 +196,38 @@ organizedTravelSchema.statics.getFeatured = function(limit = 6) {
     .limit(limit);
 };
 
+// Static method to get travel stats
+organizedTravelSchema.statics.getTravelStats = async function () {
+  const stats = await this.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalPrograms: { $sum: 1 },
+        activePrograms: {
+          $sum: {
+            $cond: [{ $eq: ["$isActive", true] }, 1, 0],
+          },
+        },
+        featuredPrograms: {
+          $sum: {
+            $cond: [{ $eq: ["$featured", true] }, 1, 0],
+          },
+        },
+        averagePrice: { $avg: "$price" },
+        averageRating: { $avg: "$rating" },
+      },
+    },
+  ]);
+
+  return stats[0] || {
+    totalPrograms: 0,
+    activePrograms: 0,
+    featuredPrograms: 0,
+    averagePrice: 0,
+    averageRating: 0,
+  };
+};
+
 // Pre-save middleware to update slug and generate refId
 organizedTravelSchema.pre('save', function(next) {
   // Generate refId for new documents

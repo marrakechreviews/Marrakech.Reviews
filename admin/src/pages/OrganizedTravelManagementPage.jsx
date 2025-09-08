@@ -113,9 +113,12 @@ export default function OrganizedTravelManagementPage() {
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPrograms, setSelectedPrograms] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [csvFile, setCsvFile] = useState(null);
 
   useEffect(() => {
     fetchPrograms();
+    fetchStats();
   }, [searchTerm, filterStatus]);
 
   const fetchPrograms = async () => {
@@ -134,6 +137,39 @@ export default function OrganizedTravelManagementPage() {
       toast.error("Failed to fetch travel programs.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const response = await organizedTravelAPI.getTravelStats();
+      setStats(response.data);
+    } catch (error) {
+      console.error("Failed to fetch travel stats:", error);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    setCsvFile(e.target.files[0]);
+  };
+
+  const handleBulkImport = async () => {
+    if (!csvFile) {
+      toast.error('Please select a CSV file to import');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', csvFile);
+
+    try {
+      await organizedTravelAPI.bulkImportPrograms(formData);
+      toast.success('Travel programs imported successfully!');
+      fetchPrograms();
+      setCsvFile(null);
+    } catch (error) {
+      console.error("Failed to import travel programs:", error);
+      toast.error("Failed to import travel programs. Please try again.");
     }
   };
 
@@ -355,32 +391,131 @@ export default function OrganizedTravelManagementPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Organized Travel Management</h1>
           <p className="text-gray-600">Manage your travel programs</p>
         </div>
-        <Button onClick={openCreateForm}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Program
-        </Button>
-        <Button onClick={handleExport}>
-          <Download className="h-4 w-4 mr-2" />
-          Export to CSV
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button onClick={openCreateForm}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Program
+          </Button>
+          <Button onClick={handleExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export to CSV
+          </Button>
+        </div>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <Input
-              placeholder="Search by title or destination..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Globe className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Programs</p>
+                <p className="text-2xl font-bold">{stats?.totalPrograms || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <ToggleRight className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Active</p>
+                <p className="text-2xl font-bold">{stats?.activePrograms || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Star className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Featured</p>
+                <p className="text-2xl font-bold">{stats?.featuredPrograms || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <DollarSign className="h-6 w-6 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Average Price</p>
+                <p className="text-2xl font-bold">${stats?.averagePrice?.toFixed(2) || 0}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters and Bulk Import */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search by title or destination..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">All Status</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Bulk Import</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <Input type="file" accept=".csv" onChange={handleFileChange} />
+              <Button onClick={handleBulkImport} disabled={!csvFile}>
+                <Plus className="h-4 w-4 mr-2" />
+                Import
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/samples/organized-travels.csv" download>
+                  Download Sample
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
@@ -406,7 +541,7 @@ export default function OrganizedTravelManagementPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={6}>Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7}>Loading...</TableCell></TableRow>
               ) : programs.map((program) => (
                 <TableRow key={program._id}>
                   <TableCell>

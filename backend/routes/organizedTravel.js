@@ -52,6 +52,15 @@ router.post("/export", protect, admin, async (req, res) => {
 // @desc    Get all organized travel programs
 // @route   GET /api/organized-travel
 // @access  Public
+router.get("/stats", protect, admin, async (req, res) => {
+  try {
+    const stats = await OrganizedTravel.getTravelStats();
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get("/", async (req, res) => {
   try {
     const programs = await OrganizedTravel.find({ isActive: true }).sort({ createdAt: -1 });
@@ -349,7 +358,12 @@ router.delete("/admin/programs/:id", protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.get("/admin/programs", protect, admin, async (req, res) => {
   try {
-    const programs = await OrganizedTravel.find().sort({ createdAt: -1 });
+    const { isActive } = req.query;
+    const filter = {};
+    if (isActive !== undefined) {
+      filter.isActive = isActive;
+    }
+    const programs = await OrganizedTravel.find(filter).sort({ createdAt: -1 });
     res.json(programs);
   } catch (error) {
     res.status(500).json({ message: error.message });

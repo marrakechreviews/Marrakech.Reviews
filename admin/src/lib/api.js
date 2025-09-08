@@ -166,6 +166,7 @@ export const activitiesAPI = {
 // Organized Travel API
 export const organizedTravelAPI = {
   getAllTravelPrograms: (params) => api.get('/organized-travel/admin/programs', { params }),
+  getTravelStats: () => api.get('/organized-travel/stats'),
   createProgram: (data) => api.post('/organized-travel/admin/programs', data),
   updateProgram: (id, data) => api.put(`/organized-travel/admin/programs/${id}`, data),
   deleteProgram: (id) => api.delete(`/organized-travel/admin/programs/${id}`),
