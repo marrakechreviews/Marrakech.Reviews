@@ -178,6 +178,7 @@ export const organizedTravelAPI = {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   exportOrganizedTravels: (data) => api.post('/organized-travel/export', data, { responseType: 'blob' }),
+  exportTravelReservations: (data) => api.post('/organized-travel/reservations/export', data, { responseType: 'blob' }),
 };
 
 // Settings API

@@ -201,6 +201,46 @@ router.post("/reservations", async (req, res) => {
 // @desc    Get all reservations (Admin only)
 // @route   GET /api/organized-travel/admin/reservations
 // @access  Private/Admin
+router.post("/reservations/export", protect, admin, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    let reservations;
+    if (ids && ids.length > 0) {
+      reservations = await TravelReservation.find({ _id: { $in: ids } }).populate('programId');
+    } else {
+      reservations = await TravelReservation.find({}).populate('programId');
+    }
+
+    const reservationsData = reservations.map(reservation => {
+      return {
+        refId: reservation._id,
+        refModel: 'TravelReservation',
+        program: reservation.programId ? reservation.programId.title : 'N/A',
+        customer: `${reservation.firstName} ${reservation.lastName}`,
+        email: reservation.email,
+        phone: reservation.phone,
+        date: reservation.preferredDate.toDateString(),
+        travelers: reservation.numberOfTravelers,
+        status: reservation.status,
+        paymentStatus: reservation.paymentStatus,
+        totalPrice: reservation.totalPrice,
+        createdAt: reservation.createdAt.toDateString(),
+      };
+    });
+
+    const fields = ['refId', 'refModel', 'program', 'customer', 'email', 'phone', 'date', 'travelers', 'status', 'paymentStatus', 'totalPrice', 'createdAt'];
+    const json2csvParser = new Parser({ fields });
+    const csv = json2csvParser.parse(reservationsData);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment('travel-reservations.csv');
+    res.send(csv);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get("/admin/reservations", protect, admin, async (req, res) => {
   try {
     const { page = 1, limit = 10, status, destination, paymentStatus } = req.query;

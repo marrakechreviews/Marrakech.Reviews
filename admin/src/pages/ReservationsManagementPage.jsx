@@ -43,6 +43,7 @@ export default function ReservationsManagementPage() {
   const [filterType, setFilterType] = useState('all');
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedReservations, setSelectedReservations] = useState([]);
 
   const fetchReservations = async () => {
     setLoading(true);
@@ -141,6 +142,38 @@ export default function ReservationsManagementPage() {
     }
   };
 
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedReservations(reservations.map((r) => r._id));
+    } else {
+      setSelectedReservations([]);
+    }
+  };
+
+  const handleSelectOne = (checked, id) => {
+    if (checked) {
+      setSelectedReservations((prev) => [...prev, id]);
+    } else {
+      setSelectedReservations((prev) => prev.filter((reservationId) => reservationId !== id));
+    }
+  };
+
+  const handleExport = () => {
+    organizedTravelAPI.exportTravelReservations({ ids: selectedReservations })
+      .then(response => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'travel-reservations.csv');
+        document.body.appendChild(link);
+        link.click();
+        toast.success('Travel reservations exported successfully');
+      })
+      .catch(error => {
+        toast.error('Failed to export travel reservations');
+      });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -157,6 +190,10 @@ export default function ReservationsManagementPage() {
           <Button onClick={() => { setSelectedReservation(null); setIsFormOpen(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Create Reservation
+          </Button>
+          <Button onClick={handleExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export to CSV
           </Button>
         </div>
       </div>
@@ -223,6 +260,12 @@ export default function ReservationsManagementPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedReservations.length === reservations.length && reservations.length > 0}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Booking</TableHead>
@@ -236,9 +279,15 @@ export default function ReservationsManagementPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={9}>Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={10}>Loading...</TableCell></TableRow>
               ) : reservations.map((reservation) => (
                 <TableRow key={reservation._id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedReservations.includes(reservation._id)}
+                      onCheckedChange={(checked) => handleSelectOne(checked, reservation._id)}
+                    />
+                  </TableCell>
                   <TableCell><Badge variant="outline">{reservation.type}</Badge></TableCell>
                   <TableCell>
                     {reservation.type === 'Activity' ? reservation.customerInfo.name : `${reservation.firstName} ${reservation.lastName}`}
