@@ -562,13 +562,22 @@ const bulkDeleteActivities = asyncHandler(async (req, res) => {
 });
 
 // @desc    Export activities to CSV
-// @route   GET /api/activities/export
+// @route   POST /api/activities/export
 // @access  Private/Admin
 const exportActivities = asyncHandler(async (req, res) => {
-  const activities = await Activity.find({});
+  const { ids } = req.body;
+
+  let activities;
+  if (ids && ids.length > 0) {
+    activities = await Activity.find({ _id: { $in: ids } });
+  } else {
+    activities = await Activity.find({});
+  }
+
   const activitiesData = activities.map(activity => {
     return {
       refId: activity.refId,
+      refModel: 'Activity',
       name: activity.name,
       category: activity.category,
       price: activity.price,
@@ -578,7 +587,7 @@ const exportActivities = asyncHandler(async (req, res) => {
     };
   });
 
-  const fields = ['refId', 'name', 'category', 'price', 'location', 'isActive', 'createdAt'];
+  const fields = ['refId', 'refModel', 'name', 'category', 'price', 'location', 'isActive', 'createdAt'];
   const json2csvParser = new Parser({ fields });
   const csv = json2csvParser.parse(activitiesData);
 

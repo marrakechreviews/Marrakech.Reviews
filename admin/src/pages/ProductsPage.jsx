@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { productsAPI, productGeneratorAPI } from '../lib/api';
+import { Checkbox } from '../components/ui/checkbox';
 
 const EnhancedSimpleProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,6 +60,7 @@ const EnhancedSimpleProductsPage = () => {
     isActive: true
   });
   const [csvFile, setCsvFile] = useState(null);
+  const [selectedProducts, setSelectedProducts] = useState([]);
 
   const queryClient = useQueryClient();
 
@@ -321,6 +323,38 @@ const EnhancedSimpleProductsPage = () => {
     } else {
       toast.error('Please select a CSV file to import');
     }
+  };
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedProducts(filteredProducts.map((p) => p._id));
+    } else {
+      setSelectedProducts([]);
+    }
+  };
+
+  const handleSelectOne = (checked, id) => {
+    if (checked) {
+      setSelectedProducts((prev) => [...prev, id]);
+    } else {
+      setSelectedProducts((prev) => prev.filter((productId) => productId !== id));
+    }
+  };
+
+  const handleExport = () => {
+    productsAPI.exportProducts({ ids: selectedProducts })
+      .then(response => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'products.csv');
+        document.body.appendChild(link);
+        link.click();
+        toast.success('Products exported successfully');
+      })
+      .catch(error => {
+        toast.error('Failed to export products');
+      });
   };
 
   // Reset form data
@@ -766,6 +800,12 @@ const EnhancedSimpleProductsPage = () => {
               Download Sample
             </a>
           </div>
+          <div className="flex items-center space-x-4 mt-4">
+            <Button onClick={handleExport}>
+              <Download className="h-4 w-4 mr-2" />
+              Export to CSV
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -794,6 +834,12 @@ const EnhancedSimpleProductsPage = () => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-6 py-3">
+                    <Checkbox
+                      checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Product
                   </th>
@@ -817,6 +863,12 @@ const EnhancedSimpleProductsPage = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredProducts.map((product) => (
                   <tr key={product._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <Checkbox
+                        checked={selectedProducts.includes(product._id)}
+                        onCheckedChange={(checked) => handleSelectOne(checked, product._id)}
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">

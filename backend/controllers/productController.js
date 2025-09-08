@@ -1,5 +1,7 @@
 const { validationResult } = require('express-validator');
 const Product = require('../models/Product');
+const { Parser } = require('json2csv');
+const asyncHandler = require('express-async-handler');
 
 // @desc    Get all products with filtering, sorting, and pagination
 // @route   GET /api/products
@@ -473,6 +475,41 @@ const getProductBySlug = async (req, res) => {
   }
 };
 
+// @desc    Export products to CSV
+// @route   POST /api/products/export
+// @access  Private/Admin
+const exportProducts = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  let products;
+  if (ids && ids.length > 0) {
+    products = await Product.find({ _id: { $in: ids } });
+  } else {
+    products = await Product.find({});
+  }
+
+  const productsData = products.map(product => {
+    return {
+      refId: product.refId,
+      refModel: 'Product',
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      countInStock: product.countInStock,
+      isActive: product.isActive,
+      createdAt: product.createdAt.toDateString(),
+    };
+  });
+
+  const fields = ['refId', 'refModel', 'name', 'category', 'price', 'countInStock', 'isActive', 'createdAt'];
+  const json2csvParser = new Parser({ fields });
+  const csv = json2csvParser.parse(productsData);
+
+  res.header('Content-Type', 'text/csv');
+  res.attachment('products.csv');
+  res.send(csv);
+});
+
 module.exports = {
   getProducts,
   getProduct,
@@ -483,6 +520,7 @@ module.exports = {
   getTopProducts,
   getFeaturedProducts,
   getProductsByCategory,
-  searchProducts
+  searchProducts,
+  exportProducts,
 };
 

@@ -13,7 +13,7 @@ const { generateAIArticles } = require("../controllers/aiArticleController");
 const { protect, admin } = require("../middleware/authMiddleware");
 
 router.route("/").get(getArticles).post(protect, admin, createArticle);
-router.route("/export").get(protect, admin, exportArticles);
+router.route("/export").post(protect, admin, exportArticles);
 router.route("/generate-ai").post(protect, admin, generateAIArticles);
 router.route("/slug/:slug").get(getArticleBySlug);
 router

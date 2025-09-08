@@ -10,11 +10,14 @@ const {
   getTopProducts,
   getFeaturedProducts,
   getProductsByCategory,
-  searchProducts
+  searchProducts,
+  exportProducts,
 } = require('../controllers/productController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 const router = express.Router();
+
+router.post('/export', protect, admin, exportProducts);
 
 // @desc    Get all products with filtering, sorting, and pagination
 // @route   GET /api/products

@@ -11,14 +11,23 @@ const {
 } = require('../utils/emailService');
 
 // @desc    Export organized travels to CSV
-// @route   GET /api/organized-travel/export
+// @route   POST /api/organized-travel/export
 // @access  Private/Admin
-router.get("/export", protect, admin, async (req, res) => {
+router.post("/export", protect, admin, async (req, res) => {
   try {
-    const travels = await OrganizedTravel.find({});
+    const { ids } = req.body;
+
+    let travels;
+    if (ids && ids.length > 0) {
+      travels = await OrganizedTravel.find({ _id: { $in: ids } });
+    } else {
+      travels = await OrganizedTravel.find({});
+    }
+
     const travelsData = travels.map(travel => {
       return {
         refId: travel.refId,
+        refModel: 'OrganizedTravel',
         title: travel.title,
         destination: travel.destination,
         price: travel.price,
@@ -28,7 +37,7 @@ router.get("/export", protect, admin, async (req, res) => {
       };
     });
 
-    const fields = ['refId', 'title', 'destination', 'price', 'duration', 'isActive', 'createdAt'];
+    const fields = ['refId', 'refModel', 'title', 'destination', 'price', 'duration', 'isActive', 'createdAt'];
     const json2csvParser = new Parser({ fields });
     const csv = json2csvParser.parse(travelsData);
 

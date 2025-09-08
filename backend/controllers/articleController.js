@@ -138,13 +138,22 @@ const deleteArticle = asyncHandler(async (req, res) => {
 });
 
 // @desc    Export articles to CSV
-// @route   GET /api/articles/export
+// @route   POST /api/articles/export
 // @access  Private/Admin
 const exportArticles = asyncHandler(async (req, res) => {
-  const articles = await Article.find({}).populate('author', 'name');
+  const { ids } = req.body;
+
+  let articles;
+  if (ids && ids.length > 0) {
+    articles = await Article.find({ _id: { $in: ids } }).populate('author', 'name');
+  } else {
+    articles = await Article.find({}).populate('author', 'name');
+  }
+
   const articlesData = articles.map(article => {
     return {
       refId: article.refId,
+      refModel: 'Article',
       title: article.title,
       author: article.author ? article.author.name : 'N/A',
       category: article.category,
@@ -154,7 +163,7 @@ const exportArticles = asyncHandler(async (req, res) => {
     };
   });
 
-  const fields = ['refId', 'title', 'author', 'category', 'tags', 'isPublished', 'createdAt'];
+  const fields = ['refId', 'refModel', 'title', 'author', 'category', 'tags', 'isPublished', 'createdAt'];
   const json2csvParser = new Parser({ fields });
   const csv = json2csvParser.parse(articlesData);
 

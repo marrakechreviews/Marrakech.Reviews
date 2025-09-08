@@ -79,6 +79,7 @@ export const productsAPI = {
   bulkImportProducts: (formData) => api.post('/bulk/products', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  exportProducts: (data) => api.post('/products/export', data, { responseType: 'blob' }),
 };
 
 export const productGeneratorAPI = {
@@ -140,7 +141,7 @@ export const articlesAPI = {
   bulkImportArticles: (formData) => api.post('/bulk/articles', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
-  exportArticles: () => api.get('/articles/export', { responseType: 'blob' }),
+  exportArticles: (data) => api.post('/articles/export', data, { responseType: 'blob' }),
 };
 
 // Activities API
@@ -159,7 +160,7 @@ export const activitiesAPI = {
   bulkImportActivities: (formData) => api.post('/bulk/activities', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
-  exportActivities: () => api.get('/activities/export', { responseType: 'blob' }),
+  exportActivities: (data) => api.post('/activities/export', data, { responseType: 'blob' }),
 };
 
 // Organized Travel API
@@ -175,7 +176,7 @@ export const organizedTravelAPI = {
   bulkImportPrograms: (formData) => api.post('/bulk/organized-travels', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
-  exportOrganizedTravels: () => api.get('/organized-travel/export', { responseType: 'blob' }),
+  exportOrganizedTravels: (data) => api.post('/organized-travel/export', data, { responseType: 'blob' }),
 };
 
 // Settings API

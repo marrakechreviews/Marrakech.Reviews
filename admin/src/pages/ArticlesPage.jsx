@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { articlesAPI } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Checkbox } from '../components/ui/checkbox';
 import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -66,6 +67,7 @@ const ArticlesPage = () => {
     isPublished: false
   });
   const [csvFile, setCsvFile] = useState(null);
+  const [selectedArticles, setSelectedArticles] = useState([]);
 
   const queryClient = useQueryClient();
 
@@ -269,8 +271,24 @@ const ArticlesPage = () => {
     }
   };
 
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedArticles(filteredArticles.map((a) => a._id));
+    } else {
+      setSelectedArticles([]);
+    }
+  };
+
+  const handleSelectOne = (checked, id) => {
+    if (checked) {
+      setSelectedArticles((prev) => [...prev, id]);
+    } else {
+      setSelectedArticles((prev) => prev.filter((articleId) => articleId !== id));
+    }
+  };
+
   const handleExport = () => {
-    articlesAPI.exportArticles()
+    articlesAPI.exportArticles({ ids: selectedArticles })
       .then(response => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
@@ -868,10 +886,10 @@ const ArticlesPage = () => {
               </Button>
             </div>
             <div className="flex items-center space-x-4">
-                <Button onClick={handleExport}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export to CSV
-                </Button>
+              <Button onClick={handleExport}>
+                <Download className="mr-2 h-4 w-4" />
+                Export to CSV
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -881,9 +899,15 @@ const ArticlesPage = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>
-              Articles ({filteredArticles.length})
-            </CardTitle>
+            <div className="flex items-center space-x-4">
+              <Checkbox
+                checked={selectedArticles.length === filteredArticles.length && filteredArticles.length > 0}
+                onCheckedChange={handleSelectAll}
+              />
+              <CardTitle>
+                Articles ({filteredArticles.length})
+              </CardTitle>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -931,6 +955,11 @@ const ArticlesPage = () => {
                   key={article._id}
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
                 >
+                  <Checkbox
+                    checked={selectedArticles.includes(article._id)}
+                    onCheckedChange={(checked) => handleSelectOne(checked, article._id)}
+                    className="mr-4"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-3">
                       <h3 className="text-sm font-medium text-gray-900 truncate">

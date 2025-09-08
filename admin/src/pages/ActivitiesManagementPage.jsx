@@ -123,7 +123,7 @@ export default function ActivitiesManagementPage() {
   };
 
   const handleExport = () => {
-    activitiesAPI.exportActivities()
+    activitiesAPI.exportActivities({ ids: selectedActivityIds })
       .then(response => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
@@ -605,10 +605,10 @@ export default function ActivitiesManagementPage() {
               </Button>
             </div>
             <div className="flex items-center space-x-4">
-                <Button onClick={handleExport}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Export to CSV
-                </Button>
+              <Button onClick={handleExport}>
+                <Download className="h-4 w-4 mr-2" />
+                Export to CSV
+              </Button>
             </div>
           </CardContent>
         </Card>

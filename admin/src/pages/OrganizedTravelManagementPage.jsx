@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -110,6 +111,7 @@ export default function OrganizedTravelManagementPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedPrograms, setSelectedPrograms] = useState([]);
 
   useEffect(() => {
     fetchPrograms();
@@ -175,8 +177,24 @@ export default function OrganizedTravelManagementPage() {
     setIsFormOpen(true);
   };
 
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedPrograms(programs.map((p) => p._id));
+    } else {
+      setSelectedPrograms([]);
+    }
+  };
+
+  const handleSelectOne = (checked, id) => {
+    if (checked) {
+      setSelectedPrograms((prev) => [...prev, id]);
+    } else {
+      setSelectedPrograms((prev) => prev.filter((programId) => programId !== id));
+    }
+  };
+
   const handleExport = () => {
-    organizedTravelAPI.exportOrganizedTravels()
+    organizedTravelAPI.exportOrganizedTravels({ ids: selectedPrograms })
       .then(response => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
@@ -346,8 +364,8 @@ export default function OrganizedTravelManagementPage() {
           Add Program
         </Button>
         <Button onClick={handleExport}>
-            <Plus className="h-4 w-4 mr-2" />
-            Export to CSV
+          <Download className="h-4 w-4 mr-2" />
+          Export to CSV
         </Button>
       </div>
 
@@ -371,6 +389,12 @@ export default function OrganizedTravelManagementPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedPrograms.length === programs.length && programs.length > 0}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Destination</TableHead>
                 <TableHead>Duration</TableHead>
@@ -384,6 +408,12 @@ export default function OrganizedTravelManagementPage() {
                 <TableRow><TableCell colSpan={6}>Loading...</TableCell></TableRow>
               ) : programs.map((program) => (
                 <TableRow key={program._id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedPrograms.includes(program._id)}
+                      onCheckedChange={(checked) => handleSelectOne(checked, program._id)}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{program.title}</TableCell>
                   <TableCell>{program.destination}</TableCell>
                   <TableCell>{program.duration}</TableCell>

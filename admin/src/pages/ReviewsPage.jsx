@@ -458,6 +458,12 @@ const ReviewsPage = () => {
               <CsvImportForm onFinished={() => setIsImportDialogOpen(false)} />
             </DialogContent>
           </Dialog>
+          <a href="/samples/reviews.csv" download>
+            <Button variant="outline">
+              <FileText className="h-4 w-4 mr-2" />
+              Download Sample
+            </Button>
+          </a>
           <Button variant="outline" onClick={() => setIsEmbedDialogOpen(true)}>
             <FileText className="h-4 w-4 mr-2" />
             Embed in Article
