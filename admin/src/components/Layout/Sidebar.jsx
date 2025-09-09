@@ -27,6 +27,21 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
+    name: 'Orders',
+    href: '/orders',
+    icon: ShoppingCart,
+  },
+  {
+    name: 'Reservations',
+    href: '/reservations',
+    icon: Calendar,
+  },
+  {
+    name: 'Reviews',
+    href: '/reviews',
+    icon: MessageSquare,
+  },
+  {
     name: 'Articles',
     href: '/articles',
     icon: FileText,
@@ -37,34 +52,41 @@ const navigation = [
     icon: Package,
   },
   {
-    name: 'Orders',
-    href: '/orders',
-    icon: ShoppingCart,
-  },
-  {
     name: 'Activities',
     href: '/activities',
     icon: MapPin,
   },
-  {
-    name: 'Reservations',
-    href: '/reservations',
-    icon: Calendar,
-  },
-  {
-    name: 'Activity Reservations',
-    href: '/activity-reservations',
-    icon: Calendar,
-  },
-  {
-    name: 'Flight Reservations',
-    href: '/flights',
-    icon: Plane,
-  },
+
+  // {
+  //   name: 'Activity Reservations',
+  //   href: '/activity-reservations',
+  //   icon: Calendar,
+  // },
+  // {
+  //   name: 'Flight Reservations',
+  //   href: '/flights',
+  //   icon: Plane,
+  // },
   {
     name: 'Travel Programs',
     href: '/organized-travel',
     icon: Plane,
+  },
+  {
+    name: 'Users',
+    href: '/users',
+    icon: Users,
+  },
+
+  // {
+  //   name: 'Enhanced Reviews',
+  //   href: '/enhanced-reviews',
+  //   icon: MessageSquare,
+  // },
+  {
+    name: 'Instagram',
+    href: '/instagram',
+    icon: Layout,
   },
   {
     name: 'Customers',
@@ -74,26 +96,6 @@ const navigation = [
   {
     name: 'Homepage Sections',
     href: '/homepage-sections',
-    icon: Layout,
-  },
-  {
-    name: 'Users',
-    href: '/users',
-    icon: Users,
-  },
-  {
-    name: 'Reviews',
-    href: '/reviews',
-    icon: MessageSquare,
-  },
-  {
-    name: 'Enhanced Reviews',
-    href: '/enhanced-reviews',
-    icon: MessageSquare,
-  },
-  {
-    name: 'Instagram',
-    href: '/instagram',
     icon: Layout,
   },
   {
