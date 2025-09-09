@@ -46,4 +46,5 @@ const addRefIds = async () => {
   console.log('Database connection closed.');
 };
 
+// Run the script
 addRefIds();

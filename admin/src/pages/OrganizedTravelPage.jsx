@@ -615,6 +615,12 @@ const OrganizedTravelPage = () => {
                           <Users className="h-4 w-4" />
                           Max {program.maxGroupSize}
                         </span>
+                        {program.refId && (
+                          <span className="flex items-center gap-1">
+                            <Link className="h-4 w-4" />
+                            {program.refId}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-2">

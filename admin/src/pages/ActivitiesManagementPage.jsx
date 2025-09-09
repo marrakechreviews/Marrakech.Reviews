@@ -678,6 +678,11 @@ export default function ActivitiesManagementPage() {
                             <Clock className="h-3 w-3" />
                             {activity.duration}
                           </div>
+                          {activity.refId && (
+                            <div className="text-xs text-gray-400">
+                              {activity.refId}
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
