@@ -43,6 +43,7 @@ const ReviewsPage = () => {
   const [isEmbedDialogOpen, setIsEmbedDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
+  const [csvFile, setCsvFile] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     rating: 5,
@@ -178,6 +179,27 @@ const ReviewsPage = () => {
     setIsEmbedDialogOpen(false);
     setEmbedData({ articleId: '', reviewIds: [] });
   }, []);
+
+  const handleBulkImport = async () => {
+    if (!csvFile) {
+      toast.error('Please select a CSV file to import');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', csvFile);
+
+    try {
+      await reviewsAPI.bulkImportReviews(formData);
+      toast.success('Reviews imported successfully!');
+      queryClient.invalidateQueries(['reviews']);
+      setIsImportDialogOpen(false);
+      setCsvFile(null);
+    } catch (error) {
+      console.error("Failed to import reviews:", error);
+      toast.error(error.response?.data?.message || 'Failed to import reviews. Please try again.');
+    }
+  };
 
   const handleFieldChange = useCallback((field) => (e) => {
     const value = e.target ? e.target.value : e;
@@ -455,7 +477,12 @@ const ReviewsPage = () => {
               <DialogHeader>
                 <DialogTitle>Import Reviews from CSV</DialogTitle>
               </DialogHeader>
-              <CsvImportForm onFinished={() => setIsImportDialogOpen(false)} />
+              <div className="space-y-4">
+                <Input type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files[0])} />
+                <Button onClick={handleBulkImport} disabled={!csvFile}>
+                  Import
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
           <a href="/samples/reviews.csv" download>

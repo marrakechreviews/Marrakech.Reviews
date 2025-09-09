@@ -5,6 +5,60 @@ const Article = require('../models/Article');
 const Product = require('../models/Product');
 const Activity = require('../models/Activity');
 const OrganizedTravel = require('../models/OrganizedTravel');
+const Review = require('../models/Review');
+const User = require('../models/User');
+
+exports.importReviews = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+
+  const results = [];
+  const filePath = req.file.path;
+
+  fs.createReadStream(filePath)
+    .pipe(iconv.decodeStream('windows-1252'))
+    .pipe(csv())
+    .on('data', (data) => results.push(data))
+    .on('end', async () => {
+      try {
+        const reviews = [];
+        for (const item of results) {
+          const user = await User.findOne({ email: item.userEmail });
+          if (!user) {
+            console.warn(`User with email ${item.userEmail} not found. Skipping review.`);
+            continue;
+          }
+
+          const refModel = item.refModel;
+          const Model = mongoose.model(refModel);
+          const refObject = await Model.findOne({ refId: item.refId });
+          if (!refObject) {
+            console.warn(`${refModel} with refId ${item.refId} not found. Skipping review.`);
+            continue;
+          }
+
+          reviews.push({
+            name: item.name,
+            rating: parseInt(item.rating),
+            comment: item.comment,
+            user: user._id,
+            refId: refObject._id,
+            refModel: item.refModel,
+            isApproved: item.isApproved ? item.isApproved.toLowerCase() === 'true' : true,
+            images: item.images ? item.images.split(',').map(img => img.trim()) : [],
+          });
+        }
+
+        await Review.insertMany(reviews);
+        res.status(201).send({ message: `${reviews.length} reviews imported successfully.` });
+      } catch (error) {
+        res.status(500).send({ message: 'Error importing reviews.', error: error.message });
+      } finally {
+        fs.unlinkSync(filePath);
+      }
+    });
+};
 
 exports.importArticles = async (req, res) => {
   if (!req.file) {
