@@ -22,21 +22,82 @@ exports.importArticles = async (req, res) => {
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
-        const articles = results.map(item => ({
-          title: item.title,
-          content: item.content,
-          author: req.user._id, // Assuming author is the logged-in admin
-          category: item.category,
-          tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
-          image: item.image,
-          metaTitle: item.metaTitle,
-          metaDescription: item.metaDescription,
-          keywords: item.keywords ? item.keywords.split(',').map(kw => kw.trim()) : [],
-          isPublished: item.isPublished ? item.isPublished.toLowerCase() === 'true' : false,
-        }));
+        const articlesByName = new Map();
+        results.forEach(item => {
+          if (!articlesByName.has(item.title)) {
+            articlesByName.set(item.title, {
+              ...item,
+              reviews: []
+            });
+          }
+          if (item.reviewComment) {
+            articlesByName.get(item.title).reviews.push({
+              reviewName: item.reviewName,
+              reviewRating: item.reviewRating,
+              reviewComment: item.reviewComment,
+              reviewUserEmail: item.reviewUserEmail
+            });
+          }
+        });
 
-        await Article.insertMany(articles);
-        res.status(201).send({ message: `${articles.length} articles imported successfully.` });
+        const articleTitles = Array.from(articlesByName.keys());
+        const existingArticles = await Article.find({ title: { $in: articleTitles } });
+        const existingArticleMap = new Map(existingArticles.map(a => [a.title, a]));
+
+        const newArticlesData = [];
+        articleTitles.forEach(title => {
+          if (!existingArticleMap.has(title)) {
+            const item = articlesByName.get(title);
+            newArticlesData.push({
+              title: item.title,
+              content: item.content,
+              author: req.user._id,
+              category: item.category,
+              tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+              image: item.image,
+              metaTitle: item.metaTitle,
+              metaDescription: item.metaDescription,
+              keywords: item.keywords ? item.keywords.split(',').map(kw => kw.trim()) : [],
+              isPublished: item.isPublished ? item.isPublished.toLowerCase() === 'true' : false,
+            });
+          }
+        });
+
+        if (newArticlesData.length > 0) {
+          const insertedArticles = await Article.insertMany(newArticlesData);
+          insertedArticles.forEach(a => existingArticleMap.set(a.title, a));
+        }
+
+        const reviewsToInsert = [];
+        const userEmails = [...new Set(results.filter(item => item.reviewComment).map(item => item.reviewUserEmail))];
+        const users = await User.find({ email: { $in: userEmails } });
+        const userMap = new Map(users.map(u => [u.email, u]));
+
+        for (const item of results) {
+          if (item.reviewComment) {
+            const article = existingArticleMap.get(item.title);
+            const user = userMap.get(item.reviewUserEmail);
+
+            if (article && user) {
+              reviewsToInsert.push({
+                name: item.reviewName,
+                rating: parseInt(item.reviewRating),
+                comment: item.reviewComment,
+                user: user._id,
+                refId: article._id,
+                refModel: 'Article',
+              });
+            } else if (!user) {
+              console.warn(`User with email ${item.reviewUserEmail} not found. Skipping review for article ${item.title}.`);
+            }
+          }
+        }
+
+        if (reviewsToInsert.length > 0) {
+          await Review.insertMany(reviewsToInsert);
+        }
+
+        res.status(201).send({ message: `Articles and reviews imported successfully.` });
       } catch (error) {
         res.status(500).send({ message: 'Error importing articles.', error: error.message });
       } finally {

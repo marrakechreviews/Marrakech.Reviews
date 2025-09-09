@@ -962,12 +962,6 @@ const ArticlesPage = () => {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-3">
-                      {article.refId && (
-                        <div className="flex items-center space-x-1">
-                          <Link className="h-3 w-3" />
-                          <span>{article.refId}</span>
-                        </div>
-                      )}
                       <h3 className="text-sm font-medium text-gray-900 truncate">
                         {article.title}
                       </h3>
