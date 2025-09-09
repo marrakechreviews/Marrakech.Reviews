@@ -886,17 +886,17 @@ const EnhancedSimpleProductsPage = () => {
                           )}
                         </div>
                         <div className="ml-4">
+                          {product.refId && (
+                            <div className="text-xs text-gray-400">
+                              {product.refId}
+                            </div>
+                          )}
                           <div className="text-sm font-medium text-gray-900">
                             {product.name}
                           </div>
                           <div className="text-sm text-gray-500">
                             {product.brand}
                           </div>
-                          {product.refId && (
-                            <div className="text-xs text-gray-400">
-                              {product.refId}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </td>

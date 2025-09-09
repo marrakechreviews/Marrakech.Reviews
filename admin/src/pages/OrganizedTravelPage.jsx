@@ -591,6 +591,12 @@ const OrganizedTravelPage = () => {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
+                        {program.refId && (
+                          <span className="flex items-center gap-1">
+                            <Link className="h-4 w-4" />
+                            {program.refId}
+                          </span>
+                        )}
                         <h3 className="text-xl font-semibold">{program.title}</h3>
                         <Badge variant={program.isActive ? 'default' : 'secondary'}>
                           {program.isActive ? 'Active' : 'Inactive'}
@@ -615,12 +621,6 @@ const OrganizedTravelPage = () => {
                           <Users className="h-4 w-4" />
                           Max {program.maxGroupSize}
                         </span>
-                        {program.refId && (
-                          <span className="flex items-center gap-1">
-                            <Link className="h-4 w-4" />
-                            {program.refId}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <div className="flex gap-2">

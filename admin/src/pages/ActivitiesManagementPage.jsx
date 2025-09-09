@@ -673,16 +673,16 @@ export default function ActivitiesManagementPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{activity.name}</div>
-                          <div className="text-sm text-gray-500 flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {activity.duration}
-                          </div>
                           {activity.refId && (
                             <div className="text-xs text-gray-400">
                               {activity.refId}
                             </div>
                           )}
+                          <div className="font-medium">{activity.name}</div>
+                          <div className="text-sm text-gray-500 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {activity.duration}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
