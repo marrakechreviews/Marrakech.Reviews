@@ -577,17 +577,30 @@ const exportActivities = asyncHandler(async (req, res) => {
   const activitiesData = activities.map(activity => {
     return {
       refId: activity.refId,
-      refModel: 'Activity',
       name: activity.name,
-      category: activity.category,
+      description: activity.description,
+      shortDescription: activity.shortDescription,
       price: activity.price,
+      marketPrice: activity.marketPrice,
+      currency: activity.currency,
+      category: activity.category,
       location: activity.location,
+      duration: activity.duration,
+      maxParticipants: activity.maxParticipants,
+      minParticipants: activity.minParticipants,
+      image: activity.image,
+      images: activity.images.join(','),
       isActive: activity.isActive,
-      createdAt: activity.createdAt.toDateString(),
+      isFeatured: activity.isFeatured,
+      tags: activity.tags.join(','),
+      difficulty: activity.difficulty,
+      seoTitle: activity.seoTitle,
+      seoDescription: activity.seoDescription,
+      seoKeywords: activity.seoKeywords.join(','),
     };
   });
 
-  const fields = ['refId', 'refModel', 'name', 'category', 'price', 'location', 'isActive', 'createdAt'];
+  const fields = ['refId', 'name', 'description', 'shortDescription', 'price', 'marketPrice', 'currency', 'category', 'location', 'duration', 'maxParticipants', 'minParticipants', 'image', 'images', 'isActive', 'isFeatured', 'tags', 'difficulty', 'seoTitle', 'seoDescription', 'seoKeywords'];
   const json2csvParser = new Parser({ fields });
   const csv = json2csvParser.parse(activitiesData);
 

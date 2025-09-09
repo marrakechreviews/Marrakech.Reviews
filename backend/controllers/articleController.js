@@ -153,17 +153,21 @@ const exportArticles = asyncHandler(async (req, res) => {
   const articlesData = articles.map(article => {
     return {
       refId: article.refId,
-      refModel: 'Article',
       title: article.title,
+      content: article.content,
       author: article.author ? article.author.name : 'N/A',
       category: article.category,
-      tags: article.tags.join(', '),
+      tags: article.tags.join(','),
+      image: article.image,
+      metaTitle: article.metaTitle,
+      metaDescription: article.metaDescription,
+      keywords: article.keywords.join(','),
       isPublished: article.isPublished,
-      createdAt: article.createdAt.toDateString(),
+      publishedAt: article.publishedAt,
     };
   });
 
-  const fields = ['refId', 'refModel', 'title', 'author', 'category', 'tags', 'isPublished', 'createdAt'];
+  const fields = ['refId', 'title', 'content', 'author', 'category', 'tags', 'image', 'metaTitle', 'metaDescription', 'keywords', 'isPublished', 'publishedAt'];
   const json2csvParser = new Parser({ fields });
   const csv = json2csvParser.parse(articlesData);
 

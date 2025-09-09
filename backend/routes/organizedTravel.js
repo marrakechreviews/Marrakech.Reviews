@@ -27,17 +27,38 @@ router.post("/export", protect, admin, async (req, res) => {
     const travelsData = travels.map(travel => {
       return {
         refId: travel.refId,
-        refModel: 'OrganizedTravel',
         title: travel.title,
+        subtitle: travel.subtitle,
         destination: travel.destination,
+        description: travel.description,
         price: travel.price,
         duration: travel.duration,
+        maxGroupSize: travel.maxGroupSize,
+        itinerary: JSON.stringify(travel.itinerary),
+        included: travel.included.join(','),
+        excluded: travel.excluded.join(','),
+        heroImage: travel.heroImage,
+        gallery: travel.gallery.join(','),
+        difficulty: travel.difficulty,
+        category: travel.category,
+        highlights: travel.highlights.join(','),
+        meetingPoint: travel.meetingPoint,
+        cancellationPolicy: travel.cancellationPolicy,
         isActive: travel.isActive,
-        createdAt: travel.createdAt.toDateString(),
+        featured: travel.featured,
+        rating: travel.rating,
+        reviewCount: travel.reviewCount,
+        tags: travel.tags.join(','),
+        seasonality: JSON.stringify(travel.seasonality),
+        requirements: JSON.stringify(travel.requirements),
+        slug: travel.slug,
+        seoTitle: travel.seoTitle,
+        seoDescription: travel.seoDescription,
+        seoKeywords: travel.seoKeywords.join(','),
       };
     });
 
-    const fields = ['refId', 'refModel', 'title', 'destination', 'price', 'duration', 'isActive', 'createdAt'];
+    const fields = ['refId', 'title', 'subtitle', 'destination', 'description', 'price', 'duration', 'maxGroupSize', 'itinerary', 'included', 'excluded', 'heroImage', 'gallery', 'difficulty', 'category', 'highlights', 'meetingPoint', 'cancellationPolicy', 'isActive', 'featured', 'rating', 'reviewCount', 'tags', 'seasonality', 'requirements', 'slug', 'seoTitle', 'seoDescription', 'seoKeywords'];
     const json2csvParser = new Parser({ fields });
     const csv = json2csvParser.parse(travelsData);
 
