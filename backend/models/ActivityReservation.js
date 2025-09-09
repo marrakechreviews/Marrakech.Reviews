@@ -119,6 +119,9 @@ activityReservationSchema.index({ reservationId: 1 }, { unique: true });
 
 // Virtual for formatted reservation date
 activityReservationSchema.virtual('formattedReservationDate').get(function() {
+  if (!this.reservationDate) {
+    return 'N/A';
+  }
   return this.reservationDate.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -129,6 +132,9 @@ activityReservationSchema.virtual('formattedReservationDate').get(function() {
 
 // Virtual for days until reservation
 activityReservationSchema.virtual('daysUntilReservation').get(function() {
+  if (!this.reservationDate) {
+    return null;
+  }
   const today = new Date();
   const reservationDate = new Date(this.reservationDate);
   const diffTime = reservationDate - today;
