@@ -9,21 +9,30 @@ const Order = require('../models/Order');
 // @access  Private/Admin
 const getDashboardAnalytics = async (req, res) => {
   try {
+    console.log('Fetching dashboard analytics...');
     const { period = '30' } = req.query;
     const days = parseInt(period);
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
+    console.log(`Analytics period: ${days} days (from ${startDate.toISOString()})`);
 
     // Get visit stats
+    console.log('Step 1: Fetching visit stats...');
     const visitStats = await Visit.getVisitStats(startDate, new Date());
+    console.log('Step 1: Visit stats fetched successfully.');
     
     // Get user stats
+    console.log('Step 2: Fetching user stats...');
     const userStats = await User.getUserStats();
+    console.log('Step 2: User stats fetched successfully.');
     
     // Get reservation stats
+    console.log('Step 3: Fetching activity reservation stats...');
     const activityReservationStats = await ActivityReservation.getReservationStats();
+    console.log('Step 3: Activity reservation stats fetched successfully.');
     
     // Get flight reservation stats
+    console.log('Step 4: Fetching flight reservation stats...');
     const flightReservations = await FlightReservation.aggregate([
       {
         $group: {
@@ -51,6 +60,7 @@ const getDashboardAnalytics = async (req, res) => {
         }
       }
     ]);
+    console.log('Step 4: Flight reservation stats fetched successfully.');
 
     const flightStats = flightReservations[0] || {
       totalFlightReservations: 0,
@@ -60,6 +70,7 @@ const getDashboardAnalytics = async (req, res) => {
     };
 
     // Get order stats
+    console.log('Step 5: Fetching order stats...');
     const orderStats = await Order.aggregate([
       {
         $group: {
@@ -79,6 +90,7 @@ const getDashboardAnalytics = async (req, res) => {
         }
       }
     ]);
+    console.log('Step 5: Order stats fetched successfully.');
 
     const orderStatsData = orderStats[0] || {
       totalOrders: 0,
@@ -88,29 +100,37 @@ const getDashboardAnalytics = async (req, res) => {
     };
 
     // Calculate total revenue
+    console.log('Step 6: Calculating total revenue...');
     const totalRevenue =
       (activityReservationStats?.totalRevenue || 0) +
       (flightStats?.totalFlightRevenue || 0) +
       (orderStatsData?.totalOrderRevenue || 0);
+    console.log('Step 6: Total revenue calculated.');
 
     // Get recent activity
+    console.log('Step 7: Fetching recent activity...');
     const recentReservations = await ActivityReservation.find()
       .populate('activity', 'name')
       .sort({ createdAt: -1 })
       .limit(5)
       .select('reservationId customerInfo.name status totalPrice createdAt');
+    console.log('Step 7a: Recent reservations fetched.');
 
     const recentFlightReservations = await FlightReservation.find()
       .sort({ createdAt: -1 })
       .limit(5)
       .select('bookingReference customerInfo.firstName customerInfo.lastName status pricing.totalPrice createdAt');
+    console.log('Step 7b: Recent flight reservations fetched.');
 
     const recentOrders = await Order.find()
       .populate('user', 'name')
       .sort({ createdAt: -1 })
       .limit(5)
       .select('orderNumber user status totalPrice createdAt');
+    console.log('Step 7c: Recent orders fetched.');
+    console.log('Step 7: Recent activity fetched successfully.');
 
+    console.log('All analytics data fetched. Preparing response...');
     res.json({
       success: true,
       data: {
@@ -133,6 +153,7 @@ const getDashboardAnalytics = async (req, res) => {
         }
       }
     });
+    console.log('Response sent successfully.');
   } catch (error) {
     console.error('Dashboard analytics error:', error);
     res.status(500).json({
