@@ -1,6 +1,7 @@
 const csv = require('csv-parser');
 const fs = require('fs');
 const iconv = require('iconv-lite');
+const crypto = require('crypto');
 const Article = require('../models/Article');
 const Product = require('../models/Product');
 const Activity = require('../models/Activity');
@@ -103,42 +104,54 @@ exports.importArticles = async (req, res) => {
         }
 
         // Now handle reviews
-        const userEmails = [...new Set(results.filter(item => item.reviewComment).map(item => item.reviewUserEmail))];
-        if (userEmails.length > 0) {
-            const users = await User.find({ email: { $in: userEmails } });
-            const userMap = new Map(users.map(u => [u.email, u]));
-            const reviewPromises = [];
+        const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
+        const existingUsers = await User.find({ email: { $in: reviewEmails }});
+        const userMap = new Map(existingUsers.map(u => [u.email, u]));
 
-            for (const item of articlesToProcess.values()) {
-                if (item.reviews.length > 0) {
-                    const key = item.refId || item.title;
-                    const article = existingArticleMap.get(key);
-                    if (article) {
-                        for (const review of item.reviews) {
-                            const user = userMap.get(review.reviewUserEmail);
-                            if (user) {
-                                const reviewData = {
-                                    name: review.reviewName,
-                                    rating: parseInt(review.reviewRating),
-                                    comment: review.reviewComment,
-                                    user: user._id,
-                                    refId: article._id,
-                                    refModel: 'Article',
-                                };
-                                const query = { user: user._id, refId: article._id, refModel: 'Article' };
-                                const update = { $set: reviewData };
-                                const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-                                reviewPromises.push(Review.findOneAndUpdate(query, update, options));
-                            } else {
-                                console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for article ${article.title}.`);
+        for (const item of articlesToProcess.values()) {
+            if (item.reviews.length > 0) {
+                const key = item.refId || item.title;
+                const article = existingArticleMap.get(key);
+                if (article) {
+                    for (const review of item.reviews) {
+                        if (!review.reviewUserEmail) continue;
+
+                        let user = userMap.get(review.reviewUserEmail);
+                        if (!user) {
+                            // Create a new user
+                            const newUser = new User({
+                                name: review.reviewName || 'Anonymous',
+                                email: review.reviewUserEmail,
+                                password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                            });
+                            try {
+                                user = await newUser.save();
+                                userMap.set(user.email, user); // Add to map to avoid re-creating
+                            } catch (error) {
+                                console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
+                                continue; // Skip this review if user creation fails
                             }
+                        }
+
+                        const reviewData = {
+                            name: review.reviewName,
+                            rating: parseInt(review.reviewRating),
+                            comment: review.reviewComment,
+                            user: user._id,
+                            refId: article._id,
+                            refModel: 'Article',
+                        };
+                        const query = { user: user._id, refId: article._id, refModel: 'Article' };
+                        const update = { $set: reviewData };
+                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+                        try {
+                            await Review.findOneAndUpdate(query, update, options);
+                        } catch (error) {
+                            console.error(`Failed to upsert review for article ${article.title}:`, error.message);
                         }
                     }
                 }
-            }
-
-            if (reviewPromises.length > 0) {
-                await Promise.all(reviewPromises);
             }
         }
 
@@ -256,42 +269,54 @@ exports.importProducts = async (req, res) => {
         }
 
         // Now handle reviews
-        const userEmails = [...new Set(results.filter(item => item.reviewComment).map(item => item.reviewUserEmail))];
-        if (userEmails.length > 0) {
-            const users = await User.find({ email: { $in: userEmails } });
-            const userMap = new Map(users.map(u => [u.email, u]));
-            const reviewPromises = [];
+        const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
+        const existingUsers = await User.find({ email: { $in: reviewEmails }});
+        const userMap = new Map(existingUsers.map(u => [u.email, u]));
 
-            for (const item of productsToProcess.values()) {
-                if (item.reviews.length > 0) {
-                    const key = item.refId || item.name;
-                    const product = existingProductMap.get(key);
-                    if (product) {
-                        for (const review of item.reviews) {
-                            const user = userMap.get(review.reviewUserEmail);
-                            if (user) {
-                                const reviewData = {
-                                    name: review.reviewName,
-                                    rating: parseInt(review.reviewRating),
-                                    comment: review.reviewComment,
-                                    user: user._id,
-                                    refId: product._id,
-                                    refModel: 'Product',
-                                };
-                                const query = { user: user._id, refId: product._id, refModel: 'Product' };
-                                const update = { $set: reviewData };
-                                const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-                                reviewPromises.push(Review.findOneAndUpdate(query, update, options));
-                            } else {
-                                console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for product ${product.name}.`);
+        for (const item of productsToProcess.values()) {
+            if (item.reviews.length > 0) {
+                const key = item.refId || item.name;
+                const product = existingProductMap.get(key);
+                if (product) {
+                    for (const review of item.reviews) {
+                        if (!review.reviewUserEmail) continue;
+
+                        let user = userMap.get(review.reviewUserEmail);
+                        if (!user) {
+                            // Create a new user
+                            const newUser = new User({
+                                name: review.reviewName || 'Anonymous',
+                                email: review.reviewUserEmail,
+                                password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                            });
+                            try {
+                                user = await newUser.save();
+                                userMap.set(user.email, user); // Add to map to avoid re-creating
+                            } catch (error) {
+                                console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
+                                continue; // Skip this review if user creation fails
                             }
+                        }
+
+                        const reviewData = {
+                            name: review.reviewName,
+                            rating: parseInt(review.reviewRating),
+                            comment: review.reviewComment,
+                            user: user._id,
+                            refId: product._id,
+                            refModel: 'Product',
+                        };
+                        const query = { user: user._id, refId: product._id, refModel: 'Product' };
+                        const update = { $set: reviewData };
+                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+                        try {
+                            await Review.findOneAndUpdate(query, update, options);
+                        } catch (error) {
+                            console.error(`Failed to upsert review for product ${product.name}:`, error.message);
                         }
                     }
                 }
-            }
-
-            if (reviewPromises.length > 0) {
-                await Promise.all(reviewPromises);
             }
         }
 
@@ -407,42 +432,54 @@ exports.importActivities = async (req, res) => {
         }
 
         // Now handle reviews
-        const userEmails = [...new Set(results.filter(item => item.reviewComment).map(item => item.reviewUserEmail))];
-        if (userEmails.length > 0) {
-            const users = await User.find({ email: { $in: userEmails } });
-            const userMap = new Map(users.map(u => [u.email, u]));
-            const reviewPromises = [];
+        const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
+        const existingUsers = await User.find({ email: { $in: reviewEmails }});
+        const userMap = new Map(existingUsers.map(u => [u.email, u]));
 
-            for (const item of activitiesToProcess.values()) {
-                if (item.reviews.length > 0) {
-                    const key = item.refId || item.name;
-                    const activity = existingActivityMap.get(key);
-                    if (activity) {
-                        for (const review of item.reviews) {
-                            const user = userMap.get(review.reviewUserEmail);
-                            if (user) {
-                                const reviewData = {
-                                    name: review.reviewName,
-                                    rating: parseInt(review.reviewRating),
-                                    comment: review.reviewComment,
-                                    user: user._id,
-                                    refId: activity._id,
-                                    refModel: 'Activity',
-                                };
-                                const query = { user: user._id, refId: activity._id, refModel: 'Activity' };
-                                const update = { $set: reviewData };
-                                const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-                                reviewPromises.push(Review.findOneAndUpdate(query, update, options));
-                            } else {
-                                console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for activity ${activity.name}.`);
+        for (const item of activitiesToProcess.values()) {
+            if (item.reviews.length > 0) {
+                const key = item.refId || item.name;
+                const activity = existingActivityMap.get(key);
+                if (activity) {
+                    for (const review of item.reviews) {
+                        if (!review.reviewUserEmail) continue;
+
+                        let user = userMap.get(review.reviewUserEmail);
+                        if (!user) {
+                            // Create a new user
+                            const newUser = new User({
+                                name: review.reviewName || 'Anonymous',
+                                email: review.reviewUserEmail,
+                                password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                            });
+                            try {
+                                user = await newUser.save();
+                                userMap.set(user.email, user); // Add to map to avoid re-creating
+                            } catch (error) {
+                                console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
+                                continue; // Skip this review if user creation fails
                             }
+                        }
+
+                        const reviewData = {
+                            name: review.reviewName,
+                            rating: parseInt(review.reviewRating),
+                            comment: review.reviewComment,
+                            user: user._id,
+                            refId: activity._id,
+                            refModel: 'Activity',
+                        };
+                        const query = { user: user._id, refId: activity._id, refModel: 'Activity' };
+                        const update = { $set: reviewData };
+                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+                        try {
+                            await Review.findOneAndUpdate(query, update, options);
+                        } catch (error) {
+                            console.error(`Failed to upsert review for activity ${activity.name}:`, error.message);
                         }
                     }
                 }
-            }
-
-            if (reviewPromises.length > 0) {
-                await Promise.all(reviewPromises);
             }
         }
 
@@ -558,42 +595,54 @@ exports.importOrganizedTravels = async (req, res) => {
         }
 
         // Now handle reviews
-        const userEmails = [...new Set(results.filter(item => item.reviewComment).map(item => item.reviewUserEmail))];
-        if (userEmails.length > 0) {
-            const users = await User.find({ email: { $in: userEmails } });
-            const userMap = new Map(users.map(u => [u.email, u]));
-            const reviewPromises = [];
+        const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
+        const existingUsers = await User.find({ email: { $in: reviewEmails }});
+        const userMap = new Map(existingUsers.map(u => [u.email, u]));
 
-            for (const item of travelsToProcess.values()) {
-                if (item.reviews.length > 0) {
-                    const key = item.refId || item.title;
-                    const travel = existingTravelMap.get(key);
-                    if (travel) {
-                        for (const review of item.reviews) {
-                            const user = userMap.get(review.reviewUserEmail);
-                            if (user) {
-                                const reviewData = {
-                                    name: review.reviewName,
-                                    rating: parseInt(review.reviewRating),
-                                    comment: review.reviewComment,
-                                    user: user._id,
-                                    refId: travel._id,
-                                    refModel: 'OrganizedTravel',
-                                };
-                                const query = { user: user._id, refId: travel._id, refModel: 'OrganizedTravel' };
-                                const update = { $set: reviewData };
-                                const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-                                reviewPromises.push(Review.findOneAndUpdate(query, update, options));
-                            } else {
-                                console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for travel ${travel.title}.`);
+        for (const item of travelsToProcess.values()) {
+            if (item.reviews.length > 0) {
+                const key = item.refId || item.title;
+                const travel = existingTravelMap.get(key);
+                if (travel) {
+                    for (const review of item.reviews) {
+                        if (!review.reviewUserEmail) continue;
+
+                        let user = userMap.get(review.reviewUserEmail);
+                        if (!user) {
+                            // Create a new user
+                            const newUser = new User({
+                                name: review.reviewName || 'Anonymous',
+                                email: review.reviewUserEmail,
+                                password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                            });
+                            try {
+                                user = await newUser.save();
+                                userMap.set(user.email, user); // Add to map to avoid re-creating
+                            } catch (error) {
+                                console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
+                                continue; // Skip this review if user creation fails
                             }
+                        }
+
+                        const reviewData = {
+                            name: review.reviewName,
+                            rating: parseInt(review.reviewRating),
+                            comment: review.reviewComment,
+                            user: user._id,
+                            refId: travel._id,
+                            refModel: 'OrganizedTravel',
+                        };
+                        const query = { user: user._id, refId: travel._id, refModel: 'OrganizedTravel' };
+                        const update = { $set: reviewData };
+                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+                        try {
+                            await Review.findOneAndUpdate(query, update, options);
+                        } catch (error) {
+                            console.error(`Failed to upsert review for travel ${travel.title}:`, error.message);
                         }
                     }
                 }
-            }
-
-            if (reviewPromises.length > 0) {
-                await Promise.all(reviewPromises);
             }
         }
 
