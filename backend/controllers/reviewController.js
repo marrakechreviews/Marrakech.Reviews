@@ -94,7 +94,7 @@ const getReviews = async (req, res) => {
     };
 
     if (refId && refModel) {
-      filter.refId = mongoose.Types.ObjectId(refId);
+      filter.refId = new mongoose.Types.ObjectId(refId);
       filter.refModel = refModel;
     }
 
