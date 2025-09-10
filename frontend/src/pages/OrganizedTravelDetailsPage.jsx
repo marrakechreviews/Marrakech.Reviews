@@ -151,34 +151,46 @@ const OrganizedTravelDetailsPage = () => {
     );
   }
 
-  const tripSchema = travelProgram ? {
-    "@context": "https://schema.org",
-    "@type": "TouristTrip",
-    "name": travelProgram.title,
-    "description": travelProgram.description,
-    "image": travelProgram.heroImage,
-    "touristType": "Organized Travel",
-    "offers": {
-      "@type": "Offer",
-      "price": travelProgram.price,
-      "priceCurrency": "USD"
-    },
-    "itinerary": travelProgram.itinerary?.map(day => ({
-      "@type": "ListItem",
-      "position": day.day,
-      "item": {
-        "@type": "TouristAttraction",
-        "name": day.title,
-        "description": day.description
-      }
-    }))
-  } : null;
+  const generateStructuredData = () => {
+    if (!travelProgram) return null;
+
+    const data = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": travelProgram.title,
+      "description": travelProgram.description,
+      "image": travelProgram.heroImage,
+      "sku": travelProgram.sku || travelProgram._id,
+      "brand": {
+        "@type": "Brand",
+        "name": "Marrakech.Reviews"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": travelProgram.price,
+        "priceCurrency": travelProgram.currency || "USD",
+        "url": window.location.href,
+        "availability": "https://schema.org/InStock"
+      },
+    };
+
+    if (reviews && reviews.length > 0) {
+      data.aggregateRating = {
+        "@type": "AggregateRating",
+        "ratingValue": (reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length).toFixed(1),
+        "reviewCount": reviews.length
+      };
+    }
+
+    return data;
+  };
 
   const title = travelProgram?.seoTitle || `${travelProgram?.title} - Organized Travel`;
   const description = travelProgram?.seoDescription || travelProgram?.description;
   const keywords = travelProgram?.seoKeywords ? travelProgram.seoKeywords.join(', ') : `${travelProgram?.destination}, organized travel`;
   const image = travelProgram?.heroImage;
   const url = window.location.href;
+  const structuredData = generateStructuredData();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -192,7 +204,7 @@ const OrganizedTravelDetailsPage = () => {
         {url && <meta property="og:url" content={url} />}
         {title && <meta property="og:title" content={title} />}
         {description && <meta property="og:description" content={description} />}
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content="product" />
         {image && <meta property="og:image" content={image} />}
 
         {/* Twitter Card tags */}
@@ -200,9 +212,9 @@ const OrganizedTravelDetailsPage = () => {
         {description && <meta name="twitter:description" content={description} />}
         {image && <meta name="twitter:image" content={image} />}
 
-        {tripSchema && (
+        {structuredData && (
           <script type="application/ld+json">
-            {JSON.stringify(tripSchema)}
+            {JSON.stringify(structuredData)}
           </script>
         )}
       </Helmet>

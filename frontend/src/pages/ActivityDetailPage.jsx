@@ -233,37 +233,46 @@ export default function ActivityDetailPage() {
     );
   }
 
-  const eventSchema = activity ? {
-    "@context": "https://schema.org",
-    "@type": "Event",
-    "name": activity.name,
-    "description": activity.shortDescription,
-    "image": activity.images,
-    "startDate": selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
-    "endDate": selectedDate ? new Date(new Date(selectedDate).getTime() + 3600000).toISOString() : new Date(new Date().getTime() + 3600000).toISOString(),
-    "location": {
-      "@type": "Place",
-      "name": activity.location,
-      "address": activity.location
-    },
-    "offers": {
-      "@type": "Offer",
-      "price": activity.price,
-      "priceCurrency": "USD",
-      "url": window.location.href,
-      "validFrom": new Date().toISOString()
-    },
-    "performer": {
-      "@type": "PerformingGroup",
-      "name": "Marrakech.Reviews"
+  const generateStructuredData = () => {
+    if (!activity) return null;
+
+    const data = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": activity.name,
+      "description": activity.shortDescription || activity.description,
+      "image": activity.images,
+      "sku": activity.sku || activity._id,
+      "brand": {
+        "@type": "Brand",
+        "name": "Marrakech.Reviews"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": activity.price,
+        "priceCurrency": activity.currency || "USD",
+        "url": window.location.href,
+        "availability": "https://schema.org/InStock" // Assuming activities are always available for booking
+      },
+    };
+
+    if (activity.rating && activity.numReviews) {
+      data.aggregateRating = {
+        "@type": "AggregateRating",
+        "ratingValue": activity.rating,
+        "reviewCount": activity.numReviews
+      };
     }
-  } : null;
+
+    return data;
+  };
 
   const title = activity?.seoTitle || `${activity?.name} - Book Your Adventure`;
   const description = activity?.seoDescription || activity?.shortDescription;
   const keywords = activity?.seoKeywords ? activity?.seoKeywords.join(', ') : `${activity?.category}, ${activity?.location}, ${activity?.tags.join(', ')}`;
-  const image = activity?.images[0];
+  const image = activity?.images?.[0];
   const url = window.location.href;
+  const structuredData = generateStructuredData();
 
   return (
     <>
@@ -277,7 +286,7 @@ export default function ActivityDetailPage() {
         {url && <meta property="og:url" content={url} />}
         {title && <meta property="og:title" content={title} />}
         {description && <meta property="og:description" content={description} />}
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content="product" />
         {image && <meta property="og:image" content={image} />}
 
         {/* Twitter Card tags */}
@@ -285,9 +294,9 @@ export default function ActivityDetailPage() {
         {description && <meta name="twitter:description" content={description} />}
         {image && <meta name="twitter:image" content={image} />}
 
-        {eventSchema && (
+        {structuredData && (
           <script type="application/ld+json">
-            {JSON.stringify(eventSchema)}
+            {JSON.stringify(structuredData)}
           </script>
         )}
       </Helmet>
