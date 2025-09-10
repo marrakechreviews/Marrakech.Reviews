@@ -22,79 +22,120 @@ exports.importArticles = async (req, res) => {
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
-        const articlesByName = new Map();
+        const articlesToProcess = new Map();
         results.forEach(item => {
-          if (!articlesByName.has(item.title)) {
-            articlesByName.set(item.title, {
-              ...item,
-              reviews: []
-            });
+          const key = item.refId || item.title;
+          if (!articlesToProcess.has(key)) {
+            articlesToProcess.set(key, { ...item, reviews: [] });
           }
-          if (item.reviewComment) {
-            articlesByName.get(item.title).reviews.push({
+          if (item.reviewComment && item.reviewUserEmail) {
+            articlesToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
               reviewRating: item.reviewRating,
               reviewComment: item.reviewComment,
-              reviewUserEmail: item.reviewUserEmail
+              reviewUserEmail: item.reviewUserEmail,
             });
           }
         });
 
-        const articleTitles = Array.from(articlesByName.keys());
-        const existingArticles = await Article.find({ title: { $in: articleTitles } });
-        const existingArticleMap = new Map(existingArticles.map(a => [a.title, a]));
+        const refIds = [];
+        const titles = [];
+        articlesToProcess.forEach((value, key) => {
+          if (value.refId) {
+            refIds.push(value.refId);
+          } else {
+            titles.push(value.title);
+          }
+        });
+
+        const existingArticlesByRefId = refIds.length > 0 ? await Article.find({ refId: { $in: refIds } }) : [];
+        const existingArticlesByTitle = titles.length > 0 ? await Article.find({ title: { $in: titles } }) : [];
+
+        const existingArticleMap = new Map();
+        existingArticlesByRefId.forEach(a => existingArticleMap.set(a.refId.toString(), a));
+        existingArticlesByTitle.forEach(a => existingArticleMap.set(a.title, a));
 
         const newArticlesData = [];
-        articleTitles.forEach(title => {
-          if (!existingArticleMap.has(title)) {
-            const item = articlesByName.get(title);
-            newArticlesData.push({
-              title: item.title,
-              content: item.content,
-              author: req.user._id,
-              category: item.category,
-              tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
-              image: item.image,
-              metaTitle: item.metaTitle,
-              metaDescription: item.metaDescription,
-              keywords: item.keywords ? item.keywords.split(',').map(kw => kw.trim()) : [],
-              isPublished: item.isPublished ? item.isPublished.toLowerCase() === 'true' : false,
-            });
+        const updatePromises = [];
+
+        for (const item of articlesToProcess.values()) {
+          const key = item.refId || item.title;
+          const existingArticle = existingArticleMap.get(key);
+
+          const articleData = {
+            title: item.title,
+            content: item.content,
+            author: req.user._id,
+            category: item.category,
+            tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+            image: item.image,
+            metaTitle: item.metaTitle,
+            metaDescription: item.metaDescription,
+            keywords: item.keywords ? item.keywords.split(',').map(kw => kw.trim()) : [],
+            isPublished: item.isPublished ? item.isPublished.toLowerCase() === 'true' : false,
+            refId: item.refId,
+          };
+
+          Object.keys(articleData).forEach(key => articleData[key] === undefined && delete articleData[key]);
+
+          if (existingArticle) {
+            Object.assign(existingArticle, articleData);
+            updatePromises.push(existingArticle.save());
+          } else {
+            // Important: author is required
+            if (!articleData.author) articleData.author = req.user._id;
+            newArticlesData.push(articleData);
           }
+        }
+
+        const updatedArticles = await Promise.all(updatePromises);
+        updatedArticles.forEach(a => {
+            const key = a.refId ? a.refId.toString() : a.title;
+            existingArticleMap.set(key, a);
         });
 
         if (newArticlesData.length > 0) {
           const insertedArticles = await Article.insertMany(newArticlesData);
-          insertedArticles.forEach(a => existingArticleMap.set(a.title, a));
+          insertedArticles.forEach(a => {
+            const key = a.refId ? a.refId.toString() : a.title;
+            existingArticleMap.set(key, a);
+          });
         }
 
-        const reviewsToInsert = [];
+        // Now handle reviews
         const userEmails = [...new Set(results.filter(item => item.reviewComment).map(item => item.reviewUserEmail))];
-        const users = await User.find({ email: { $in: userEmails } });
-        const userMap = new Map(users.map(u => [u.email, u]));
+        if (userEmails.length > 0) {
+            const users = await User.find({ email: { $in: userEmails } });
+            const userMap = new Map(users.map(u => [u.email, u]));
+            const reviewsToInsert = [];
 
-        for (const item of results) {
-          if (item.reviewComment) {
-            const article = existingArticleMap.get(item.title);
-            const user = userMap.get(item.reviewUserEmail);
-
-            if (article && user) {
-              reviewsToInsert.push({
-                name: item.reviewName,
-                rating: parseInt(item.reviewRating),
-                comment: item.reviewComment,
-                user: user._id,
-                refId: article._id,
-                refModel: 'Article',
-              });
-            } else if (!user) {
-              console.warn(`User with email ${item.reviewUserEmail} not found. Skipping review for article ${item.title}.`);
+            for (const item of articlesToProcess.values()) {
+                if(item.reviews.length > 0) {
+                    const key = item.refId || item.title;
+                    const article = existingArticleMap.get(key);
+                    if (article) {
+                        for (const review of item.reviews) {
+                            const user = userMap.get(review.reviewUserEmail);
+                            if (user) {
+                                reviewsToInsert.push({
+                                    name: review.reviewName,
+                                    rating: parseInt(review.reviewRating),
+                                    comment: review.reviewComment,
+                                    user: user._id,
+                                    refId: article._id,
+                                    refModel: 'Article',
+                                });
+                            } else {
+                                console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for article ${article.title}.`);
+                            }
+                        }
+                    }
+                }
             }
-          }
-        }
 
-        if (reviewsToInsert.length > 0) {
-          await Review.insertMany(reviewsToInsert);
+            if (reviewsToInsert.length > 0) {
+                await Review.insertMany(reviewsToInsert);
+            }
         }
 
         res.status(201).send({ message: `Articles and reviews imported successfully.` });
@@ -120,89 +161,130 @@ exports.importProducts = async (req, res) => {
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
-        const productsByName = new Map();
+        const productsToProcess = new Map();
         results.forEach(item => {
-          if (!productsByName.has(item.name)) {
-            productsByName.set(item.name, {
-              ...item,
-              reviews: []
-            });
+          const key = item.refId || item.name;
+          if (!productsToProcess.has(key)) {
+            productsToProcess.set(key, { ...item, reviews: [] });
           }
-          if (item.reviewComment) {
-            productsByName.get(item.name).reviews.push({
+          if (item.reviewComment && item.reviewUserEmail) {
+            productsToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
               reviewRating: item.reviewRating,
               reviewComment: item.reviewComment,
-              reviewUserEmail: item.reviewUserEmail
+              reviewUserEmail: item.reviewUserEmail,
             });
           }
         });
 
-        const productNames = Array.from(productsByName.keys());
-        const existingProducts = await Product.find({ name: { $in: productNames } });
-        const existingProductMap = new Map(existingProducts.map(p => [p.name, p]));
+        const refIds = [];
+        const names = [];
+        productsToProcess.forEach((value, key) => {
+          if (value.refId) {
+            refIds.push(value.refId);
+          } else {
+            names.push(value.name);
+          }
+        });
+
+        const existingProductsByRefId = refIds.length > 0 ? await Product.find({ refId: { $in: refIds } }) : [];
+        const existingProductsByName = names.length > 0 ? await Product.find({ name: { $in: names } }) : [];
+
+        const existingProductMap = new Map();
+        existingProductsByRefId.forEach(p => existingProductMap.set(p.refId.toString(), p));
+        existingProductsByName.forEach(p => existingProductMap.set(p.name, p));
 
         const newProductsData = [];
-        productNames.forEach(name => {
-          if (!existingProductMap.has(name)) {
-            const item = productsByName.get(name);
-            newProductsData.push({
-              name: item.name,
-              description: item.description,
-              price: parseFloat(item.price),
-              comparePrice: item.comparePrice ? parseFloat(item.comparePrice) : undefined,
-              category: item.category,
-              subcategory: item.subcategory,
-              brand: item.brand,
-              image: item.image,
-              images: item.images ? item.images.split(',').map(img => img.trim()) : [],
-              countInStock: parseInt(item.countInStock),
-              lowStockThreshold: item.lowStockThreshold ? parseInt(item.lowStockThreshold) : 10,
-              rating: item.rating ? parseFloat(item.rating) : 0,
-              numReviews: item.numReviews ? parseInt(item.numReviews) : 0,
-              isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
-              isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
-              tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
-              sku: item.sku,
-              seoTitle: item.seoTitle,
-              seoDescription: item.seoDescription,
-              seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
-            });
+        const updatePromises = [];
+
+        for (const item of productsToProcess.values()) {
+          const key = item.refId || item.name;
+          const existingProduct = existingProductMap.get(key);
+
+          const productData = {
+            name: item.name,
+            description: item.description,
+            price: item.price ? parseFloat(item.price) : undefined,
+            comparePrice: item.comparePrice ? parseFloat(item.comparePrice) : undefined,
+            category: item.category,
+            subcategory: item.subcategory,
+            brand: item.brand,
+            image: item.image,
+            images: item.images ? item.images.split(',').map(img => img.trim()) : [],
+            countInStock: item.countInStock ? parseInt(item.countInStock) : undefined,
+            lowStockThreshold: item.lowStockThreshold ? parseInt(item.lowStockThreshold) : 10,
+            rating: item.rating ? parseFloat(item.rating) : 0,
+            numReviews: item.numReviews ? parseInt(item.numReviews) : 0,
+            isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
+            isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
+            tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+            sku: item.sku,
+            seoTitle: item.seoTitle,
+            seoDescription: item.seoDescription,
+            seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
+            refId: item.refId,
+          };
+
+          // Filter out undefined values so they don't overwrite existing data with nulls
+          Object.keys(productData).forEach(key => productData[key] === undefined && delete productData[key]);
+
+
+          if (existingProduct) {
+            Object.assign(existingProduct, productData);
+            updatePromises.push(existingProduct.save());
+          } else {
+            newProductsData.push(productData);
           }
+        }
+
+        const updatedProducts = await Promise.all(updatePromises);
+        updatedProducts.forEach(p => {
+            const key = p.refId ? p.refId.toString() : p.name;
+            existingProductMap.set(key, p);
         });
 
         if (newProductsData.length > 0) {
           const insertedProducts = await Product.insertMany(newProductsData);
-          insertedProducts.forEach(p => existingProductMap.set(p.name, p));
+          insertedProducts.forEach(p => {
+            const key = p.refId ? p.refId.toString() : p.name;
+            existingProductMap.set(key, p)
+          });
         }
 
-        const reviewsToInsert = [];
+        // Now handle reviews
         const userEmails = [...new Set(results.filter(item => item.reviewComment).map(item => item.reviewUserEmail))];
-        const users = await User.find({ email: { $in: userEmails } });
-        const userMap = new Map(users.map(u => [u.email, u]));
+        if (userEmails.length > 0) {
+            const users = await User.find({ email: { $in: userEmails } });
+            const userMap = new Map(users.map(u => [u.email, u]));
+            const reviewsToInsert = [];
 
-        for (const item of results) {
-          if (item.reviewComment) {
-            const product = existingProductMap.get(item.name);
-            const user = userMap.get(item.reviewUserEmail);
-
-            if (product && user) {
-              reviewsToInsert.push({
-                name: item.reviewName,
-                rating: parseInt(item.reviewRating),
-                comment: item.reviewComment,
-                user: user._id,
-                refId: product._id,
-                refModel: 'Product',
-              });
-            } else if (!user) {
-              console.warn(`User with email ${item.reviewUserEmail} not found. Skipping review for product ${item.name}.`);
+            for (const item of productsToProcess.values()) {
+                if(item.reviews.length > 0) {
+                    const key = item.refId || item.name;
+                    const product = existingProductMap.get(key);
+                    if (product) {
+                        for (const review of item.reviews) {
+                            const user = userMap.get(review.reviewUserEmail);
+                            if (user) {
+                                reviewsToInsert.push({
+                                    name: review.reviewName,
+                                    rating: parseInt(review.reviewRating),
+                                    comment: review.reviewComment,
+                                    user: user._id,
+                                    refId: product._id,
+                                    refModel: 'Product',
+                                });
+                            } else {
+                                console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for product ${product.name}.`);
+                            }
+                        }
+                    }
+                }
             }
-          }
-        }
 
-        if (reviewsToInsert.length > 0) {
-          await Review.insertMany(reviewsToInsert);
+            if (reviewsToInsert.length > 0) {
+                await Review.insertMany(reviewsToInsert);
+            }
         }
 
         res.status(201).send({ message: `Products and reviews imported successfully.` });
@@ -228,95 +310,128 @@ exports.importActivities = async (req, res) => {
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
-        const activitiesByName = new Map();
+        const activitiesToProcess = new Map();
         results.forEach(item => {
-          if (!activitiesByName.has(item.name)) {
-            activitiesByName.set(item.name, {
-              ...item,
-              reviews: []
-            });
+          const key = item.refId || item.name;
+          if (!activitiesToProcess.has(key)) {
+            activitiesToProcess.set(key, { ...item, reviews: [] });
           }
-          if (item.reviewComment) {
-            activitiesByName.get(item.name).reviews.push({
+          if (item.reviewComment && item.reviewUserEmail) {
+            activitiesToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
               reviewRating: item.reviewRating,
               reviewComment: item.reviewComment,
-              reviewUserEmail: item.reviewUserEmail
+              reviewUserEmail: item.reviewUserEmail,
             });
           }
         });
 
-        const activityNames = Array.from(activitiesByName.keys());
-        const existingActivities = await Activity.find({ name: { $in: activityNames } });
-        const existingActivityMap = new Map(existingActivities.map(a => [a.name, a]));
+        const refIds = [];
+        const names = [];
+        activitiesToProcess.forEach((value, key) => {
+          if (value.refId) {
+            refIds.push(value.refId);
+          } else {
+            names.push(value.name);
+          }
+        });
+
+        const existingActivitiesByRefId = refIds.length > 0 ? await Activity.find({ refId: { $in: refIds } }) : [];
+        const existingActivitiesByName = names.length > 0 ? await Activity.find({ name: { $in: names } }) : [];
+
+        const existingActivityMap = new Map();
+        existingActivitiesByRefId.forEach(a => existingActivityMap.set(a.refId.toString(), a));
+        existingActivitiesByName.forEach(a => existingActivityMap.set(a.name, a));
 
         const newActivitiesData = [];
-        activityNames.forEach(name => {
-          if (!existingActivityMap.has(name)) {
-            const item = activitiesByName.get(name);
-            const slug = item.name
-              .toLowerCase()
-              .replace(/[^a-z0-9 -]/g, '') // Remove special characters
-              .replace(/\s+/g, '-') // Replace spaces with hyphens
-              .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
-            newActivitiesData.push({
-              name: item.name,
-              slug: slug,
-              description: item.description,
-              shortDescription: item.shortDescription,
-              price: parseFloat(item.price),
-              marketPrice: parseFloat(item.marketPrice),
-              currency: item.currency,
-              category: item.category,
-              location: item.location,
-              duration: item.duration,
-              maxParticipants: parseInt(item.maxParticipants),
-              minParticipants: parseInt(item.minParticipants),
-              image: item.image,
-              images: item.images ? item.images.split(',').map(img => img.trim()) : [],
-              isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
-              isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
-              tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
-              difficulty: item.difficulty,
-              seoTitle: item.seoTitle,
-              seoDescription: item.seoDescription,
-              seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
-            });
+        const updatePromises = [];
+
+        for (const item of activitiesToProcess.values()) {
+          const key = item.refId || item.name;
+          const existingActivity = existingActivityMap.get(key);
+
+          const activityData = {
+            name: item.name,
+            description: item.description,
+            shortDescription: item.shortDescription,
+            price: item.price ? parseFloat(item.price) : undefined,
+            marketPrice: item.marketPrice ? parseFloat(item.marketPrice) : undefined,
+            currency: item.currency,
+            category: item.category,
+            location: item.location,
+            duration: item.duration,
+            maxParticipants: item.maxParticipants ? parseInt(item.maxParticipants) : undefined,
+            minParticipants: item.minParticipants ? parseInt(item.minParticipants) : undefined,
+            image: item.image,
+            images: item.images ? item.images.split(',').map(img => img.trim()) : [],
+            isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
+            isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
+            tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+            difficulty: item.difficulty,
+            seoTitle: item.seoTitle,
+            seoDescription: item.seoDescription,
+            seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
+            refId: item.refId,
+          };
+
+          Object.keys(activityData).forEach(key => activityData[key] === undefined && delete activityData[key]);
+
+          if (existingActivity) {
+            Object.assign(existingActivity, activityData);
+            updatePromises.push(existingActivity.save());
+          } else {
+            newActivitiesData.push(activityData);
           }
+        }
+
+        const updatedActivities = await Promise.all(updatePromises);
+        updatedActivities.forEach(a => {
+            const key = a.refId ? a.refId.toString() : a.name;
+            existingActivityMap.set(key, a);
         });
 
         if (newActivitiesData.length > 0) {
           const insertedActivities = await Activity.insertMany(newActivitiesData);
-          insertedActivities.forEach(a => existingActivityMap.set(a.name, a));
+          insertedActivities.forEach(a => {
+            const key = a.refId ? a.refId.toString() : a.name;
+            existingActivityMap.set(key, a);
+          });
         }
 
-        const reviewsToInsert = [];
+        // Now handle reviews
         const userEmails = [...new Set(results.filter(item => item.reviewComment).map(item => item.reviewUserEmail))];
-        const users = await User.find({ email: { $in: userEmails } });
-        const userMap = new Map(users.map(u => [u.email, u]));
+        if (userEmails.length > 0) {
+            const users = await User.find({ email: { $in: userEmails } });
+            const userMap = new Map(users.map(u => [u.email, u]));
+            const reviewsToInsert = [];
 
-        for (const item of results) {
-          if (item.reviewComment) {
-            const activity = existingActivityMap.get(item.name);
-            const user = userMap.get(item.reviewUserEmail);
-
-            if (activity && user) {
-              reviewsToInsert.push({
-                name: item.reviewName,
-                rating: parseInt(item.reviewRating),
-                comment: item.reviewComment,
-                user: user._id,
-                refId: activity._id,
-                refModel: 'Activity',
-              });
-            } else if (!user) {
-              console.warn(`User with email ${item.reviewUserEmail} not found. Skipping review for activity ${item.name}.`);
+            for (const item of activitiesToProcess.values()) {
+                if(item.reviews.length > 0) {
+                    const key = item.refId || item.name;
+                    const activity = existingActivityMap.get(key);
+                    if (activity) {
+                        for (const review of item.reviews) {
+                            const user = userMap.get(review.reviewUserEmail);
+                            if (user) {
+                                reviewsToInsert.push({
+                                    name: review.reviewName,
+                                    rating: parseInt(review.reviewRating),
+                                    comment: review.reviewComment,
+                                    user: user._id,
+                                    refId: activity._id,
+                                    refModel: 'Activity',
+                                });
+                            } else {
+                                console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for activity ${activity.name}.`);
+                            }
+                        }
+                    }
+                }
             }
-          }
-        }
 
-        if (reviewsToInsert.length > 0) {
-          await Review.insertMany(reviewsToInsert);
+            if (reviewsToInsert.length > 0) {
+                await Review.insertMany(reviewsToInsert);
+            }
         }
 
         res.status(201).send({ message: `Activities and reviews imported successfully.` });
@@ -343,88 +458,127 @@ exports.importOrganizedTravels = async (req, res) => {
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
-        const travelsByName = new Map();
+        const travelsToProcess = new Map();
         results.forEach(item => {
-          if (!travelsByName.has(item.title)) {
-            travelsByName.set(item.title, {
-              ...item,
-              reviews: []
-            });
+          const key = item.refId || item.title;
+          if (!travelsToProcess.has(key)) {
+            travelsToProcess.set(key, { ...item, reviews: [] });
           }
-          if (item.reviewComment) {
-            travelsByName.get(item.title).reviews.push({
+          if (item.reviewComment && item.reviewUserEmail) {
+            travelsToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
               reviewRating: item.reviewRating,
               reviewComment: item.reviewComment,
-              reviewUserEmail: item.reviewUserEmail
+              reviewUserEmail: item.reviewUserEmail,
             });
           }
         });
 
-        const travelTitles = Array.from(travelsByName.keys());
-        const existingTravels = await OrganizedTravel.find({ title: { $in: travelTitles } });
-        const existingTravelMap = new Map(existingTravels.map(t => [t.title, t]));
+        const refIds = [];
+        const titles = [];
+        travelsToProcess.forEach((value, key) => {
+          if (value.refId) {
+            refIds.push(value.refId);
+          } else {
+            titles.push(value.title);
+          }
+        });
+
+        const existingTravelsByRefId = refIds.length > 0 ? await OrganizedTravel.find({ refId: { $in: refIds } }) : [];
+        const existingTravelsByTitle = titles.length > 0 ? await OrganizedTravel.find({ title: { $in: titles } }) : [];
+
+        const existingTravelMap = new Map();
+        existingTravelsByRefId.forEach(t => existingTravelMap.set(t.refId.toString(), t));
+        existingTravelsByTitle.forEach(t => existingTravelMap.set(t.title, t));
 
         const newTravelsData = [];
-        travelTitles.forEach(title => {
-          if (!existingTravelMap.has(title)) {
-            const item = travelsByName.get(title);
-            newTravelsData.push({
-              title: item.title,
-              destination: item.destination,
-              description: item.description,
-              price: parseFloat(item.price),
-              duration: item.duration,
-              maxGroupSize: parseInt(item.maxGroupSize),
-              included: item.included ? item.included.split(',').map(inc => inc.trim()) : [],
-              excluded: item.excluded ? item.excluded.split(',').map(exc => exc.trim()) : [],
-              heroImage: item.heroImage,
-              gallery: item.gallery ? item.gallery.split(',').map(img => img.trim()) : [],
-              difficulty: item.difficulty,
-              category: item.category,
-              highlights: item.highlights ? item.highlights.split(',').map(hl => hl.trim()) : [],
-              isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
-              featured: item.featured ? item.featured.toLowerCase() === 'true' : false,
-              tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
-              seoTitle: item.seoTitle,
-              seoDescription: item.seoDescription,
-              seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
-            });
+        const updatePromises = [];
+
+        for (const item of travelsToProcess.values()) {
+          const key = item.refId || item.title;
+          const existingTravel = existingTravelMap.get(key);
+
+          const travelData = {
+            title: item.title,
+            destination: item.destination,
+            description: item.description,
+            price: item.price ? parseFloat(item.price) : undefined,
+            duration: item.duration,
+            maxGroupSize: item.maxGroupSize ? parseInt(item.maxGroupSize) : undefined,
+            included: item.included ? item.included.split(',').map(inc => inc.trim()) : [],
+            excluded: item.excluded ? item.excluded.split(',').map(exc => exc.trim()) : [],
+            heroImage: item.heroImage,
+            gallery: item.gallery ? item.gallery.split(',').map(img => img.trim()) : [],
+            difficulty: item.difficulty,
+            category: item.category,
+            highlights: item.highlights ? item.highlights.split(',').map(hl => hl.trim()) : [],
+            isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
+            featured: item.featured ? item.featured.toLowerCase() === 'true' : false,
+            tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+            seoTitle: item.seoTitle,
+            seoDescription: item.seoDescription,
+            seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
+            refId: item.refId,
+          };
+
+          Object.keys(travelData).forEach(key => travelData[key] === undefined && delete travelData[key]);
+
+          if (existingTravel) {
+            Object.assign(existingTravel, travelData);
+            updatePromises.push(existingTravel.save());
+          } else {
+            newTravelsData.push(travelData);
           }
+        }
+
+        const updatedTravels = await Promise.all(updatePromises);
+        updatedTravels.forEach(t => {
+            const key = t.refId ? t.refId.toString() : t.title;
+            existingTravelMap.set(key, t);
         });
 
         if (newTravelsData.length > 0) {
           const insertedTravels = await OrganizedTravel.insertMany(newTravelsData);
-          insertedTravels.forEach(t => existingTravelMap.set(t.title, t));
+          insertedTravels.forEach(t => {
+            const key = t.refId ? t.refId.toString() : t.title;
+            existingTravelMap.set(key, t);
+          });
         }
 
-        const reviewsToInsert = [];
+        // Now handle reviews
         const userEmails = [...new Set(results.filter(item => item.reviewComment).map(item => item.reviewUserEmail))];
-        const users = await User.find({ email: { $in: userEmails } });
-        const userMap = new Map(users.map(u => [u.email, u]));
+        if (userEmails.length > 0) {
+            const users = await User.find({ email: { $in: userEmails } });
+            const userMap = new Map(users.map(u => [u.email, u]));
+            const reviewsToInsert = [];
 
-        for (const item of results) {
-          if (item.reviewComment) {
-            const travel = existingTravelMap.get(item.title);
-            const user = userMap.get(item.reviewUserEmail);
-
-            if (travel && user) {
-              reviewsToInsert.push({
-                name: item.reviewName,
-                rating: parseInt(item.reviewRating),
-                comment: item.reviewComment,
-                user: user._id,
-                refId: travel._id,
-                refModel: 'OrganizedTravel',
-              });
-            } else if (!user) {
-              console.warn(`User with email ${item.reviewUserEmail} not found. Skipping review for travel ${item.title}.`);
+            for (const item of travelsToProcess.values()) {
+                if(item.reviews.length > 0) {
+                    const key = item.refId || item.title;
+                    const travel = existingTravelMap.get(key);
+                    if (travel) {
+                        for (const review of item.reviews) {
+                            const user = userMap.get(review.reviewUserEmail);
+                            if (user) {
+                                reviewsToInsert.push({
+                                    name: review.reviewName,
+                                    rating: parseInt(review.reviewRating),
+                                    comment: review.reviewComment,
+                                    user: user._id,
+                                    refId: travel._id,
+                                    refModel: 'OrganizedTravel',
+                                });
+                            } else {
+                                console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for travel ${travel.title}.`);
+                            }
+                        }
+                    }
+                }
             }
-          }
-        }
 
-        if (reviewsToInsert.length > 0) {
-          await Review.insertMany(reviewsToInsert);
+            if (reviewsToInsert.length > 0) {
+                await Review.insertMany(reviewsToInsert);
+            }
         }
 
         res.status(201).send({ message: `Organized travels and reviews imported successfully.` });
