@@ -107,24 +107,28 @@ exports.importArticles = async (req, res) => {
         if (userEmails.length > 0) {
             const users = await User.find({ email: { $in: userEmails } });
             const userMap = new Map(users.map(u => [u.email, u]));
-            const reviewsToInsert = [];
+            const reviewPromises = [];
 
             for (const item of articlesToProcess.values()) {
-                if(item.reviews.length > 0) {
+                if (item.reviews.length > 0) {
                     const key = item.refId || item.title;
                     const article = existingArticleMap.get(key);
                     if (article) {
                         for (const review of item.reviews) {
                             const user = userMap.get(review.reviewUserEmail);
                             if (user) {
-                                reviewsToInsert.push({
+                                const reviewData = {
                                     name: review.reviewName,
                                     rating: parseInt(review.reviewRating),
                                     comment: review.reviewComment,
                                     user: user._id,
                                     refId: article._id,
                                     refModel: 'Article',
-                                });
+                                };
+                                const query = { user: user._id, refId: article._id, refModel: 'Article' };
+                                const update = { $set: reviewData };
+                                const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+                                reviewPromises.push(Review.findOneAndUpdate(query, update, options));
                             } else {
                                 console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for article ${article.title}.`);
                             }
@@ -133,8 +137,8 @@ exports.importArticles = async (req, res) => {
                 }
             }
 
-            if (reviewsToInsert.length > 0) {
-                await Review.insertMany(reviewsToInsert);
+            if (reviewPromises.length > 0) {
+                await Promise.all(reviewPromises);
             }
         }
 
@@ -256,24 +260,28 @@ exports.importProducts = async (req, res) => {
         if (userEmails.length > 0) {
             const users = await User.find({ email: { $in: userEmails } });
             const userMap = new Map(users.map(u => [u.email, u]));
-            const reviewsToInsert = [];
+            const reviewPromises = [];
 
             for (const item of productsToProcess.values()) {
-                if(item.reviews.length > 0) {
+                if (item.reviews.length > 0) {
                     const key = item.refId || item.name;
                     const product = existingProductMap.get(key);
                     if (product) {
                         for (const review of item.reviews) {
                             const user = userMap.get(review.reviewUserEmail);
                             if (user) {
-                                reviewsToInsert.push({
+                                const reviewData = {
                                     name: review.reviewName,
                                     rating: parseInt(review.reviewRating),
                                     comment: review.reviewComment,
                                     user: user._id,
                                     refId: product._id,
                                     refModel: 'Product',
-                                });
+                                };
+                                const query = { user: user._id, refId: product._id, refModel: 'Product' };
+                                const update = { $set: reviewData };
+                                const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+                                reviewPromises.push(Review.findOneAndUpdate(query, update, options));
                             } else {
                                 console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for product ${product.name}.`);
                             }
@@ -282,8 +290,8 @@ exports.importProducts = async (req, res) => {
                 }
             }
 
-            if (reviewsToInsert.length > 0) {
-                await Review.insertMany(reviewsToInsert);
+            if (reviewPromises.length > 0) {
+                await Promise.all(reviewPromises);
             }
         }
 
@@ -403,24 +411,28 @@ exports.importActivities = async (req, res) => {
         if (userEmails.length > 0) {
             const users = await User.find({ email: { $in: userEmails } });
             const userMap = new Map(users.map(u => [u.email, u]));
-            const reviewsToInsert = [];
+            const reviewPromises = [];
 
             for (const item of activitiesToProcess.values()) {
-                if(item.reviews.length > 0) {
+                if (item.reviews.length > 0) {
                     const key = item.refId || item.name;
                     const activity = existingActivityMap.get(key);
                     if (activity) {
                         for (const review of item.reviews) {
                             const user = userMap.get(review.reviewUserEmail);
                             if (user) {
-                                reviewsToInsert.push({
+                                const reviewData = {
                                     name: review.reviewName,
                                     rating: parseInt(review.reviewRating),
                                     comment: review.reviewComment,
                                     user: user._id,
                                     refId: activity._id,
                                     refModel: 'Activity',
-                                });
+                                };
+                                const query = { user: user._id, refId: activity._id, refModel: 'Activity' };
+                                const update = { $set: reviewData };
+                                const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+                                reviewPromises.push(Review.findOneAndUpdate(query, update, options));
                             } else {
                                 console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for activity ${activity.name}.`);
                             }
@@ -429,8 +441,8 @@ exports.importActivities = async (req, res) => {
                 }
             }
 
-            if (reviewsToInsert.length > 0) {
-                await Review.insertMany(reviewsToInsert);
+            if (reviewPromises.length > 0) {
+                await Promise.all(reviewPromises);
             }
         }
 
@@ -550,24 +562,28 @@ exports.importOrganizedTravels = async (req, res) => {
         if (userEmails.length > 0) {
             const users = await User.find({ email: { $in: userEmails } });
             const userMap = new Map(users.map(u => [u.email, u]));
-            const reviewsToInsert = [];
+            const reviewPromises = [];
 
             for (const item of travelsToProcess.values()) {
-                if(item.reviews.length > 0) {
+                if (item.reviews.length > 0) {
                     const key = item.refId || item.title;
                     const travel = existingTravelMap.get(key);
                     if (travel) {
                         for (const review of item.reviews) {
                             const user = userMap.get(review.reviewUserEmail);
                             if (user) {
-                                reviewsToInsert.push({
+                                const reviewData = {
                                     name: review.reviewName,
                                     rating: parseInt(review.reviewRating),
                                     comment: review.reviewComment,
                                     user: user._id,
                                     refId: travel._id,
                                     refModel: 'OrganizedTravel',
-                                });
+                                };
+                                const query = { user: user._id, refId: travel._id, refModel: 'OrganizedTravel' };
+                                const update = { $set: reviewData };
+                                const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+                                reviewPromises.push(Review.findOneAndUpdate(query, update, options));
                             } else {
                                 console.warn(`User with email ${review.reviewUserEmail} not found. Skipping review for travel ${travel.title}.`);
                             }
@@ -576,8 +592,8 @@ exports.importOrganizedTravels = async (req, res) => {
                 }
             }
 
-            if (reviewsToInsert.length > 0) {
-                await Review.insertMany(reviewsToInsert);
+            if (reviewPromises.length > 0) {
+                await Promise.all(reviewPromises);
             }
         }
 
