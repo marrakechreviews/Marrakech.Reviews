@@ -343,6 +343,7 @@ exports.importActivities = async (req, res) => {
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
+        console.log('[Bulk Import: Activities] Starting processing of uploaded file.');
         const activitiesToProcess = new Map();
         results.forEach(item => {
           const key = item.refId || item.name;
@@ -358,6 +359,8 @@ exports.importActivities = async (req, res) => {
             });
           }
         });
+        console.log(`[Bulk Import: Activities] Parsed ${results.length} rows from CSV.`);
+        console.log(`[Bulk Import: Activities] Found ${activitiesToProcess.size} unique activities to process.`);
 
         const refIds = [];
         const names = [];
@@ -433,20 +436,28 @@ exports.importActivities = async (req, res) => {
 
         // Now handle reviews
         const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
+        console.log(`[Bulk Import: Activities] Found ${reviewEmails.length} unique user emails for reviews.`);
         const existingUsers = await User.find({ email: { $in: reviewEmails }});
         const userMap = new Map(existingUsers.map(u => [u.email, u]));
+        console.log(`[Bulk Import: Activities] Fetched ${userMap.size} existing users from the database.`);
 
         for (const item of activitiesToProcess.values()) {
+            console.log(`[Bulk Import: Activities] Processing activity: "${item.name || item.refId}"`);
             if (item.reviews.length > 0) {
                 const key = item.refId || item.name;
                 const activity = existingActivityMap.get(key);
                 if (activity) {
+                    console.log(`[Bulk Import: Activities] Found activity document with ID: ${activity._id}`);
                     for (const review of item.reviews) {
-                        if (!review.reviewUserEmail) continue;
+                        console.log(`[Bulk Import: Activities] Processing review for user: ${review.reviewUserEmail}`);
+                        if (!review.reviewUserEmail) {
+                            console.log('[Bulk Import: Activities] Skipping review due to missing user email.');
+                            continue;
+                        }
 
                         let user = userMap.get(review.reviewUserEmail);
                         if (!user) {
-                            // Create a new user
+                            console.log(`[Bulk Import: Activities] User not found for ${review.reviewUserEmail}. Creating new user.`);
                             const newUser = new User({
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
@@ -455,10 +466,13 @@ exports.importActivities = async (req, res) => {
                             try {
                                 user = await newUser.save();
                                 userMap.set(user.email, user); // Add to map to avoid re-creating
+                                console.log(`[Bulk Import: Activities] Successfully created new user with ID: ${user._id}`);
                             } catch (error) {
-                                console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
+                                console.error(`[Bulk Import: Activities] FAILED to create new user for email ${review.reviewUserEmail}:`, error.message);
                                 continue; // Skip this review if user creation fails
                             }
+                        } else {
+                            console.log(`[Bulk Import: Activities] Found existing user with ID: ${user._id}`);
                         }
 
                         const reviewData = {
@@ -473,15 +487,20 @@ exports.importActivities = async (req, res) => {
                         const update = { $set: reviewData };
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
+                        console.log('[Bulk Import: Activities] Preparing to upsert review with data:', reviewData);
                         try {
                             await Review.findOneAndUpdate(query, update, options);
+                            console.log(`[Bulk Import: Activities] Successfully upserted review for activity "${activity.name}" by user ${user.email}.`);
                         } catch (error) {
-                            console.error(`Failed to upsert review for activity ${activity.name}:`, error.message);
+                            console.error(`[Bulk Import: Activities] FAILED to upsert review for activity ${activity.name}:`, error.message);
                         }
                     }
+                } else {
+                    console.log(`[Bulk Import: Activities] WARNING: Could not find activity document for key: "${key}" in existingActivityMap.`);
                 }
             }
         }
+        console.log('[Bulk Import: Activities] Finished processing all reviews.');
 
         res.status(201).send({ message: `Activities and reviews imported successfully.` });
       } catch (error) {
