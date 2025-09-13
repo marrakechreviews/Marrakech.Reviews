@@ -437,7 +437,13 @@ exports.importActivities = async (req, res) => {
         });
 
         if (newActivitiesData.length > 0) {
-          const insertedActivities = await Activity.create(newActivitiesData);
+          const insertedActivities = [];
+          for (const data of newActivitiesData) {
+            const newActivity = new Activity(data);
+            await newActivity.save();
+            insertedActivities.push(newActivity);
+          }
+
           insertedActivities.forEach(a => {
             const key = a.refId ? a.refId.toString() : a.name;
             existingActivityMap.set(key, a);
