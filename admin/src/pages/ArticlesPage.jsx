@@ -934,11 +934,6 @@ const ArticlesPage = () => {
                 checked={selectedArticles.length === filteredArticles.length && filteredArticles.length > 0}
                 onCheckedChange={handleSelectAll}
               />
-            <div className="flex items-center space-x-4">
-              <Checkbox
-                checked={selectedArticles.length === filteredArticles.length && filteredArticles.length > 0}
-                onCheckedChange={handleSelectAll}
-              />
               <CardTitle>
                 Articles ({filteredArticles.length})
               </CardTitle>

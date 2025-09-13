@@ -1,0 +1,3 @@
+title,content,category,tags,image,metaTitle,metaDescription,keywords,isPublished,reviewName,reviewRating,reviewComment,reviewUserEmail
+"My First Article","This is the content of my first article.","Technology","tech,writing,sample","https://example.com/image.jpg","My First Article","A sample article for bulk import.","article,sample,import",true,"John Doe",5,"This is a great article!","john.doe@example.com"
+"My First Article","This is the content of my first article.","Technology","tech,writing,sample","https://example.com/image.jpg","My First Article","A sample article for bulk import.","article,sample,import",true,"Jane Smith",4,"This is a good article.","jane.smith@example.com"
