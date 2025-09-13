@@ -9,6 +9,23 @@ const OrganizedTravel = require('../models/OrganizedTravel');
 const Review = require('../models/Review');
 const User = require('../models/User');
 
+const updateRatings = async (Model, docId) => {
+  try {
+    const reviews = await Review.find({ refId: docId });
+    const numReviews = reviews.length;
+    const rating = numReviews > 0
+      ? reviews.reduce((acc, item) => item.rating + acc, 0) / numReviews
+      : 0;
+
+    await Model.findByIdAndUpdate(docId, {
+      rating,
+      numReviews,
+    });
+  } catch (error) {
+    console.error(`Failed to update ratings for ${Model.modelName} ${docId}:`, error);
+  }
+};
+
 exports.importArticles = async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
@@ -123,6 +140,7 @@ exports.importArticles = async (req, res) => {
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
                                 password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                                isCsvImported: true,
                             });
                             try {
                                 user = await newUser.save();
@@ -153,6 +171,11 @@ exports.importArticles = async (req, res) => {
                     }
                 }
             }
+        }
+
+        // After all reviews are processed, update ratings for all affected articles
+        for (const article of existingArticleMap.values()) {
+            await updateRatings(Article, article._id);
         }
 
         res.status(201).send({ message: `Articles and reviews imported successfully.` });
@@ -288,6 +311,7 @@ exports.importProducts = async (req, res) => {
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
                                 password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                                isCsvImported: true,
                             });
                             try {
                                 user = await newUser.save();
@@ -318,6 +342,11 @@ exports.importProducts = async (req, res) => {
                     }
                 }
             }
+        }
+
+        // After all reviews are processed, update ratings for all affected products
+        for (const product of existingProductMap.values()) {
+            await updateRatings(Product, product._id);
         }
 
         res.status(201).send({ message: `Products and reviews imported successfully.` });
@@ -451,6 +480,7 @@ exports.importActivities = async (req, res) => {
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
                                 password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                                isCsvImported: true,
                             });
                             try {
                                 user = await newUser.save();
@@ -481,6 +511,11 @@ exports.importActivities = async (req, res) => {
                     }
                 }
             }
+        }
+
+        // After all reviews are processed, update ratings for all affected activities
+        for (const activity of existingActivityMap.values()) {
+            await updateRatings(Activity, activity._id);
         }
 
         res.status(201).send({ message: `Activities and reviews imported successfully.` });
@@ -614,6 +649,7 @@ exports.importOrganizedTravels = async (req, res) => {
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
                                 password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                                isCsvImported: true,
                             });
                             try {
                                 user = await newUser.save();
@@ -644,6 +680,11 @@ exports.importOrganizedTravels = async (req, res) => {
                     }
                 }
             }
+        }
+
+        // After all reviews are processed, update ratings for all affected travels
+        for (const travel of existingTravelMap.values()) {
+            await updateRatings(OrganizedTravel, travel._id);
         }
 
         res.status(201).send({ message: `Organized travels and reviews imported successfully.` });
