@@ -206,6 +206,19 @@ export default function OrganizedTravelManagementPage() {
     }
   };
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids) => organizedTravelAPI.bulkDeletePrograms(ids),
+    onSuccess: () => {
+      fetchPrograms();
+      setSelectedPrograms([]);
+      toast.success('Selected programs deleted successfully');
+    },
+    onError: (error) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete selected programs';
+      toast.error(errorMessage);
+    },
+  });
+
   const openCreateForm = () => {
     setSelectedProgram(null);
     setIsFormOpen(true);
@@ -246,6 +259,12 @@ export default function OrganizedTravelManagementPage() {
       .catch(error => {
         toast.error('Failed to export organized travels');
       });
+  };
+
+  const handleBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedPrograms.length} selected programs?`)) {
+      bulkDeleteMutation.mutate(selectedPrograms);
+    }
   };
 
   const ProgramForm = ({ program, onSave, onCancel }) => {
@@ -400,6 +419,16 @@ export default function OrganizedTravelManagementPage() {
           <p className="text-gray-600">Manage your travel programs</p>
         </div>
         <div className="flex items-center space-x-2">
+          {selectedPrograms.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isLoading}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedPrograms.length})
+            </Button>
+          )}
           <Button onClick={openCreateForm}>
             <Plus className="h-4 w-4 mr-2" />
             Add Program

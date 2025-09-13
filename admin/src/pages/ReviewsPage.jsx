@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Textarea } from '../components/ui/textarea';
 import { Switch } from '../components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { Checkbox } from '../components/ui/checkbox';
 import { 
   MessageSquare, 
   Search, 
@@ -43,6 +44,7 @@ const ReviewsPage = () => {
   const [isEmbedDialogOpen, setIsEmbedDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
+  const [selectedReviewIds, setSelectedReviewIds] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     rating: 5,
@@ -133,6 +135,40 @@ const ReviewsPage = () => {
       toast.error(error.response?.data?.message || 'Failed to delete review');
     },
   });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids) => reviewsAPI.bulkDeleteReviews(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['reviews']);
+      setSelectedReviewIds([]);
+      toast.success('Selected reviews deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to delete selected reviews');
+    },
+  });
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedReviewIds(reviews.map((r) => r._id));
+    } else {
+      setSelectedReviewIds([]);
+    }
+  };
+
+  const handleSelectOne = (checked, id) => {
+    if (checked) {
+      setSelectedReviewIds((prev) => [...prev, id]);
+    } else {
+      setSelectedReviewIds((prev) => prev.filter((reviewId) => reviewId !== id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedReviewIds.length} selected reviews?`)) {
+      bulkDeleteMutation.mutate(selectedReviewIds);
+    }
+  };
 
   const resetForm = useCallback(() => {
     setFormData({
@@ -444,6 +480,16 @@ const ReviewsPage = () => {
           <p className="text-muted-foreground">Manage customer reviews and feedback</p>
         </div>
         <div className="flex gap-2">
+          {selectedReviewIds.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isLoading}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedReviewIds.length})
+            </Button>
+          )}
           <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
@@ -572,7 +618,6 @@ const ReviewsPage = () => {
             <SelectValue placeholder="Select Item" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Items</SelectItem>
             {getRefModelItems().map(item => (
               <SelectItem key={item._id} value={item._id}>
                 {item.name || item.title}
@@ -599,6 +644,12 @@ const ReviewsPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedReviewIds.length === reviews.length && reviews.length > 0}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Review</TableHead>
                 <TableHead>Reference</TableHead>
                 <TableHead>Rating</TableHead>
@@ -610,6 +661,12 @@ const ReviewsPage = () => {
             <TableBody>
               {reviews.map((review) => (
                 <TableRow key={review._id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedReviewIds.includes(review._id)}
+                      onCheckedChange={(checked) => handleSelectOne(checked, review._id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
@@ -715,4 +772,3 @@ const ReviewsPage = () => {
 };
 
 export default ReviewsPage;
-

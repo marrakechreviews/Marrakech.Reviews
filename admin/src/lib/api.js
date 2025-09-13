@@ -63,7 +63,7 @@ export const usersAPI = {
   getUserStats: () => api.get('/users/stats'),
   changePassword: (id, passwordData) => api.patch(`/users/${id}/password`, passwordData),
   toggleUserStatus: (id) => api.patch(`/users/${id}/toggle-status`),
-  bulkDeleteUsers: (userIds) => api.post('/users/bulk-delete', { userIds }),
+  bulkDeleteUsers: (ids) => api.delete('/users/bulk', { data: { ids } }),
   bulkUpdateUsers: (userIds, updateData) => api.post('/users/bulk-update', { userIds, updateData }),
 };
 
@@ -74,6 +74,7 @@ export const productsAPI = {
   createProduct: (data) => api.post('/products', data),
   updateProduct: (id, data) => api.put(`/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/products/${id}`),
+  bulkDeleteProducts: (ids) => api.delete('/products/bulk', { data: { ids } }),
   getTopProducts: (limit) => api.get(`/products/top?limit=${limit}`),
   getFeaturedProducts: (limit) => api.get(`/products/featured?limit=${limit}`),
   bulkImportProducts: (formData) => api.post('/bulk/products', formData, {
@@ -95,6 +96,7 @@ export const ordersAPI = {
   markAsDelivered: (id) => api.put(`/orders/${id}/deliver`),
   getOrderStats: () => api.get('/orders/stats'),
   sendPaymentReminder: (id) => api.post(`/orders/${id}/remind`),
+  bulkDeleteOrders: (ids) => api.delete('/orders/bulk', { data: { ids } }),
 };
 
 // Reviews API
@@ -102,6 +104,7 @@ export const reviewsAPI = {
   getReviews: (params) => api.get('/reviews', { params }),
   approveReview: (id, isApproved) => api.put(`/reviews/${id}/approve`, { isApproved }),
   deleteReview: (id) => api.delete(`/reviews/${id}`),
+  bulkDeleteReviews: (ids) => api.delete('/reviews/bulk', { data: { ids } }),
   bulkImportReviews: (data) => api.post('/reviews/bulk-import', data),
 };
 
@@ -137,6 +140,7 @@ export const articlesAPI = {
   createArticle: (data) => api.post('/articles', data),
   updateArticle: (id, data) => api.put(`/articles/${id}`, data),
   deleteArticle: (id) => api.delete(`/articles/${id}`),
+  bulkDeleteArticles: (ids) => api.delete('/articles/bulk', { data: { ids } }),
   generateAIArticles: (data) => api.post('/articles/generate-ai', data),
   bulkImportArticles: (formData) => api.post('/bulk/articles', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -170,6 +174,7 @@ export const organizedTravelAPI = {
   createProgram: (data) => api.post('/organized-travel/admin/programs', data),
   updateProgram: (id, data) => api.put(`/organized-travel/admin/programs/${id}`, data),
   deleteProgram: (id) => api.delete(`/organized-travel/admin/programs/${id}`),
+  bulkDeletePrograms: (ids) => api.delete('/organized-travel/admin/programs/bulk', { data: { ids } }),
   getReservations: (params) => api.get('/organized-travel/admin/reservations', { params }),
   createReservation: (data) => api.post('/organized-travel/admin/reservations', data),
   updateReservation: (id, data) => api.put(`/organized-travel/admin/reservations/${id}`, data),

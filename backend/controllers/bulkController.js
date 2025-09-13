@@ -9,23 +9,6 @@ const OrganizedTravel = require('../models/OrganizedTravel');
 const Review = require('../models/Review');
 const User = require('../models/User');
 
-const updateRatings = async (Model, docId) => {
-  try {
-    const reviews = await Review.find({ refId: docId });
-    const numReviews = reviews.length;
-    const rating = numReviews > 0
-      ? reviews.reduce((acc, item) => item.rating + acc, 0) / numReviews
-      : 0;
-
-    await Model.findByIdAndUpdate(docId, {
-      rating,
-      numReviews,
-    });
-  } catch (error) {
-    console.error(`Failed to update ratings for ${Model.modelName} ${docId}:`, error);
-  }
-};
-
 exports.importArticles = async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
@@ -140,7 +123,6 @@ exports.importArticles = async (req, res) => {
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
                                 password: crypto.randomBytes(16).toString('hex'), // Generate a random password
-                                isCsvImported: true,
                             });
                             try {
                                 user = await newUser.save();
@@ -159,19 +141,18 @@ exports.importArticles = async (req, res) => {
                             refId: article._id,
                             refModel: 'Article',
                         };
+                        const query = { user: user._id, refId: article._id, refModel: 'Article' };
+                        const update = { $set: reviewData };
+                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
                         try {
-                            await Review.create(reviewData);
+                            await Review.findOneAndUpdate(query, update, options);
                         } catch (error) {
-                            console.error(`Failed to create review for article ${article.title}:`, error.message);
+                            console.error(`Failed to upsert review for article ${article.title}:`, error.message);
                         }
                     }
                 }
             }
-        }
-
-        // After all reviews are processed, update ratings for all affected articles
-        for (const article of existingArticleMap.values()) {
-            await updateRatings(Article, article._id);
         }
 
         res.status(201).send({ message: `Articles and reviews imported successfully.` });
@@ -307,7 +288,6 @@ exports.importProducts = async (req, res) => {
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
                                 password: crypto.randomBytes(16).toString('hex'), // Generate a random password
-                                isCsvImported: true,
                             });
                             try {
                                 user = await newUser.save();
@@ -326,19 +306,18 @@ exports.importProducts = async (req, res) => {
                             refId: product._id,
                             refModel: 'Product',
                         };
+                        const query = { user: user._id, refId: product._id, refModel: 'Product' };
+                        const update = { $set: reviewData };
+                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
                         try {
-                            await Review.create(reviewData);
+                            await Review.findOneAndUpdate(query, update, options);
                         } catch (error) {
-                            console.error(`Failed to create review for product ${product.name}:`, error.message);
+                            console.error(`Failed to upsert review for product ${product.name}:`, error.message);
                         }
                     }
                 }
             }
-        }
-
-        // After all reviews are processed, update ratings for all affected products
-        for (const product of existingProductMap.values()) {
-            await updateRatings(Product, product._id);
         }
 
         res.status(201).send({ message: `Products and reviews imported successfully.` });
@@ -472,7 +451,6 @@ exports.importActivities = async (req, res) => {
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
                                 password: crypto.randomBytes(16).toString('hex'), // Generate a random password
-                                isCsvImported: true,
                             });
                             try {
                                 user = await newUser.save();
@@ -491,19 +469,18 @@ exports.importActivities = async (req, res) => {
                             refId: activity._id,
                             refModel: 'Activity',
                         };
+                        const query = { user: user._id, refId: activity._id, refModel: 'Activity' };
+                        const update = { $set: reviewData };
+                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
                         try {
-                            await Review.create(reviewData);
+                            await Review.findOneAndUpdate(query, update, options);
                         } catch (error) {
-                            console.error(`Failed to create review for activity ${activity.name}:`, error.message);
+                            console.error(`Failed to upsert review for activity ${activity.name}:`, error.message);
                         }
                     }
                 }
             }
-        }
-
-        // After all reviews are processed, update ratings for all affected activities
-        for (const activity of existingActivityMap.values()) {
-            await updateRatings(Activity, activity._id);
         }
 
         res.status(201).send({ message: `Activities and reviews imported successfully.` });
@@ -637,7 +614,6 @@ exports.importOrganizedTravels = async (req, res) => {
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
                                 password: crypto.randomBytes(16).toString('hex'), // Generate a random password
-                                isCsvImported: true,
                             });
                             try {
                                 user = await newUser.save();
@@ -656,19 +632,18 @@ exports.importOrganizedTravels = async (req, res) => {
                             refId: travel._id,
                             refModel: 'OrganizedTravel',
                         };
+                        const query = { user: user._id, refId: travel._id, refModel: 'OrganizedTravel' };
+                        const update = { $set: reviewData };
+                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
                         try {
-                            await Review.create(reviewData);
+                            await Review.findOneAndUpdate(query, update, options);
                         } catch (error) {
-                            console.error(`Failed to create review for travel ${travel.title}:`, error.message);
+                            console.error(`Failed to upsert review for travel ${travel.title}:`, error.message);
                         }
                     }
                 }
             }
-        }
-
-        // After all reviews are processed, update ratings for all affected travels
-        for (const travel of existingTravelMap.values()) {
-            await updateRatings(OrganizedTravel, travel._id);
         }
 
         res.status(201).send({ message: `Organized travels and reviews imported successfully.` });

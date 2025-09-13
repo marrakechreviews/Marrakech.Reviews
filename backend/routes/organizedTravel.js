@@ -70,6 +70,29 @@ router.post("/export", protect, admin, async (req, res) => {
   }
 });
 
+// @desc    Delete multiple organized travel programs (Admin only)
+// @route   DELETE /api/organized-travel/admin/programs/bulk
+// @access  Private/Admin
+router.delete("/admin/programs/bulk", protect, admin, async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'No program IDs provided' });
+    }
+
+    const result = await OrganizedTravel.deleteMany({ _id: { $in: ids } });
+
+    if (result.deletedCount > 0) {
+      res.json({ message: `${result.deletedCount} programs removed` });
+    } else {
+      res.status(404).json({ message: 'No programs found to delete' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // @desc    Get all organized travel programs
 // @route   GET /api/organized-travel
 // @access  Public

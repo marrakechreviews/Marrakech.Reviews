@@ -258,6 +258,20 @@ const EnhancedSimpleProductsPage = () => {
     },
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids) => productsAPI.bulkDeleteProducts(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['products']);
+      refetch();
+      setSelectedProducts([]);
+      toast.success('Selected products deleted successfully');
+    },
+    onError: (error) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete selected products';
+      toast.error(errorMessage);
+    },
+  });
+
   // Update product mutation
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => {
@@ -356,6 +370,12 @@ const EnhancedSimpleProductsPage = () => {
       .catch(error => {
         toast.error('Failed to export products');
       });
+  };
+
+  const handleBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedProducts.length} selected products?`)) {
+      bulkDeleteMutation.mutate(selectedProducts);
+    }
   };
 
   // Reset form data
@@ -651,6 +671,16 @@ const EnhancedSimpleProductsPage = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {selectedProducts.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isLoading}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedProducts.length})
+            </Button>
+          )}
           <button
             onClick={handleRefresh}
             className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"

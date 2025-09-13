@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Switch } from '../components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { Checkbox } from '../components/ui/checkbox';
 import { 
   Users, 
   Search, 
@@ -38,6 +39,7 @@ const UsersPage = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -139,6 +141,42 @@ const UsersPage = () => {
       toast.error(errorMessage);
     },
   });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids) => usersAPI.bulkDeleteUsers(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['users']);
+      queryClient.invalidateQueries(['user-stats']);
+      setSelectedUserIds([]);
+      toast.success('Selected users deleted successfully');
+    },
+    onError: (error) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete selected users';
+      toast.error(errorMessage);
+    },
+  });
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedUserIds(users.map((u) => u._id));
+    } else {
+      setSelectedUserIds([]);
+    }
+  };
+
+  const handleSelectOne = (checked, id) => {
+    if (checked) {
+      setSelectedUserIds((prev) => [...prev, id]);
+    } else {
+      setSelectedUserIds((prev) => prev.filter((userId) => userId !== id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedUserIds.length} selected users?`)) {
+      bulkDeleteMutation.mutate(selectedUserIds);
+    }
+  };
 
   const resetForm = useCallback(() => {
     setFormData({
@@ -541,20 +579,32 @@ const UsersPage = () => {
           <h1 className="text-3xl font-bold">Users</h1>
           <p className="text-muted-foreground">Manage user accounts and permissions</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New User
+        <div className="flex items-center space-x-2">
+          {selectedUserIds.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isLoading}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedUserIds.length})
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New User</DialogTitle>
-            </DialogHeader>
-            <UserForm />
-          </DialogContent>
-        </Dialog>
+          )}
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New User
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create New User</DialogTitle>
+              </DialogHeader>
+              <UserForm />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -681,6 +731,12 @@ const UsersPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={selectedUserIds.length === users.length && users.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Role</TableHead>
@@ -692,6 +748,12 @@ const UsersPage = () => {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user._id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedUserIds.includes(user._id)}
+                        onCheckedChange={(checked) => handleSelectOne(checked, user._id)}
+                      />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
@@ -794,4 +856,3 @@ const UsersPage = () => {
 };
 
 export default UsersPage;
-

@@ -60,10 +60,6 @@ const userSchema = new mongoose.Schema({
   isEmailVerified: {
     type: Boolean,
     default: false
-  },
-  isCsvImported: {
-    type: Boolean,
-    default: false
   }
 }, {
   timestamps: true

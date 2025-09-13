@@ -959,6 +959,27 @@ const createOrderFromTravelReservation = async (req, res) => {
   }
 };
 
+// @desc    Delete multiple orders
+// @route   DELETE /api/orders/bulk
+// @access  Private/Admin
+const bulkDeleteOrders = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    res.status(400);
+    throw new Error('No order IDs provided');
+  }
+
+  const result = await Order.deleteMany({ _id: { $in: ids } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} orders removed` });
+  } else {
+    res.status(404);
+    throw new Error('No orders found to delete');
+  }
+});
+
 module.exports = {
   createOrderFromTravelReservation,
   createPayPalOrderByToken,
@@ -977,5 +998,6 @@ module.exports = {
   createPayPalOrder,
   capturePayPalOrder,
   generateInvoice,
+  bulkDeleteOrders,
 };
 

@@ -2,32 +2,13 @@ const { validationResult } = require('express-validator');
 const Review = require('../models/Review');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
-const mongoose = require('mongoose');
-const User = require('../models/User');
-
-// Helper function to update ratings on the parent document
-const updateParentRatings = async (refId, refModel) => {
-  try {
-    const Model = mongoose.model(refModel);
-    const reviews = await Review.find({ refId, refModel, isApproved: true });
-
-    const numReviews = reviews.length;
-    const rating = numReviews > 0
-      ? reviews.reduce((acc, item) => item.rating + acc, 0) / numReviews
-      : 0;
-
-    await Model.findByIdAndUpdate(refId, {
-      rating: rating.toFixed(1),
-      numReviews,
-    });
-  } catch (error) {
-    console.error(`Error updating ratings for ${refModel} ${refId}:`, error);
-  }
-};
+const asyncHandler = require('express-async-handler');
 
 // @desc    Create a review
 // @route   POST /api/reviews
 // @access  Private
+const mongoose = require('mongoose');
+
 const createReview = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -50,12 +31,9 @@ const createReview = async (req, res) => {
     }
 
     // Check if user has already reviewed this item
-    const user = await User.findById(req.user._id);
-    if (!user.isCsvImported) {
-        const existingReview = await Review.findOne({ user: req.user._id, refId, refModel });
-        if (existingReview) {
-            return res.status(400).json({ success: false, message: `You have already reviewed this ${refModel.toLowerCase()}` });
-        }
+    const existingReview = await Review.findOne({ user: req.user._id, refId, refModel });
+    if (existingReview) {
+      return res.status(400).json({ success: false, message: `You have already reviewed this ${refModel.toLowerCase()}` });
     }
 
     // Create review
@@ -73,9 +51,6 @@ const createReview = async (req, res) => {
     }
 
     const review = await Review.create(reviewData);
-
-    // After creating the review, update the parent document's ratings
-    await updateParentRatings(refId, refModel);
 
     res.status(201).json({ success: true, message: 'Review created successfully', data: review });
   } catch (error) {
@@ -197,9 +172,6 @@ const updateReview = async (req, res) => {
 
     const updatedReview = await review.save();
 
-    // After updating the review, update the parent document's ratings
-    await updateParentRatings(review.refId, review.refModel);
-
     res.json({
       success: true,
       message: 'Review updated successfully',
@@ -242,11 +214,7 @@ const deleteReview = async (req, res) => {
       });
     }
 
-    const { refId, refModel } = review;
     await Review.findByIdAndDelete(req.params.id);
-
-    // After deleting the review, update the parent document's ratings
-    await updateParentRatings(refId, refModel);
 
     res.json({
       success: true,
@@ -266,6 +234,27 @@ const deleteReview = async (req, res) => {
     });
   }
 };
+
+// @desc    Delete multiple reviews
+// @route   DELETE /api/reviews/bulk
+// @access  Private/Admin
+const bulkDeleteReviews = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    res.status(400);
+    throw new Error('No review IDs provided');
+  }
+
+  const result = await Review.deleteMany({ _id: { $in: ids } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} reviews removed` });
+  } else {
+    res.status(404);
+    throw new Error('No reviews found to delete');
+  }
+});
 
 // @desc    Get all reviews
 // @route   GET /api/reviews
@@ -368,9 +357,6 @@ const approveReview = async (req, res) => {
     review.isApproved = req.body.isApproved;
     const updatedReview = await review.save();
 
-    // After approving/disapproving the review, update the parent document's ratings
-    await updateParentRatings(review.refId, review.refModel);
-
     res.json({
       success: true,
       message: `Review ${req.body.isApproved ? 'approved' : 'disapproved'} successfully`,
@@ -428,6 +414,7 @@ module.exports = {
   getReviews,
   updateReview,
   deleteReview,
+  bulkDeleteReviews,
   getAllReviews,
   approveReview,
   bulkImportReviews,

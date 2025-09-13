@@ -7,12 +7,14 @@ const {
   createArticle,
   updateArticle,
   deleteArticle,
+  bulkDeleteArticles,
   exportArticles,
 } = require("../controllers/articleController");
 const { generateAIArticles } = require("../controllers/aiArticleController");
 const { protect, admin } = require("../middleware/authMiddleware");
 
 router.route("/").get(getArticles).post(protect, admin, createArticle);
+router.route("/bulk").delete(protect, admin, bulkDeleteArticles);
 router.route("/export").post(protect, admin, exportArticles);
 router.route("/generate-ai").post(protect, admin, generateAIArticles);
 router.route("/slug/:slug").get(getArticleBySlug);

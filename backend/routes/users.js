@@ -6,6 +6,7 @@ const {
   createUser,
   updateUser,
   deleteUser,
+  bulkDeleteUsers,
   getUserStats
 } = require('../controllers/userController');
 const { protect, admin } = require('../middleware/authMiddleware');
@@ -56,6 +57,11 @@ router.put('/:id', protect, admin, [
     .isBoolean()
     .withMessage('isActive must be a boolean')
 ], updateUser);
+
+// @desc    Delete multiple users (Admin only)
+// @route   DELETE /api/users/bulk
+// @access  Private/Admin
+router.delete('/bulk', protect, admin, bulkDeleteUsers);
 
 // @desc    Delete user (Admin only)
 // @route   DELETE /api/users/:id

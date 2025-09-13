@@ -523,6 +523,27 @@ const exportProducts = asyncHandler(async (req, res) => {
   res.send(csv);
 });
 
+// @desc    Delete multiple products
+// @route   DELETE /api/products/bulk
+// @access  Private/Admin
+const bulkDeleteProducts = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    res.status(400);
+    throw new Error('No product IDs provided');
+  }
+
+  const result = await Product.deleteMany({ _id: { $in: ids } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} products removed` });
+  } else {
+    res.status(404);
+    throw new Error('No products found to delete');
+  }
+});
+
 module.exports = {
   getProducts,
   getProduct,
@@ -530,6 +551,7 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  bulkDeleteProducts,
   getTopProducts,
   getFeaturedProducts,
   getProductsByCategory,

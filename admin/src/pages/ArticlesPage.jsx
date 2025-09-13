@@ -181,6 +181,20 @@ const ArticlesPage = () => {
     },
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids) => articlesAPI.bulkDeleteArticles(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['articles']);
+      refetch();
+      setSelectedArticles([]);
+      toast.success('Selected articles deleted successfully');
+    },
+    onError: (error) => {
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete selected articles';
+      toast.error(errorMessage);
+    },
+  });
+
   // Update article mutation
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => {
@@ -301,6 +315,12 @@ const ArticlesPage = () => {
       .catch(error => {
         toast.error('Failed to export articles');
       });
+  };
+
+  const handleBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedArticles.length} selected articles?`)) {
+      bulkDeleteMutation.mutate(selectedArticles);
+    }
   };
 
   // Reset form data
@@ -783,6 +803,16 @@ const ArticlesPage = () => {
           <p className="text-gray-600">Manage your blog articles and content</p>
         </div>
         <div className="flex items-center space-x-3">
+          {selectedArticles.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isLoading}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedArticles.length})
+            </Button>
+          )}
           <Button
             onClick={handleCreateAIArticle}
             className="flex items-center space-x-2"
@@ -899,6 +929,11 @@ const ArticlesPage = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Checkbox
+                checked={selectedArticles.length === filteredArticles.length && filteredArticles.length > 0}
+                onCheckedChange={handleSelectAll}
+              />
             <div className="flex items-center space-x-4">
               <Checkbox
                 checked={selectedArticles.length === filteredArticles.length && filteredArticles.length > 0}

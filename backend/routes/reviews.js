@@ -5,6 +5,7 @@ const {
   getReviews,
   updateReview,
   deleteReview,
+  bulkDeleteReviews,
   getAllReviews,
   approveReview,
   bulkImportReviews
@@ -13,15 +14,10 @@ const { protect, admin, optionalAuth } = require('../middleware/authMiddleware')
 
 const router = express.Router();
 
-// @desc    Get reviews
-// @route   GET /api/reviews
-// @access  Public (for item reviews), Private/Admin (for all reviews)
 router.get('/', optionalAuth, (req, res, next) => {
-  // If user is admin and authenticated, use the admin controller
   if (req.user && req.user.role === 'admin') {
     return getAllReviews(req, res, next);
   }
-  // Otherwise, use the public controller
   return getReviews(req, res, next);
 }, [
   query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
@@ -42,9 +38,6 @@ const reviewImageUpload = createUploader({
     prefix: 'review'
 });
 
-// @desc    Create a review
-// @route   POST /api/reviews
-// @access  Private
 router.post('/', protect, reviewImageUpload, [
   body('rating')
     .isInt({ min: 1, max: 5 })
@@ -61,14 +54,10 @@ router.post('/', protect, reviewImageUpload, [
     .withMessage('A valid reference model is required')
 ], createReview);
 
-// @desc    Bulk import reviews
-// @route   POST /api/reviews/bulk-import
-// @access  Private/Admin
 router.post('/bulk-import', protect, admin, bulkImportReviews);
 
-// @desc    Update a review
-// @route   PUT /api/reviews/:id
-// @access  Private
+router.delete('/bulk', protect, admin, bulkDeleteReviews);
+
 router.put('/:id', protect, [
   body('rating')
     .optional()
@@ -81,14 +70,8 @@ router.put('/:id', protect, [
     .withMessage('Comment must be between 10 and 1000 characters')
 ], updateReview);
 
-// @desc    Delete a review
-// @route   DELETE /api/reviews/:id
-// @access  Private
 router.delete('/:id', protect, deleteReview);
 
-// @desc    Approve/Disapprove a review (Admin only)
-// @route   PUT /api/reviews/:id/approve
-// @access  Private/Admin
 router.put('/:id/approve', protect, admin, [
   body('isApproved')
     .isBoolean()
@@ -96,4 +79,3 @@ router.put('/:id/approve', protect, admin, [
 ], approveReview);
 
 module.exports = router;
-

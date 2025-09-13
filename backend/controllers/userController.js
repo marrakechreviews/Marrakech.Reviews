@@ -351,12 +351,40 @@ const getUserStats = async (req, res) => {
   }
 };
 
+// @desc    Delete multiple users
+// @route   DELETE /api/users/bulk
+// @access  Private/Admin
+const bulkDeleteUsers = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    res.status(400);
+    throw new Error('No user IDs provided');
+  }
+
+  // Prevent admin from deleting themselves
+  if (ids.includes(req.user._id.toString())) {
+    res.status(400);
+    throw new Error('You cannot delete your own account in a bulk operation');
+  }
+
+  const result = await User.deleteMany({ _id: { $in: ids } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} users removed` });
+  } else {
+    res.status(404);
+    throw new Error('No users found to delete');
+  }
+});
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
   updateUser,
   deleteUser,
+  bulkDeleteUsers,
   getUserStats
 };
 

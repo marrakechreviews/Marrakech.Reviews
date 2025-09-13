@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Textarea } from '../components/ui/textarea';
+import { Checkbox } from '../components/ui/checkbox';
 import { 
   ShoppingCart, 
   Search, 
@@ -28,7 +29,8 @@ import {
   User,
   MapPin,
   CreditCard,
-  Send
+  Send,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ordersAPI, usersAPI, productsAPI } from '../lib/api';
@@ -39,6 +41,7 @@ const OrdersPage = () => {
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [sortBy, setSortBy] = useState('-createdAt');
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState([]);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -98,6 +101,41 @@ const OrdersPage = () => {
       toast.error(error.response?.data?.message || 'Failed to mark as delivered');
     },
   });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids) => ordersAPI.bulkDeleteOrders(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['orders']);
+      queryClient.invalidateQueries(['order-stats']);
+      setSelectedOrderIds([]);
+      toast.success('Selected orders deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to delete selected orders');
+    },
+  });
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedOrderIds(orders.map((o) => o._id));
+    } else {
+      setSelectedOrderIds([]);
+    }
+  };
+
+  const handleSelectOne = (checked, id) => {
+    if (checked) {
+      setSelectedOrderIds((prev) => [...prev, id]);
+    } else {
+      setSelectedOrderIds((prev) => prev.filter((orderId) => orderId !== id));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedOrderIds.length} selected orders?`)) {
+      bulkDeleteMutation.mutate(selectedOrderIds);
+    }
+  };
 
   const reminderMutation = useMutation({
     mutationFn: (id) => ordersAPI.sendPaymentReminder(id),
@@ -497,6 +535,16 @@ const OrdersPage = () => {
           <p className="text-muted-foreground">Manage customer orders and fulfillment</p>
         </div>
         <div className="flex gap-2">
+          {selectedOrderIds.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteMutation.isLoading}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedOrderIds.length})
+            </Button>
+          )}
           <Button variant="outline" onClick={handleExportOrders}>
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -597,6 +645,12 @@ const OrdersPage = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedOrderIds.length === orders.length && orders.length > 0}
+                    onCheckedChange={handleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Order</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Total</TableHead>
@@ -609,6 +663,12 @@ const OrdersPage = () => {
             <TableBody>
               {orders.map((order) => (
                 <TableRow key={order._id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedOrderIds.includes(order._id)}
+                      onCheckedChange={(checked) => handleSelectOne(checked, order._id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{order.orderNumber || order._id.slice(-8).toUpperCase()}</div>
@@ -698,4 +758,3 @@ const OrdersPage = () => {
 };
 
 export default OrdersPage;
-

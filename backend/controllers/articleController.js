@@ -176,6 +176,27 @@ const exportArticles = asyncHandler(async (req, res) => {
   res.send(csv);
 });
 
+// @desc    Delete multiple articles
+// @route   DELETE /api/articles/bulk
+// @access  Private/Admin
+const bulkDeleteArticles = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    res.status(400);
+    throw new Error('No article IDs provided');
+  }
+
+  const result = await Article.deleteMany({ _id: { $in: ids } });
+
+  if (result.deletedCount > 0) {
+    res.json({ message: `${result.deletedCount} articles removed` });
+  } else {
+    res.status(404);
+    throw new Error('No articles found to delete');
+  }
+});
+
 module.exports = {
   getArticles,
   getArticleById,
@@ -183,6 +204,7 @@ module.exports = {
   createArticle,
   updateArticle,
   deleteArticle,
+  bulkDeleteArticles,
   exportArticles,
 };
 

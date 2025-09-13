@@ -16,7 +16,8 @@ const {
   sendPaymentReminderEmail,
   getOrderByPaymentToken,
   createPayPalOrderByToken,
-  capturePayPalOrderByToken
+  capturePayPalOrderByToken,
+  bulkDeleteOrders
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -176,5 +177,9 @@ router.post('/payment/:token/create-paypal-order', createPayPalOrderByToken);
 // @access  Public
 router.put('/payment/:token/capture-paypal-order', capturePayPalOrderByToken);
 
-module.exports = router;
+// @desc    Bulk delete orders
+// @route   DELETE /api/orders/bulk
+// @access  Private/Admin
+router.delete('/bulk', protect, admin, bulkDeleteOrders);
 
+module.exports = router;

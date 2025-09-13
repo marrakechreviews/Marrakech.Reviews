@@ -7,6 +7,7 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
+  bulkDeleteProducts,
   getTopProducts,
   getFeaturedProducts,
   getProductsByCategory,
@@ -140,6 +141,11 @@ router.put('/:id', [
     .isInt({ min: 0 })
     .withMessage('Stock count must be a non-negative integer')
 ], updateProduct);
+
+// @desc    Delete multiple products
+// @route   DELETE /api/products/bulk
+// @access  Private/Admin
+router.delete('/bulk', protect, admin, bulkDeleteProducts);
 
 // @desc    Delete a product
 // @route   DELETE /api/products/:id
