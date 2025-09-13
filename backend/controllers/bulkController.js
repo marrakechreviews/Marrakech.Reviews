@@ -159,14 +159,10 @@ exports.importArticles = async (req, res) => {
                             refId: article._id,
                             refModel: 'Article',
                         };
-                        const query = { user: user._id, refId: article._id, refModel: 'Article' };
-                        const update = { $set: reviewData };
-                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-
                         try {
-                            await Review.findOneAndUpdate(query, update, options);
+                            await Review.create(reviewData);
                         } catch (error) {
-                            console.error(`Failed to upsert review for article ${article.title}:`, error.message);
+                            console.error(`Failed to create review for article ${article.title}:`, error.message);
                         }
                     }
                 }
@@ -330,14 +326,10 @@ exports.importProducts = async (req, res) => {
                             refId: product._id,
                             refModel: 'Product',
                         };
-                        const query = { user: user._id, refId: product._id, refModel: 'Product' };
-                        const update = { $set: reviewData };
-                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-
                         try {
-                            await Review.findOneAndUpdate(query, update, options);
+                            await Review.create(reviewData);
                         } catch (error) {
-                            console.error(`Failed to upsert review for product ${product.name}:`, error.message);
+                            console.error(`Failed to create review for product ${product.name}:`, error.message);
                         }
                     }
                 }
@@ -499,14 +491,10 @@ exports.importActivities = async (req, res) => {
                             refId: activity._id,
                             refModel: 'Activity',
                         };
-                        const query = { user: user._id, refId: activity._id, refModel: 'Activity' };
-                        const update = { $set: reviewData };
-                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-
                         try {
-                            await Review.findOneAndUpdate(query, update, options);
+                            await Review.create(reviewData);
                         } catch (error) {
-                            console.error(`Failed to upsert review for activity ${activity.name}:`, error.message);
+                            console.error(`Failed to create review for activity ${activity.name}:`, error.message);
                         }
                     }
                 }
@@ -668,14 +656,10 @@ exports.importOrganizedTravels = async (req, res) => {
                             refId: travel._id,
                             refModel: 'OrganizedTravel',
                         };
-                        const query = { user: user._id, refId: travel._id, refModel: 'OrganizedTravel' };
-                        const update = { $set: reviewData };
-                        const options = { upsert: true, new: true, setDefaultsOnInsert: true };
-
                         try {
-                            await Review.findOneAndUpdate(query, update, options);
+                            await Review.create(reviewData);
                         } catch (error) {
-                            console.error(`Failed to upsert review for travel ${travel.title}:`, error.message);
+                            console.error(`Failed to create review for travel ${travel.title}:`, error.message);
                         }
                     }
                 }
