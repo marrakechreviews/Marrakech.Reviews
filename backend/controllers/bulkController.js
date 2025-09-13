@@ -26,9 +26,7 @@ exports.importArticles = async (req, res) => {
         const articlesToProcess = new Map();
         results.forEach(item => {
           const key = item.refId || item.title;
-          if (!articlesToProcess.has(key)) {
-            articlesToProcess.set(key, { ...item, reviews: [] });
-          }
+          articlesToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
             articlesToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
@@ -96,7 +94,7 @@ exports.importArticles = async (req, res) => {
         });
 
         if (newArticlesData.length > 0) {
-          const insertedArticles = await Article.insertMany(newArticlesData);
+          const insertedArticles = await Article.create(newArticlesData);
           insertedArticles.forEach(a => {
             const key = a.refId ? a.refId.toString() : a.title;
             existingArticleMap.set(key, a);
@@ -185,9 +183,7 @@ exports.importProducts = async (req, res) => {
         const productsToProcess = new Map();
         results.forEach(item => {
           const key = item.refId || item.name;
-          if (!productsToProcess.has(key)) {
-            productsToProcess.set(key, { ...item, reviews: [] });
-          }
+          productsToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
             productsToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
@@ -265,7 +261,7 @@ exports.importProducts = async (req, res) => {
         });
 
         if (newProductsData.length > 0) {
-          const insertedProducts = await Product.insertMany(newProductsData);
+          const insertedProducts = await Product.create(newProductsData);
           insertedProducts.forEach(p => {
             const key = p.refId ? p.refId.toString() : p.name;
             existingProductMap.set(key, p)
@@ -354,9 +350,7 @@ exports.importActivities = async (req, res) => {
         const activitiesToProcess = new Map();
         results.forEach(item => {
           const key = item.refId || item.name;
-          if (!activitiesToProcess.has(key)) {
-            activitiesToProcess.set(key, { ...item, reviews: [] });
-          }
+          activitiesToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
             activitiesToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
@@ -432,7 +426,18 @@ exports.importActivities = async (req, res) => {
         });
 
         if (newActivitiesData.length > 0) {
-          const insertedActivities = await Activity.insertMany(newActivitiesData);
+          // Manually generate slugs as a temporary fix
+          newActivitiesData.forEach(data => {
+            if (data.name) {
+              data.slug = data.name
+                .toLowerCase()
+                .replace(/[^a-z0-9 -]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim('-');
+            }
+          });
+          const insertedActivities = await Activity.create(newActivitiesData);
           insertedActivities.forEach(a => {
             const key = a.refId ? a.refId.toString() : a.name;
             existingActivityMap.set(key, a);
@@ -497,7 +502,7 @@ exports.importActivities = async (req, res) => {
           const messages = Object.values(error.errors).map(e => e.message);
           return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
         }
-        console.error('Error importing activities:', JSON.stringify(error, null, 2));
+        console.error('Error object in importActivities:', error);
         res.status(500).send({ message: 'An unexpected error occurred while importing activities.', error: error.message, details: error });
       } finally {
         fs.unlinkSync(filePath);
@@ -522,9 +527,7 @@ exports.importOrganizedTravels = async (req, res) => {
         const travelsToProcess = new Map();
         results.forEach(item => {
           const key = item.refId || item.title;
-          if (!travelsToProcess.has(key)) {
-            travelsToProcess.set(key, { ...item, reviews: [] });
-          }
+          travelsToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
             travelsToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
@@ -599,7 +602,7 @@ exports.importOrganizedTravels = async (req, res) => {
         });
 
         if (newTravelsData.length > 0) {
-          const insertedTravels = await OrganizedTravel.insertMany(newTravelsData);
+          const insertedTravels = await OrganizedTravel.create(newTravelsData);
           insertedTravels.forEach(t => {
             const key = t.refId ? t.refId.toString() : t.title;
             existingTravelMap.set(key, t);
@@ -776,7 +779,7 @@ exports.importReviews = async (req, res) => {
           const messages = Object.values(error.errors).map(e => e.message);
           return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
         }
-        console.error('Error importing reviews:', error);
+        console.error('Error object:', error);
         res.status(500).send({ message: 'An unexpected error occurred while importing reviews.', error: error.message });
       } finally {
         fs.unlinkSync(filePath);
