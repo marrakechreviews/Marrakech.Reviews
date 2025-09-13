@@ -10,6 +10,7 @@ const Review = require('../models/Review');
 const User = require('../models/User');
 
 const slugify = (text) => {
+  if (!text) return '';
   return text
     .toString()
     .toLowerCase()
@@ -35,6 +36,7 @@ exports.importArticles = async (req, res) => {
       try {
         const articlesToProcess = new Map();
         results.forEach(item => {
+          if (!item.title) return;
           const key = item.refId || item.title;
           articlesToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
@@ -91,9 +93,7 @@ exports.importArticles = async (req, res) => {
             Object.assign(existingArticle, articleData);
             updatePromises.push(existingArticle.save());
           } else {
-            if (articleData.title) {
-                articleData.slug = slugify(articleData.title);
-            }
+            articleData.slug = slugify(articleData.title);
             if (!articleData.author) articleData.author = req.user._id;
             newArticlesData.push(articleData);
           }
@@ -113,7 +113,6 @@ exports.importArticles = async (req, res) => {
           });
         }
 
-        // Now handle reviews
         const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
         const existingUsers = await User.find({ email: { $in: reviewEmails }});
         const userMap = new Map(existingUsers.map(u => [u.email, u]));
@@ -193,6 +192,7 @@ exports.importProducts = async (req, res) => {
       try {
         const productsToProcess = new Map();
         results.forEach(item => {
+          if (!item.name) return;
           const key = item.refId || item.name;
           productsToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
@@ -260,9 +260,7 @@ exports.importProducts = async (req, res) => {
             Object.assign(existingProduct, productData);
             updatePromises.push(existingProduct.save());
           } else {
-            if (productData.name) {
-                productData.slug = slugify(productData.name);
-            }
+            productData.slug = slugify(productData.name);
             newProductsData.push(productData);
           }
         }
@@ -360,6 +358,7 @@ exports.importActivities = async (req, res) => {
       try {
         const activitiesToProcess = new Map();
         results.forEach(item => {
+          if (!item.name) return;
           const key = item.refId || item.name;
           activitiesToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
@@ -426,9 +425,7 @@ exports.importActivities = async (req, res) => {
             Object.assign(existingActivity, activityData);
             updatePromises.push(existingActivity.save());
           } else {
-            if (activityData.name) {
-                activityData.slug = slugify(activityData.name);
-            }
+            activityData.slug = slugify(activityData.name);
             newActivitiesData.push(activityData);
           }
         }
@@ -526,6 +523,7 @@ exports.importOrganizedTravels = async (req, res) => {
       try {
         const travelsToProcess = new Map();
         results.forEach(item => {
+          if (!item.title) return;
           const key = item.refId || item.title;
           travelsToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
@@ -591,9 +589,7 @@ exports.importOrganizedTravels = async (req, res) => {
             Object.assign(existingTravel, travelData);
             updatePromises.push(existingTravel.save());
           } else {
-            if (travelData.title) {
-                travelData.slug = slugify(travelData.title);
-            }
+            travelData.slug = slugify(travelData.title);
             newTravelsData.push(travelData);
           }
         }
