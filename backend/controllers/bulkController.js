@@ -157,7 +157,11 @@ exports.importArticles = async (req, res) => {
 
         res.status(201).send({ message: `Articles and reviews imported successfully.` });
       } catch (error) {
-        res.status(500).send({ message: 'Error importing articles.', error: error.message });
+        if (error.name === 'ValidationError') {
+          const messages = Object.values(error.errors).map(e => e.message);
+          return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
+        }
+        res.status(500).send({ message: 'An unexpected error occurred while importing articles.', error: error.message });
       } finally {
         fs.unlinkSync(filePath); // Clean up uploaded file
       }
@@ -322,7 +326,11 @@ exports.importProducts = async (req, res) => {
 
         res.status(201).send({ message: `Products and reviews imported successfully.` });
       } catch (error) {
-        res.status(500).send({ message: 'Error importing products.', error: error.message });
+        if (error.name === 'ValidationError') {
+          const messages = Object.values(error.errors).map(e => e.message);
+          return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
+        }
+        res.status(500).send({ message: 'An unexpected error occurred while importing products.', error: error.message });
       } finally {
         fs.unlinkSync(filePath);
       }
@@ -485,8 +493,12 @@ exports.importActivities = async (req, res) => {
 
         res.status(201).send({ message: `Activities and reviews imported successfully.` });
       } catch (error) {
+        if (error.name === 'ValidationError') {
+          const messages = Object.values(error.errors).map(e => e.message);
+          return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
+        }
         console.error('Error importing activities:', JSON.stringify(error, null, 2));
-        res.status(500).send({ message: 'Error importing activities.', error: error.message, details: error });
+        res.status(500).send({ message: 'An unexpected error occurred while importing activities.', error: error.message, details: error });
       } finally {
         fs.unlinkSync(filePath);
       }
@@ -648,7 +660,124 @@ exports.importOrganizedTravels = async (req, res) => {
 
         res.status(201).send({ message: `Organized travels and reviews imported successfully.` });
       } catch (error) {
-        res.status(500).send({ message: 'Error importing organized travels.', error: error.message });
+        if (error.name === 'ValidationError') {
+          const messages = Object.values(error.errors).map(e => e.message);
+          return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
+        }
+        res.status(500).send({ message: 'An unexpected error occurred while importing organized travels.', error: error.message });
+      } finally {
+        fs.unlinkSync(filePath);
+      }
+    });
+};
+
+exports.importReviews = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+
+  const results = [];
+  const filePath = req.file.path;
+
+  const models = {
+    Article,
+    Product,
+    Activity,
+    OrganizedTravel,
+  };
+
+  fs.createReadStream(filePath)
+    .pipe(iconv.decodeStream('windows-1252'))
+    .pipe(csv())
+    .on('data', (data) => results.push(data))
+    .on('end', async () => {
+      try {
+        let createdCount = 0;
+        let updatedCount = 0;
+        const errors = [];
+
+        const userEmails = [...new Set(results.map(item => item.reviewUserEmail).filter(Boolean))];
+        const existingUsers = await User.find({ email: { $in: userEmails } });
+        const userMap = new Map(existingUsers.map(u => [u.email, u]));
+
+        for (const [index, item] of results.entries()) {
+          const rowNum = index + 2; // CSV rows are 1-based, plus header
+          const { refId, itemName, refModel, reviewRating, reviewComment, reviewUserEmail, reviewName } = item;
+
+          if (!refModel || !models[refModel]) {
+            errors.push(`Row ${rowNum}: Invalid or missing refModel: ${refModel}`);
+            continue;
+          }
+          if ((!refId && !itemName) || !reviewRating || !reviewComment || !reviewUserEmail) {
+            errors.push(`Row ${rowNum}: Skipping row due to missing required fields (refId/itemName, reviewRating, reviewComment, reviewUserEmail).`);
+            continue;
+          }
+
+          const Model = models[refModel];
+          let targetDoc;
+
+          if (refId) {
+            targetDoc = await Model.findOne({ refId });
+          } else if (itemName) {
+            const queryField = Model.schema.paths.title ? 'title' : 'name';
+            targetDoc = await Model.findOne({ [queryField]: itemName });
+          }
+
+          if (!targetDoc) {
+            errors.push(`Row ${rowNum}: Target document not found for item with refId '${refId}' or name '${itemName}' in model '${refModel}'.`);
+            continue;
+          }
+
+          let user = userMap.get(reviewUserEmail);
+          if (!user) {
+            const newUser = new User({
+              name: reviewName || 'Anonymous',
+              email: reviewUserEmail,
+              password: crypto.randomBytes(16).toString('hex'),
+            });
+            try {
+              user = await newUser.save();
+              userMap.set(user.email, user);
+            } catch (error) {
+              errors.push(`Row ${rowNum}: Failed to create new user for email ${reviewUserEmail}: ${error.message}`);
+              continue;
+            }
+          }
+
+          const reviewData = {
+            name: reviewName || user.name,
+            rating: parseInt(reviewRating),
+            comment: reviewComment,
+            user: user._id,
+            refId: targetDoc._id,
+            refModel: refModel,
+          };
+
+          const query = { user: user._id, refId: targetDoc._id, refModel: refModel };
+          const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+          const result = await Review.findOneAndUpdate(query, { $set: reviewData }, options);
+
+          if (result.createdAt.getTime() === result.updatedAt.getTime()) {
+              createdCount++;
+          } else {
+              updatedCount++;
+          }
+        }
+
+        let message = `Reviews import completed. ${createdCount} created, ${updatedCount} updated.`;
+        if (errors.length > 0) {
+            message += ` ${errors.length} rows had errors.`;
+        }
+
+        res.status(201).send({ message, errors, createdCount, updatedCount });
+      } catch (error) {
+        if (error.name === 'ValidationError') {
+          const messages = Object.values(error.errors).map(e => e.message);
+          return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
+        }
+        console.error('Error importing reviews:', error);
+        res.status(500).send({ message: 'An unexpected error occurred while importing reviews.', error: error.message });
       } finally {
         fs.unlinkSync(filePath);
       }

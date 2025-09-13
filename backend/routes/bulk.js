@@ -10,5 +10,6 @@ router.post('/articles', protect, admin, upload.single('file'), bulkController.i
 router.post('/products', protect, admin, upload.single('file'), bulkController.importProducts);
 router.post('/activities', protect, admin, upload.single('file'), bulkController.importActivities);
 router.post('/organized-travels', protect, admin, upload.single('file'), bulkController.importOrganizedTravels);
+router.post('/reviews', protect, admin, upload.single('file'), bulkController.importReviews);
 
 module.exports = router;

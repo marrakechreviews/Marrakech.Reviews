@@ -1,35 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { toast } from 'sonner';
-import Papa from 'papaparse';
 import { reviewsAPI } from '../lib/api';
+import { Upload } from 'lucide-react';
 
 const CsvImportForm = ({ onFinished }) => {
   const [file, setFile] = useState(null);
-  const [refModel, setRefModel] = useState('Product');
+  const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
   const bulkImportMutation = useMutation({
-    mutationFn: (data) => reviewsAPI.bulkImportReviews(data),
+    mutationFn: (formData) => reviewsAPI.bulkImportReviews(formData),
     onSuccess: (response) => {
-      toast.success(`${response.data.successCount} reviews imported successfully.`);
-      if (response.data.errorCount > 0) {
-        toast.error(`${response.data.errorCount} reviews failed to import.`);
+      const { message, errors, createdCount, updatedCount } = response.data;
+      toast.success(message, {
+        description: `Created: ${createdCount}, Updated: ${updatedCount}`,
+      });
+
+      if (errors && errors.length > 0) {
+        toast.error(`${errors.length} rows had errors.`, {
+          description: (
+            <ul className="list-disc list-inside max-h-40 overflow-y-auto">
+              {errors.map((err, i) => (
+                <li key={i}>{err}</li>
+              ))}
+            </ul>
+          ),
+          duration: 10000,
+        });
       }
       queryClient.invalidateQueries(['reviews']);
       onFinished();
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to import reviews');
+      const errorData = error.response?.data;
+      if (errorData && errorData.errors) {
+        toast.error(errorData.message || 'Validation failed', {
+          description: (
+            <ul className="list-disc list-inside">
+              {errorData.errors.map((err, i) => (
+                <li key={i}>{err}</li>
+              ))}
+            </ul>
+          ),
+          duration: 10000,
+        });
+      } else {
+        toast.error(errorData?.message || 'Failed to import reviews');
+      }
     },
   });
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+    }
   };
 
   const handleImport = () => {
@@ -38,51 +67,51 @@ const CsvImportForm = ({ onFinished }) => {
       return;
     }
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const reviews = results.data.map(row => ({
-          ...row,
-          refModel,
-        }));
-        bulkImportMutation.mutate({ reviews });
-      },
-      error: (error) => {
-        toast.error('Error parsing CSV file.');
-        console.error('CSV parsing error:', error);
-      },
-    });
+    const formData = new FormData();
+    formData.append('file', file);
+
+    bulkImportMutation.mutate(formData);
+  };
+
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="refModel">Reference Type</Label>
-        <Select value={refModel} onValueChange={setRefModel}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Product">Product</SelectItem>
-            <SelectItem value="Activity">Activity</SelectItem>
-            <SelectItem value="OrganizedTravel">Organized Travel</SelectItem>
-            <SelectItem value="Article">Article</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label>CSV File</Label>
         <p className="text-sm text-muted-foreground">
-          Select the type of item these reviews are for. The CSV should contain a 'refId' column with the IDs of the items.
+          The CSV file should have the following columns:
+          <span className="font-mono text-xs bg-muted p-1 rounded">refModel</span>,
+          <span className="font-mono text-xs bg-muted p-1 rounded">refId</span> (or <span className="font-mono text-xs bg-muted p-1 rounded">itemName</span>),
+          <span className="font-mono text-xs bg-muted p-1 rounded">reviewUserEmail</span>,
+          <span className="font-mono text-xs bg-muted p-1 rounded">reviewName</span>,
+          <span className="font-mono text-xs bg-muted p-1 rounded">reviewRating</span>,
+          <span className="font-mono text-xs bg-muted p-1 rounded">reviewComment</span>.
         </p>
+        <div
+          className="border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={triggerFileSelect}
+        >
+          <input
+            ref={fileInputRef}
+            id="csv-file"
+            type="file"
+            accept=".csv"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+          <p className="mt-4 text-muted-foreground">
+            {file ? file.name : 'Click to select a file or drag and drop'}
+          </p>
+        </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="csv-file">CSV File</Label>
-        <Input id="csv-file" type="file" accept=".csv" onChange={handleFileChange} />
-        <p className="text-sm text-muted-foreground">
-          CSV columns: refId, name, rating, comment
-        </p>
-      </div>
-      <div className="flex justify-end">
-        <Button onClick={handleImport} disabled={bulkImportMutation.isLoading}>
+
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onFinished}>Cancel</Button>
+        <Button onClick={handleImport} disabled={!file || bulkImportMutation.isLoading}>
           {bulkImportMutation.isLoading ? 'Importing...' : 'Import Reviews'}
         </Button>
       </div>
