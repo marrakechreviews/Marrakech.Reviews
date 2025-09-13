@@ -9,6 +9,16 @@ const OrganizedTravel = require('../models/OrganizedTravel');
 const Review = require('../models/Review');
 const User = require('../models/User');
 
+const slugify = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-')
+    .trim('-');
+};
+
 exports.importArticles = async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
@@ -81,7 +91,9 @@ exports.importArticles = async (req, res) => {
             Object.assign(existingArticle, articleData);
             updatePromises.push(existingArticle.save());
           } else {
-            // Important: author is required
+            if (articleData.title) {
+                articleData.slug = slugify(articleData.title);
+            }
             if (!articleData.author) articleData.author = req.user._id;
             newArticlesData.push(articleData);
           }
@@ -116,18 +128,17 @@ exports.importArticles = async (req, res) => {
 
                         let user = userMap.get(review.reviewUserEmail);
                         if (!user) {
-                            // Create a new user
                             const newUser = new User({
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
-                                password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                                password: crypto.randomBytes(16).toString('hex'),
                             });
                             try {
                                 user = await newUser.save();
-                                userMap.set(user.email, user); // Add to map to avoid re-creating
+                                userMap.set(user.email, user);
                             } catch (error) {
                                 console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
-                                continue; // Skip this review if user creation fails
+                                continue;
                             }
                         }
 
@@ -161,7 +172,7 @@ exports.importArticles = async (req, res) => {
         }
         res.status(500).send({ message: 'An unexpected error occurred while importing articles.', error: error.message });
       } finally {
-        fs.unlinkSync(filePath); // Clean up uploaded file
+        fs.unlinkSync(filePath);
       }
     });
 };
@@ -242,7 +253,6 @@ exports.importProducts = async (req, res) => {
             refId: item.refId,
           };
 
-          // Filter out undefined values so they don't overwrite existing data with nulls
           Object.keys(productData).forEach(key => productData[key] === undefined && delete productData[key]);
 
 
@@ -250,6 +260,9 @@ exports.importProducts = async (req, res) => {
             Object.assign(existingProduct, productData);
             updatePromises.push(existingProduct.save());
           } else {
+            if (productData.name) {
+                productData.slug = slugify(productData.name);
+            }
             newProductsData.push(productData);
           }
         }
@@ -268,7 +281,6 @@ exports.importProducts = async (req, res) => {
           });
         }
 
-        // Now handle reviews
         const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
         const existingUsers = await User.find({ email: { $in: reviewEmails }});
         const userMap = new Map(existingUsers.map(u => [u.email, u]));
@@ -283,18 +295,17 @@ exports.importProducts = async (req, res) => {
 
                         let user = userMap.get(review.reviewUserEmail);
                         if (!user) {
-                            // Create a new user
                             const newUser = new User({
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
-                                password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                                password: crypto.randomBytes(16).toString('hex'),
                             });
                             try {
                                 user = await newUser.save();
-                                userMap.set(user.email, user); // Add to map to avoid re-creating
+                                userMap.set(user.email, user);
                             } catch (error) {
                                 console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
-                                continue; // Skip this review if user creation fails
+                                continue;
                             }
                         }
 
@@ -415,6 +426,9 @@ exports.importActivities = async (req, res) => {
             Object.assign(existingActivity, activityData);
             updatePromises.push(existingActivity.save());
           } else {
+            if (activityData.name) {
+                activityData.slug = slugify(activityData.name);
+            }
             newActivitiesData.push(activityData);
           }
         }
@@ -426,17 +440,6 @@ exports.importActivities = async (req, res) => {
         });
 
         if (newActivitiesData.length > 0) {
-          // Manually generate slugs as a temporary fix
-          newActivitiesData.forEach(data => {
-            if (data.name) {
-              data.slug = data.name
-                .toLowerCase()
-                .replace(/[^a-z0-9 -]/g, '')
-                .replace(/\s+/g, '-')
-                .replace(/-+/g, '-')
-                .trim('-');
-            }
-          });
           const insertedActivities = await Activity.create(newActivitiesData);
           insertedActivities.forEach(a => {
             const key = a.refId ? a.refId.toString() : a.name;
@@ -444,7 +447,6 @@ exports.importActivities = async (req, res) => {
           });
         }
 
-        // Now handle reviews
         const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
         const existingUsers = await User.find({ email: { $in: reviewEmails }});
         const userMap = new Map(existingUsers.map(u => [u.email, u]));
@@ -459,18 +461,17 @@ exports.importActivities = async (req, res) => {
 
                         let user = userMap.get(review.reviewUserEmail);
                         if (!user) {
-                            // Create a new user
                             const newUser = new User({
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
-                                password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                                password: crypto.randomBytes(16).toString('hex'),
                             });
                             try {
                                 user = await newUser.save();
-                                userMap.set(user.email, user); // Add to map to avoid re-creating
+                                userMap.set(user.email, user);
                             } catch (error) {
                                 console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
-                                continue; // Skip this review if user creation fails
+                                continue;
                             }
                         }
 
@@ -502,7 +503,6 @@ exports.importActivities = async (req, res) => {
           const messages = Object.values(error.errors).map(e => e.message);
           return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
         }
-        console.error('Error object in importActivities:', error);
         res.status(500).send({ message: 'An unexpected error occurred while importing activities.', error: error.message, details: error });
       } finally {
         fs.unlinkSync(filePath);
@@ -591,6 +591,9 @@ exports.importOrganizedTravels = async (req, res) => {
             Object.assign(existingTravel, travelData);
             updatePromises.push(existingTravel.save());
           } else {
+            if (travelData.title) {
+                travelData.slug = slugify(travelData.title);
+            }
             newTravelsData.push(travelData);
           }
         }
@@ -609,7 +612,6 @@ exports.importOrganizedTravels = async (req, res) => {
           });
         }
 
-        // Now handle reviews
         const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
         const existingUsers = await User.find({ email: { $in: reviewEmails }});
         const userMap = new Map(existingUsers.map(u => [u.email, u]));
@@ -624,18 +626,17 @@ exports.importOrganizedTravels = async (req, res) => {
 
                         let user = userMap.get(review.reviewUserEmail);
                         if (!user) {
-                            // Create a new user
                             const newUser = new User({
                                 name: review.reviewName || 'Anonymous',
                                 email: review.reviewUserEmail,
-                                password: crypto.randomBytes(16).toString('hex'), // Generate a random password
+                                password: crypto.randomBytes(16).toString('hex'),
                             });
                             try {
                                 user = await newUser.save();
-                                userMap.set(user.email, user); // Add to map to avoid re-creating
+                                userMap.set(user.email, user);
                             } catch (error) {
                                 console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
-                                continue; // Skip this review if user creation fails
+                                continue;
                             }
                         }
 
@@ -704,7 +705,7 @@ exports.importReviews = async (req, res) => {
         const userMap = new Map(existingUsers.map(u => [u.email, u]));
 
         for (const [index, item] of results.entries()) {
-          const rowNum = index + 2; // CSV rows are 1-based, plus header
+          const rowNum = index + 2;
           const { refId, itemName, refModel, reviewRating, reviewComment, reviewUserEmail, reviewName } = item;
 
           if (!refModel || !models[refModel]) {
@@ -779,7 +780,6 @@ exports.importReviews = async (req, res) => {
           const messages = Object.values(error.errors).map(e => e.message);
           return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
         }
-        console.error('Error object:', error);
         res.status(500).send({ message: 'An unexpected error occurred while importing reviews.', error: error.message });
       } finally {
         fs.unlinkSync(filePath);
