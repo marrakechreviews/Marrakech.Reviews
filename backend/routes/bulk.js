@@ -3,8 +3,14 @@ const router = express.Router();
 const bulkController = require('../controllers/bulkController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const multer = require('multer');
+const fs = require('fs');
 
-const upload = multer({ dest: '/tmp/uploads/' });
+const uploadDir = '/tmp/uploads/';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const upload = multer({ dest: uploadDir });
 
 router.post('/articles', protect, admin, upload.single('file'), bulkController.importArticles);
 router.post('/products', protect, admin, upload.single('file'), bulkController.importProducts);
