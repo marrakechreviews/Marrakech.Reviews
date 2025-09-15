@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Plus,
   Search,
@@ -116,6 +117,24 @@ export default function OrganizedTravelManagementPage() {
   const [selectedPrograms, setSelectedPrograms] = useState([]);
   const [stats, setStats] = useState(null);
   const [csvFile, setCsvFile] = useState(null);
+  const successSoundRef = useRef(null);
+  const queryClient = useQueryClient();
+
+  const bulkImportMutation = useMutation({
+    mutationFn: (formData) => organizedTravelAPI.bulkImportPrograms(formData),
+    onSuccess: () => {
+      toast.success('Travel programs imported successfully!');
+      if (successSoundRef.current) {
+        successSoundRef.current.play();
+      }
+      fetchPrograms();
+      setCsvFile(null);
+    },
+    onError: (error) => {
+      console.error("Failed to import travel programs:", error);
+      toast.error("Failed to import travel programs. Please try again.");
+    },
+  });
 
   useEffect(() => {
     fetchPrograms();
@@ -155,24 +174,14 @@ export default function OrganizedTravelManagementPage() {
     setCsvFile(e.target.files[0]);
   };
 
-  const handleBulkImport = async () => {
+  const handleBulkImport = () => {
     if (!csvFile) {
       toast.error('Please select a CSV file to import');
       return;
     }
-
     const formData = new FormData();
     formData.append('file', csvFile);
-
-    try {
-      await organizedTravelAPI.bulkImportPrograms(formData);
-      toast.success('Travel programs imported successfully!');
-      fetchPrograms();
-      setCsvFile(null);
-    } catch (error) {
-      console.error("Failed to import travel programs:", error);
-      toast.error("Failed to import travel programs. Please try again.");
-    }
+    bulkImportMutation.mutate(formData);
   };
 
   const handleToggleStatus = async (programId, field) => {
@@ -620,6 +629,19 @@ export default function OrganizedTravelManagementPage() {
             }}
             onCancel={() => setIsFormOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+      <audio ref={successSoundRef} src="/sounds/success.mp3" />
+      {/* Import in progress Dialog */}
+      <Dialog open={bulkImportMutation.isLoading}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Importing Travel Programs</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center items-center p-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="ml-4">Please wait, import is in progress...</p>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
