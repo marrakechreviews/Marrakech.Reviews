@@ -90,7 +90,8 @@ const CsvImportForm = ({ onFinished }) => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <p className="ml-4">Please wait, import is in progress...</p>
         </div>
-      ) :
+      ) : (
+      <>
       <div className="space-y-2">
         <Label>CSV File</Label>
         <p className="text-sm text-muted-foreground">
@@ -127,6 +128,8 @@ const CsvImportForm = ({ onFinished }) => {
           {bulkImportMutation.isLoading ? 'Importing...' : 'Import Reviews'}
         </Button>
       </div>
+      </>
+      )}
     </div>
   );
 };
