@@ -19,30 +19,12 @@ import { Slider } from '@/components/ui/slider';
 import ProductCard from '../components/ProductCard';
 import { productsAPI } from '../lib/api';
 import { Helmet } from 'react-helmet-async';
-import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
-
-const fetchProductsApi = async (params) => {
-  const response = await productsAPI.getProducts(params);
-  return {
-    items: response.data.data,
-    pagination: response.data.pagination,
-  };
-};
 
 export default function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
-
-  const {
-    items: products,
-    loading: isLoading,
-    loadingMore,
-    pagination,
-    filters,
-    setFilters,
-    loadMore,
-  } = useInfiniteScroll(fetchProductsApi, {
+  const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
     category: searchParams.get('category') || '',
     minPrice: parseInt(searchParams.get('minPrice')) || 0,
@@ -52,12 +34,28 @@ export default function ProductsPage() {
     sortBy: searchParams.get('sortBy') || 'featured',
   });
 
+  const { data: productsData, isLoading, error } = useQuery({
+    queryKey: ['products', filters],
+    queryFn: () => productsAPI.getProducts({
+      page: 1,
+      limit: 20,
+      search: filters.search,
+      category: filters.category,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      rating: filters.rating,
+      inStock: filters.inStock,
+      sortBy: filters.sortBy,
+    }).then(res => res.data),
+  });
+
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: () => productsAPI.getCategories().then(res => res.data.data),
   });
 
-  const totalProducts = pagination?.total || 0;
+  const products = productsData?.data || [];
+  const totalProducts = productsData?.total || 0;
 
   // Update URL when filters change
   useEffect(() => {
@@ -371,6 +369,10 @@ export default function ProductsPage() {
                     </div>
                   ))}
                 </div>
+              ) : error ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">Error loading products. Please try again.</p>
+                </div>
               ) : products.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500">No products found matching your criteria.</p>
@@ -387,18 +389,6 @@ export default function ProductsPage() {
                       <ProductListItem key={product._id} product={product} />
                     )
                   ))}
-                </div>
-              )}
-
-              {/* Load More Button */}
-              {!isLoading && pagination.page < pagination.pages && (
-                <div className="text-center mt-8">
-                  <Button
-                    onClick={loadMore}
-                    disabled={loadingMore}
-                  >
-                    {loadingMore ? 'Loading...' : 'Load More'}
-                  </Button>
                 </div>
               )}
             </div>

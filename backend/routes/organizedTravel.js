@@ -107,26 +107,8 @@ router.get("/stats", protect, admin, async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
-    const skip = (page - 1) * limit;
-
-    const programs = await OrganizedTravel.find({ isActive: true })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    const total = await OrganizedTravel.countDocuments({ isActive: true });
-
-    res.json({
-      items: programs,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
+    const programs = await OrganizedTravel.find({ isActive: true }).sort({ createdAt: -1 });
+    res.json(programs);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

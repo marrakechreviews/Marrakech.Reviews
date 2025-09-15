@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
@@ -45,24 +44,6 @@ export default function ActivitiesManagementPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
   const [selectedActivityIds, setSelectedActivityIds] = useState([]);
-  const successSoundRef = useRef(null);
-  const queryClient = useQueryClient();
-
-  const bulkImportMutation = useMutation({
-    mutationFn: (formData) => activitiesAPI.bulkImportActivities(formData),
-    onSuccess: () => {
-      toast.success('Activities imported successfully!');
-      if (successSoundRef.current) {
-        successSoundRef.current.play();
-      }
-      fetchActivities();
-      setCsvFile(null);
-    },
-    onError: (error) => {
-      console.error("Failed to import activities:", error);
-      toast.error("Failed to import activities. Please try again.");
-    },
-  });
 
   const [categories, setCategories] = useState([
     "Desert Tours",
@@ -122,14 +103,24 @@ export default function ActivitiesManagementPage() {
     setCsvFile(e.target.files[0]);
   };
 
-  const handleBulkImport = () => {
+  const handleBulkImport = async () => {
     if (!csvFile) {
       toast.error('Please select a CSV file to import');
       return;
     }
+
     const formData = new FormData();
     formData.append('file', csvFile);
-    bulkImportMutation.mutate(formData);
+
+    try {
+      await activitiesAPI.bulkImportActivities(formData);
+      toast.success('Activities imported successfully!');
+      fetchActivities();
+      setCsvFile(null);
+    } catch (error) {
+      console.error("Failed to import activities:", error);
+      toast.error("Failed to import activities. Please try again.");
+    }
   };
 
   const handleExport = () => {
@@ -821,20 +812,6 @@ export default function ActivitiesManagementPage() {
           />
         </DialogContent>
       </Dialog>
-
-      {/* Import in progress Dialog */}
-      <Dialog open={bulkImportMutation.isLoading}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Importing Activities</DialogTitle>
-          </DialogHeader>
-          <div className="flex justify-center items-center p-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="ml-4">Please wait, import is in progress...</p>
-          </div>
-        </DialogContent>
-      </Dialog>
-      <audio ref={successSoundRef} src="/sounds/success.mp3" />
     </div>
   );
 }

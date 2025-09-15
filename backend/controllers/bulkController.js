@@ -154,10 +154,7 @@ exports.importArticles = async (req, res) => {
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
                         try {
-                            const newReview = await Review.findOneAndUpdate(query, update, options);
-                            if (newReview) {
-                                await Review.calcAverageRating(newReview.refId, newReview.refModel);
-                            }
+                            await Review.findOneAndUpdate(query, update, options);
                         } catch (error) {
                             console.error(`Failed to upsert review for article ${article.title}:`, error.message);
                         }
@@ -323,10 +320,7 @@ exports.importProducts = async (req, res) => {
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
                         try {
-                            const newReview = await Review.findOneAndUpdate(query, update, options);
-                            if (newReview) {
-                                await Review.calcAverageRating(newReview.refId, newReview.refModel);
-                            }
+                            await Review.findOneAndUpdate(query, update, options);
                         } catch (error) {
                             console.error(`Failed to upsert review for product ${product.name}:`, error.message);
                         }
@@ -366,9 +360,7 @@ exports.importActivities = async (req, res) => {
         results.forEach(item => {
           if (!item.name) return;
           const key = item.refId || item.name;
-          if (!activitiesToProcess.has(key)) {
-            activitiesToProcess.set(key, { ...item, reviews: [] });
-          }
+          activitiesToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
             activitiesToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
@@ -493,10 +485,7 @@ exports.importActivities = async (req, res) => {
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
                         try {
-                            const newReview = await Review.findOneAndUpdate(query, update, options);
-                            if (newReview) {
-                                await Review.calcAverageRating(newReview.refId, newReview.refModel);
-                            }
+                            await Review.findOneAndUpdate(query, update, options);
                         } catch (error) {
                             console.error(`Failed to upsert review for activity ${activity.name}:`, error.message);
                         }
@@ -660,10 +649,7 @@ exports.importOrganizedTravels = async (req, res) => {
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
                         try {
-                            const newReview = await Review.findOneAndUpdate(query, update, options);
-                            if (newReview) {
-                                await Review.calcAverageRating(newReview.refId, newReview.refModel);
-                            }
+                            await Review.findOneAndUpdate(query, update, options);
                         } catch (error) {
                             console.error(`Failed to upsert review for travel ${travel.title}:`, error.message);
                         }

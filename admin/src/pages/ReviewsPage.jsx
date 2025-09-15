@@ -148,6 +148,17 @@ const ReviewsPage = () => {
     },
   });
 
+  const deleteAllMutation = useMutation({
+    mutationFn: () => reviewsAPI.deleteAllReviews(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['reviews']);
+      toast.success('All reviews have been deleted');
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to delete all reviews');
+    },
+  });
+
   const handleSelectAll = (checked) => {
     if (checked) {
       setSelectedReviewIds(reviews.map((r) => r._id));
@@ -490,6 +501,18 @@ const ReviewsPage = () => {
               Delete Selected ({selectedReviewIds.length})
             </Button>
           )}
+          <Button
+            variant="destructive"
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete all reviews? This action cannot be undone.')) {
+                deleteAllMutation.mutate();
+              }
+            }}
+            disabled={deleteAllMutation.isLoading}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {deleteAllMutation.isLoading ? 'Deleting...' : 'Delete All'}
+          </Button>
           <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">

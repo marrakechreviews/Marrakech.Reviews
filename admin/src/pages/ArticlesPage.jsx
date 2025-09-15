@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Search,
@@ -68,7 +68,6 @@ const ArticlesPage = () => {
   });
   const [csvFile, setCsvFile] = useState(null);
   const [selectedArticles, setSelectedArticles] = useState([]);
-  const successSoundRef = useRef(null);
 
   const queryClient = useQueryClient();
 
@@ -267,9 +266,6 @@ const ArticlesPage = () => {
       refetch();
       setCsvFile(null);
       toast.success('Articles imported successfully');
-      if (successSoundRef.current) {
-        successSoundRef.current.play();
-      }
     },
     onError: (error) => {
       const errorMessage = error?.response?.data?.message || error?.message || 'Failed to import articles';
@@ -1100,19 +1096,6 @@ const ArticlesPage = () => {
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <audio ref={successSoundRef} src="/sounds/success.mp3" />
-      {/* Import in progress Dialog */}
-      <Dialog open={bulkImportMutation.isLoading}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Importing Articles</DialogTitle>
-          </DialogHeader>
-          <div className="flex justify-center items-center p-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="ml-4">Please wait, import is in progress...</p>
-          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -67,7 +67,7 @@ const getProducts = async (req, res) => {
       .select('-__v');
 
     const total = await Product.countDocuments(filter);
-    const pages = Math.ceil(total / limit);
+    const totalPages = Math.ceil(total / limit);
 
     res.json({
       success: true,
@@ -76,8 +76,8 @@ const getProducts = async (req, res) => {
         page,
         limit,
         total,
-        pages,
-        hasNext: page < pages,
+        totalPages,
+        hasNext: page < totalPages,
         hasPrev: page > 1
       }
     });
