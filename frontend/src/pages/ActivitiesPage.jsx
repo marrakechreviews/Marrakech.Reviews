@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
@@ -23,15 +23,31 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import api from '../lib/api';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+
+const fetchActivitiesApi = async (params) => {
+  const response = await api.get('/activities', { params });
+  return {
+    items: response.data.activities,
+    pagination: response.data.pagination,
+  };
+};
 
 export default function ActivitiesPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  const [activities, setActivities] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
-  const [filters, setFilters] = useState({
+
+  const {
+    items: activities,
+    loading,
+    loadingMore,
+    pagination,
+    filters,
+    setFilters,
+    loadMore,
+  } = useInfiniteScroll(fetchActivitiesApi, {
     search: searchParams.get('search') || '',
     category: searchParams.get('category') || '',
     location: searchParams.get('location') || '',
@@ -39,33 +55,6 @@ export default function ActivitiesPage() {
     maxPrice: parseInt(searchParams.get('maxPrice')) || 500,
     sort: searchParams.get('sort') || 'featured'
   });
-
-  const [pagination, setPagination] = useState({});
-
-  useEffect(() => {
-    const fetchActivities = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (filters.search) params.append('search', filters.search);
-        if (filters.category) params.append('category', filters.category);
-        if (filters.location) params.append('location', filters.location);
-        if (filters.sort) params.append('sort', filters.sort);
-        if (filters.minPrice > 0) params.append('minPrice', filters.minPrice);
-        if (filters.maxPrice < 500) params.append('maxPrice', filters.maxPrice);
-
-        const response = await api.get(`/activities?${params.toString()}`);
-        setActivities(response.data.activities);
-        setPagination(response.data.pagination);
-      } catch (error) {
-        console.error('Failed to fetch activities:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchActivities();
-  }, [filters]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -84,12 +73,12 @@ export default function ActivitiesPage() {
     setFilters(newFilters);
     
     // Update URL params
-    const params = new URLSearchParams();
-    Object.entries(newFilters).forEach(([k, v]) => {
-      if (v && v !== '' && v !== 0) {
-        params.set(k, v);
-      }
-    });
+    const params = new URLSearchParams(searchParams);
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
     setSearchParams(params);
   };
 
@@ -416,6 +405,18 @@ export default function ActivitiesPage() {
                     }}
                   >
                     Clear Filters
+                  </Button>
+                </div>
+              )}
+
+              {/* Load More Button */}
+              {!loading && pagination.page < pagination.pages && (
+                <div className="text-center mt-8">
+                  <Button
+                    onClick={loadMore}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? 'Loading...' : 'Load More'}
                   </Button>
                 </div>
               )}

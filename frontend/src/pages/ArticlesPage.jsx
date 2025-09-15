@@ -7,50 +7,44 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Calendar, Clock, User, Search, Tag } from 'lucide-react';
 
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+import api from '../lib/api';
+
+const fetchArticlesApi = async (params) => {
+  const response = await api.get('/articles', { params: { ...params, pageSize: 9, pageNumber: params.page } });
+  return {
+    items: response.data.articles,
+    pagination: {
+      page: response.data.page,
+      pages: response.data.pages,
+      total: response.data.count,
+    },
+  };
+};
+
 const ArticlesPage = () => {
   const navigate = useNavigate();
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://marrakech-reviews-backend.vercel.app/api';
+  const {
+    items: articles,
+    loading,
+    loadingMore,
+    pagination,
+    filters,
+    setFilters,
+    loadMore,
+  } = useInfiniteScroll(fetchArticlesApi, {
+    keyword: searchTerm,
+  });
 
   useEffect(() => {
-    fetchArticles();
-  }, [currentPage, searchTerm]);
-
-  const fetchArticles = async () => {
-    try {
-      setLoading(true);
-      const queryParams = new URLSearchParams({
-        pageNumber: currentPage,
-        pageSize: 9,
-        ...(searchTerm && { keyword: searchTerm })
-      });
-
-      const response = await fetch(`${API_BASE_URL}/articles?${queryParams}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch articles');
-      }
-
-      const data = await response.json();
-      setArticles(data.articles || []);
-      setTotalPages(data.pages || 1);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setFilters({ keyword: searchTerm });
+  }, [searchTerm, setFilters]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setCurrentPage(1);
-    fetchArticles();
+    setFilters({ keyword: searchTerm });
   };
 
   const formatDate = (dateString) => {
@@ -218,50 +212,13 @@ const ArticlesPage = () => {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2">
+          {!loading && pagination.page < pagination.pages && (
+            <div className="text-center mt-8">
               <Button
-                variant="outline"
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
+                onClick={loadMore}
+                disabled={loadingMore}
               >
-                Previous
-              </Button>
-              
-              <div className="flex items-center gap-2">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNum = i + 1;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className="w-10 h-10"
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-                {totalPages > 5 && (
-                  <>
-                    <span className="text-muted-foreground">...</span>
-                    <Button
-                      variant={currentPage === totalPages ? "default" : "outline"}
-                      onClick={() => setCurrentPage(totalPages)}
-                      className="w-10 h-10"
-                    >
-                      {totalPages}
-                    </Button>
-                  </>
-                )}
-              </div>
-
-              <Button
-                variant="outline"
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next
+                {loadingMore ? 'Loading...' : 'Load More'}
               </Button>
             </div>
           )}

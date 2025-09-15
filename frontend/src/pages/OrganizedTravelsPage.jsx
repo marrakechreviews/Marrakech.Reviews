@@ -18,37 +18,44 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import api from '../lib/api';
 
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+
+const fetchOrganizedTravelsApi = async (params) => {
+  const response = await api.get('/organized-travel', { params });
+  return {
+    items: response.data.items,
+    pagination: response.data.pagination,
+  };
+};
+
 export default function OrganizedTravelsPage() {
   const navigate = useNavigate();
-
-  const [programs, setPrograms] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    const fetchPrograms = async () => {
-      setLoading(true);
-      try {
-        const response = await api.get('/organized-travel');
-        setPrograms(response.data);
-      } catch (error) {
-        console.error('Failed to fetch travel programs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const {
+    items: programs,
+    loading,
+    loadingMore,
+    pagination,
+    filters,
+    setFilters,
+    loadMore,
+  } = useInfiniteScroll(fetchOrganizedTravelsApi, {
+    search: searchTerm,
+  });
 
-    fetchPrograms();
-  }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters({ search: searchTerm });
+    }, 500); // Debounce search
+    return () => clearTimeout(timer);
+  }, [searchTerm, setFilters]);
 
   const handleProgramClick = (program) => {
     navigate(`/travels/${program.destination}`);
   };
 
-  const filteredPrograms = programs.filter(program =>
-    program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    program.destination.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPrograms = programs;
 
   return (
     <>
@@ -173,6 +180,18 @@ export default function OrganizedTravelsPage() {
               <p className="text-gray-600">
                 Try adjusting your search terms.
               </p>
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {!loading && pagination.page < pagination.pages && (
+            <div className="text-center mt-8">
+              <Button
+                onClick={loadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? 'Loading...' : 'Load More'}
+              </Button>
             </div>
           )}
         </div>
