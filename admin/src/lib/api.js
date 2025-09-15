@@ -166,6 +166,7 @@ export const activitiesAPI = {
   bulkImportActivities: (formData) => api.post('/bulk/activities', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  bulkImportActivitiesChunk: (data) => api.post('/bulk/activities/chunk', data),
   exportActivities: (data) => api.post('/activities/export', data, { responseType: 'blob' }),
 };
 
