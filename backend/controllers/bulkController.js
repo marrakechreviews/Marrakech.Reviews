@@ -154,7 +154,10 @@ exports.importArticles = async (req, res) => {
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
                         try {
-                            await Review.findOneAndUpdate(query, update, options);
+                            const newReview = await Review.findOneAndUpdate(query, update, options);
+                            if (newReview) {
+                                await Review.calcAverageRating(newReview.refId, newReview.refModel);
+                            }
                         } catch (error) {
                             console.error(`Failed to upsert review for article ${article.title}:`, error.message);
                         }
@@ -320,7 +323,10 @@ exports.importProducts = async (req, res) => {
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
                         try {
-                            await Review.findOneAndUpdate(query, update, options);
+                            const newReview = await Review.findOneAndUpdate(query, update, options);
+                            if (newReview) {
+                                await Review.calcAverageRating(newReview.refId, newReview.refModel);
+                            }
                         } catch (error) {
                             console.error(`Failed to upsert review for product ${product.name}:`, error.message);
                         }
@@ -487,7 +493,10 @@ exports.importActivities = async (req, res) => {
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
                         try {
-                            await Review.findOneAndUpdate(query, update, options);
+                            const newReview = await Review.findOneAndUpdate(query, update, options);
+                            if (newReview) {
+                                await Review.calcAverageRating(newReview.refId, newReview.refModel);
+                            }
                         } catch (error) {
                             console.error(`Failed to upsert review for activity ${activity.name}:`, error.message);
                         }
@@ -651,7 +660,10 @@ exports.importOrganizedTravels = async (req, res) => {
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
                         try {
-                            await Review.findOneAndUpdate(query, update, options);
+                            const newReview = await Review.findOneAndUpdate(query, update, options);
+                            if (newReview) {
+                                await Review.calcAverageRating(newReview.refId, newReview.refModel);
+                            }
                         } catch (error) {
                             console.error(`Failed to upsert review for travel ${travel.title}:`, error.message);
                         }
