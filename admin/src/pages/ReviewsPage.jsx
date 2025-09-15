@@ -155,6 +155,7 @@ const ReviewsPage = () => {
       toast.success('All reviews have been deleted');
     },
     onError: (error) => {
+      console.error("Failed to delete all reviews:", error);
       toast.error(error.response?.data?.message || 'Failed to delete all reviews');
     },
   });
