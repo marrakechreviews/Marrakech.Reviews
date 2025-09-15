@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { activitiesAPI } from '../lib/api';
+import Papa from 'papaparse';
 
 export default function ActivitiesManagementPage() {
   const [activities, setActivities] = useState([]);
@@ -44,6 +45,8 @@ export default function ActivitiesManagementPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
   const [selectedActivityIds, setSelectedActivityIds] = useState([]);
+  const [importProgress, setImportProgress] = useState({ total: 0, imported: 0, errors: 0 });
+  const [isImporting, setIsImporting] = useState(false);
 
   const [categories, setCategories] = useState([
     "Desert Tours",
@@ -103,24 +106,48 @@ export default function ActivitiesManagementPage() {
     setCsvFile(e.target.files[0]);
   };
 
-  const handleBulkImport = async () => {
+  const handleBulkImport = () => {
     if (!csvFile) {
       toast.error('Please select a CSV file to import');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', csvFile);
+    setIsImporting(true);
+    setImportProgress({ total: 0, imported: 0, errors: 0 });
 
-    try {
-      await activitiesAPI.bulkImportActivities(formData);
-      toast.success('Activities imported successfully!');
-      fetchActivities();
-      setCsvFile(null);
-    } catch (error) {
-      console.error("Failed to import activities:", error);
-      toast.error("Failed to import activities. Please try again.");
-    }
+    Papa.parse(csvFile, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const activities = results.data;
+        setImportProgress(prev => ({ ...prev, total: activities.length }));
+
+        const chunkSize = 10;
+        for (let i = 0; i < activities.length; i += chunkSize) {
+          const chunk = activities.slice(i, i + chunkSize);
+          try {
+            await activitiesAPI.bulkImportActivitiesChunk({ activities: chunk });
+            setImportProgress(prev => ({ ...prev, imported: prev.imported + chunk.length }));
+          } catch (error) {
+            console.error("Failed to import chunk:", error);
+            setImportProgress(prev => ({ ...prev, errors: prev.errors + chunk.length }));
+          }
+        }
+
+        toast.success('Import process finished!', {
+          description: `${importProgress.imported} activities imported, ${importProgress.errors} failed.`,
+        });
+
+        fetchActivities();
+        setCsvFile(null);
+        setIsImporting(false);
+      },
+      error: (error) => {
+        toast.error('Failed to parse CSV file.');
+        console.error("CSV parsing error:", error);
+        setIsImporting(false);
+      }
+    });
   };
 
   const handleExport = () => {
@@ -451,6 +478,23 @@ export default function ActivitiesManagementPage() {
 
   return (
     <div className="space-y-6">
+      <Dialog open={isImporting}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Importing Activities</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 p-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p>
+              {`Processing... ${importProgress.imported} / ${importProgress.total}`}
+            </p>
+            {importProgress.errors > 0 && (
+              <p className="text-red-500">{`${importProgress.errors} rows failed to import.`}</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

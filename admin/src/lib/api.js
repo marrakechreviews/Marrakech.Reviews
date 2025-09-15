@@ -104,7 +104,6 @@ export const reviewsAPI = {
   getReviews: (params) => api.get('/reviews', { params }),
   approveReview: (id, isApproved) => api.put(`/reviews/${id}/approve`, { isApproved }),
   deleteReview: (id) => api.delete(`/reviews/${id}`),
-  deleteAllReviews: () => api.delete('/reviews/all'),
   bulkDeleteReviews: (ids) => api.delete('/reviews/bulk', { data: { ids } }),
   bulkImportReviews: (formData) => api.post('/bulk/reviews', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

@@ -15,6 +15,7 @@ const upload = multer({ dest: uploadDir });
 router.post('/articles', protect, admin, upload.single('file'), bulkController.importArticles);
 router.post('/products', protect, admin, upload.single('file'), bulkController.importProducts);
 router.post('/activities', protect, admin, upload.single('file'), bulkController.importActivities);
+router.post('/activities/chunk', protect, admin, bulkController.importActivitiesChunk);
 router.post('/organized-travels', protect, admin, upload.single('file'), bulkController.importOrganizedTravels);
 router.post('/reviews', protect, admin, upload.single('file'), bulkController.importReviews);
 

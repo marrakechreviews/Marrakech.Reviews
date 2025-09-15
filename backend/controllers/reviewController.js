@@ -409,20 +409,11 @@ const bulkImportReviews = async (req, res) => {
   });
 };
 
-// @desc    Delete all reviews
-// @route   DELETE /api/reviews/all
-// @access  Private/Admin
-const deleteAllReviews = asyncHandler(async (req, res) => {
-  await Review.deleteMany({});
-  res.json({ message: 'All reviews have been deleted.' });
-});
-
 module.exports = {
   createReview,
   getReviews,
   updateReview,
   deleteReview,
-  deleteAllReviews,
   bulkDeleteReviews,
   getAllReviews,
   approveReview,

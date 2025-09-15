@@ -176,6 +176,168 @@ exports.importArticles = async (req, res) => {
     });
 };
 
+const importActivitiesChunk = async (req, res) => {
+  const { activities: results } = req.body;
+
+  if (!results || !Array.isArray(results)) {
+    return res.status(400).send('Invalid request body. Expecting an object with an "activities" array.');
+  }
+
+  try {
+    const activitiesToProcess = new Map();
+    results.forEach(item => {
+      if (!item.name) return;
+      const key = item.refId || item.name;
+      if (!activitiesToProcess.has(key)) {
+        activitiesToProcess.set(key, { ...item, reviews: [] });
+      }
+      if (item.reviewComment && item.reviewUserEmail) {
+        activitiesToProcess.get(key).reviews.push({
+          reviewName: item.reviewName,
+          reviewRating: item.reviewRating,
+          reviewComment: item.reviewComment,
+          reviewUserEmail: item.reviewUserEmail,
+        });
+      }
+    });
+
+    const refIds = [];
+    const names = [];
+    activitiesToProcess.forEach((value, key) => {
+      if (value.refId) {
+        refIds.push(value.refId);
+      } else {
+        names.push(value.name);
+      }
+    });
+
+    const existingActivitiesByRefId = refIds.length > 0 ? await Activity.find({ refId: { $in: refIds } }) : [];
+    const existingActivitiesByName = names.length > 0 ? await Activity.find({ name: { $in: names } }) : [];
+
+    const existingActivityMap = new Map();
+    existingActivitiesByRefId.forEach(a => existingActivityMap.set(a.refId.toString(), a));
+    existingActivitiesByName.forEach(a => existingActivityMap.set(a.name, a));
+
+    const newActivitiesData = [];
+    const updatePromises = [];
+
+    for (const item of activitiesToProcess.values()) {
+      const key = item.refId || item.name;
+      const existingActivity = existingActivityMap.get(key);
+
+      const activityData = {
+        name: item.name,
+        description: item.description,
+        shortDescription: item.shortDescription,
+        price: item.price ? parseFloat(item.price) : undefined,
+        marketPrice: item.marketPrice ? parseFloat(item.marketPrice) : undefined,
+        currency: item.currency,
+        category: item.category,
+        location: item.location,
+        duration: item.duration,
+        maxParticipants: item.maxParticipants ? parseInt(item.maxParticipants) : undefined,
+        minParticipants: item.minParticipants ? parseInt(item.minParticipants) : undefined,
+        image: item.image,
+        images: item.images ? item.images.split(',').map(img => img.trim()) : [],
+        isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
+        isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
+        tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+        difficulty: item.difficulty,
+        seoTitle: item.seoTitle,
+        seoDescription: item.seoDescription,
+        seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
+        refId: item.refId,
+      };
+
+      Object.keys(activityData).forEach(key => activityData[key] === undefined && delete activityData[key]);
+
+      if (existingActivity) {
+        Object.assign(existingActivity, activityData);
+        updatePromises.push(existingActivity.save());
+      } else {
+        activityData.slug = slugify(activityData.name);
+        newActivitiesData.push(activityData);
+      }
+    }
+
+    const updatedActivities = await Promise.all(updatePromises);
+    updatedActivities.forEach(a => {
+        const key = a.refId ? a.refId.toString() : a.name;
+        existingActivityMap.set(key, a);
+    });
+
+    if (newActivitiesData.length > 0) {
+      const insertedActivities = await Activity.create(newActivitiesData);
+      insertedActivities.forEach(a => {
+        const key = a.refId ? a.refId.toString() : a.name;
+        existingActivityMap.set(key, a);
+      });
+    }
+
+    const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
+    const existingUsers = await User.find({ email: { $in: reviewEmails }});
+    const userMap = new Map(existingUsers.map(u => [u.email, u]));
+
+    for (const item of activitiesToProcess.values()) {
+        if (item.reviews.length > 0) {
+            const key = item.refId || item.name;
+            const activity = existingActivityMap.get(key);
+            if (activity) {
+                for (const review of item.reviews) {
+                    if (!review.reviewUserEmail) continue;
+
+                    let user = userMap.get(review.reviewUserEmail);
+                    if (!user) {
+                        const newUser = new User({
+                            name: review.reviewName || 'Anonymous',
+                            email: review.reviewUserEmail,
+                            password: crypto.randomBytes(16).toString('hex'),
+                        });
+                        try {
+                            user = await newUser.save();
+                            userMap.set(user.email, user);
+                        } catch (error) {
+                            console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
+                            continue;
+                        }
+                    }
+
+                    const reviewData = {
+                        name: review.reviewName,
+                        rating: parseInt(review.reviewRating),
+                        comment: review.reviewComment,
+                        user: user._id,
+                        refId: activity._id,
+                        refModel: 'Activity',
+                    };
+                    const query = { user: user._id, refId: activity._id, refModel: 'Activity' };
+                    const update = { $set: reviewData };
+                    const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+                    try {
+                        const newReview = await Review.findOneAndUpdate(query, update, options);
+                        if (newReview) {
+                            await Review.calcAverageRating(newReview.refId, newReview.refModel);
+                        }
+                    } catch (error) {
+                        console.error(`Failed to upsert review for activity ${activity.name}:`, error.message);
+                    }
+                }
+            }
+        }
+    }
+
+    res.status(201).send({ message: `Chunk of ${results.length} activities processed successfully.` });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).send({ message: 'Validation failed. Please check your data.', errors: messages });
+    }
+    res.status(500).send({ message: 'An unexpected error occurred while importing activities.', error: error.message, details: error });
+  }
+};
+exports.importActivitiesChunk = importActivitiesChunk;
+
 exports.importProducts = async (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
@@ -356,20 +518,11 @@ exports.importActivities = async (req, res) => {
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
-        const debugLogs = [];
         const activitiesToProcess = new Map();
-        debugLogs.push(`Found ${results.length} rows in the CSV.`);
-
         results.forEach(item => {
-          if (!item.name) {
-            debugLogs.push(`Skipping row because of missing name: ${JSON.stringify(item)}`);
-            return;
-          }
+          if (!item.name) return;
           const key = item.refId || item.name;
-          if (!activitiesToProcess.has(key)) {
-            activitiesToProcess.set(key, { ...item, reviews: [] });
-            debugLogs.push(`New activity found with key: ${key}`);
-          }
+          activitiesToProcess.set(key, { ...item, reviews: [] });
           if (item.reviewComment && item.reviewUserEmail) {
             activitiesToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
@@ -377,7 +530,6 @@ exports.importActivities = async (req, res) => {
               reviewComment: item.reviewComment,
               reviewUserEmail: item.reviewUserEmail,
             });
-            debugLogs.push(`Added review to activity with key: ${key}`);
           }
         });
 
@@ -393,8 +545,6 @@ exports.importActivities = async (req, res) => {
 
         const existingActivitiesByRefId = refIds.length > 0 ? await Activity.find({ refId: { $in: refIds } }) : [];
         const existingActivitiesByName = names.length > 0 ? await Activity.find({ name: { $in: names } }) : [];
-        debugLogs.push(`Found ${existingActivitiesByRefId.length} existing activities by refId.`);
-        debugLogs.push(`Found ${existingActivitiesByName.length} existing activities by name.`);
 
         const existingActivityMap = new Map();
         existingActivitiesByRefId.forEach(a => existingActivityMap.set(a.refId.toString(), a));
@@ -405,12 +555,7 @@ exports.importActivities = async (req, res) => {
 
         for (const item of activitiesToProcess.values()) {
           const key = item.refId || item.name;
-          debugLogs.push(`Processing item with key: ${key}`);
           const existingActivity = existingActivityMap.get(key);
-
-          if (existingActivity) {
-            debugLogs.push(`Found existing activity in map for key: ${key}`);
-          }
 
           const activityData = {
             name: item.name,
@@ -441,11 +586,9 @@ exports.importActivities = async (req, res) => {
           if (existingActivity) {
             Object.assign(existingActivity, activityData);
             updatePromises.push(existingActivity.save());
-            debugLogs.push(`Updating existing activity with key: ${key}`);
           } else {
             activityData.slug = slugify(activityData.name);
             newActivitiesData.push(activityData);
-            debugLogs.push(`Adding new activity to be created with key: ${key}`);
           }
         }
 
@@ -456,13 +599,10 @@ exports.importActivities = async (req, res) => {
         });
 
         if (newActivitiesData.length > 0) {
-          debugLogs.push(`Creating ${newActivitiesData.length} new activities.`);
           const insertedActivities = await Activity.create(newActivitiesData);
-          debugLogs.push(`Successfully created ${insertedActivities.length} new activities.`);
           insertedActivities.forEach(a => {
             const key = a.refId ? a.refId.toString() : a.name;
             existingActivityMap.set(key, a);
-            debugLogs.push(`Added newly created activity to map with key: ${key}`);
           });
         }
 
@@ -474,14 +614,9 @@ exports.importActivities = async (req, res) => {
             if (item.reviews.length > 0) {
                 const key = item.refId || item.name;
                 const activity = existingActivityMap.get(key);
-                debugLogs.push(`Processing reviews for item with key: ${key}. Found ${item.reviews.length} reviews.`);
                 if (activity) {
-                    debugLogs.push(`Activity found in map for review processing. Activity ID: ${activity._id}`);
                     for (const review of item.reviews) {
-                        if (!review.reviewUserEmail) {
-                            debugLogs.push(`Skipping review due to missing email: ${JSON.stringify(review)}`);
-                            continue;
-                        }
+                        if (!review.reviewUserEmail) continue;
 
                         let user = userMap.get(review.reviewUserEmail);
                         if (!user) {
@@ -507,28 +642,22 @@ exports.importActivities = async (req, res) => {
                             refId: activity._id,
                             refModel: 'Activity',
                         };
-                        debugLogs.push(`Preparing to save review: ${JSON.stringify(reviewData)}`);
                         const query = { user: user._id, refId: activity._id, refModel: 'Activity' };
                         const update = { $set: reviewData };
                         const options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
                         try {
-                            const newReview = await Review.findOneAndUpdate(query, update, options);
-                            debugLogs.push(`Successfully saved review for activity ${activity.name}. Review ID: ${newReview._id}`);
+                            await Review.findOneAndUpdate(query, update, options);
                         } catch (error) {
-                            debugLogs.push(`Failed to upsert review for activity ${activity.name}: ${error.message}`);
                             console.error(`Failed to upsert review for activity ${activity.name}:`, error.message);
                         }
                     }
-                } else {
-                    debugLogs.push(`Activity NOT found in map for key: ${key}. Skipping review processing.`);
                 }
             }
         }
 
-        res.status(201).send({ message: `Activities and reviews imported successfully.`, debugLogs });
+        res.status(201).send({ message: `Activities and reviews imported successfully.` });
       } catch (error) {
-        debugLogs.push(`Caught an error: ${error.message}`);
         if (error.name === 'ValidationError') {
           const messages = Object.values(error.errors).map(e => e.message);
           return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });

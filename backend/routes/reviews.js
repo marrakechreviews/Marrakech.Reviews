@@ -5,7 +5,6 @@ const {
   getReviews,
   updateReview,
   deleteReview,
-  deleteAllReviews,
   bulkDeleteReviews,
   getAllReviews,
   approveReview,
@@ -58,8 +57,6 @@ router.post('/', protect, reviewImageUpload, [
 router.post('/bulk-import', protect, admin, bulkImportReviews);
 
 router.delete('/bulk', protect, admin, bulkDeleteReviews);
-
-router.delete('/all', protect, admin, deleteAllReviews);
 
 router.put('/:id', protect, [
   body('rating')
