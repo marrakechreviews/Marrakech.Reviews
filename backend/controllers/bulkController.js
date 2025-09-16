@@ -931,7 +931,7 @@ exports.importReviews = async (req, res) => {
             targetDoc = await Model.findOne({ [queryField]: itemName });
           }
 
-          if (!targetDoc) {
+          if (!targetDoc || !targetDoc._id) { // More robust check
             errors.push(`Row ${rowNum}: Target document not found for item with refId '${refId}' or name '${itemName}' in model '${refModel}'.`);
             continue;
           }
