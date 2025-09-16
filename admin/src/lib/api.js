@@ -77,9 +77,7 @@ export const productsAPI = {
   bulkDeleteProducts: (ids) => api.delete('/products/bulk', { data: { ids } }),
   getTopProducts: (limit) => api.get(`/products/top?limit=${limit}`),
   getFeaturedProducts: (limit) => api.get(`/products/featured?limit=${limit}`),
-  bulkImportProducts: (formData) => api.post('/bulk/products', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }),
+  bulkImportProducts: (formData) => api.post('/bulk/products', formData),
   exportProducts: (data) => api.post('/products/export', data, { responseType: 'blob' }),
 };
 
