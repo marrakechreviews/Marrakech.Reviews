@@ -954,7 +954,7 @@ exports.importProductsChunk = async (req, res) => {
       return res.status(400).json({ message: 'CSV validation failed', errors });
     }
 
-    const refIds = Array.from(productsToProcess.values()).map(p => p.refId).filter(Boolean);
+    const refIds = Array.from(productsToProcess.values()).map(p => p.refId).filter(id => id !== null && id !== undefined);
     const names = Array.from(productsToProcess.values()).map(p => p.name).filter(Boolean);
 
     const existingProductsByRefId = refIds.length > 0 ? await Product.find({ refId: { $in: refIds } }) : [];
@@ -1002,6 +1002,9 @@ exports.importProductsChunk = async (req, res) => {
         updatePromises.push(existingProduct.save());
       } else {
         productData.slug = slugify(productData.name);
+        if (!productData.refId) {
+          productData.refId = crypto.randomBytes(8).toString('hex');
+        }
         newProductsData.push(productData);
       }
     }
