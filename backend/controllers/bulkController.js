@@ -340,11 +340,24 @@ exports.importActivitiesChunk = importActivitiesChunk;
 
 exports.importProducts = async (req, res) => {
   if (!req.file) {
-    return res.status(400).send('No file uploaded.');
+    return res.status(400).json({ message: 'No file uploaded.' });
   }
 
   const results = [];
+  const errors = [];
   const filePath = req.file.path;
+
+  const safeParseFloat = (value) => {
+    if (value === null || value === undefined || value.trim() === '') return undefined;
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? null : parsed;
+  };
+
+  const safeParseInt = (value) => {
+    if (value === null || value === undefined || value.trim() === '') return undefined;
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? null : parsed;
+  };
 
   fs.createReadStream(filePath)
     .pipe(iconv.decodeStream('windows-1252'))
@@ -353,10 +366,35 @@ exports.importProducts = async (req, res) => {
     .on('end', async () => {
       try {
         const productsToProcess = new Map();
-        results.forEach(item => {
-          if (!item.name) return;
+
+        for (const [index, item] of results.entries()) {
+          const rowNum = index + 2;
+
+          if (!item.name || item.name.trim() === '') {
+            errors.push({ row: rowNum, message: 'Product name is required.' });
+            continue;
+          }
+
+          const price = safeParseFloat(item.price);
+          if (price === null) {
+            errors.push({ row: rowNum, message: `Invalid price format for product '${item.name}'.` });
+          }
+
+          const countInStock = safeParseInt(item.countInStock);
+          if (countInStock === null) {
+            errors.push({ row: rowNum, message: `Invalid stock count format for product '${item.name}'.` });
+          }
+
+          const comparePrice = safeParseFloat(item.comparePrice);
+          const lowStockThreshold = safeParseInt(item.lowStockThreshold);
+          const rating = safeParseFloat(item.rating);
+          const numReviews = safeParseInt(item.numReviews);
+
           const key = item.refId || item.name;
-          productsToProcess.set(key, { ...item, reviews: [] });
+          if (!productsToProcess.has(key)) {
+            productsToProcess.set(key, { ...item, reviews: [], price, countInStock, comparePrice, lowStockThreshold, rating, numReviews, rowNum });
+          }
+
           if (item.reviewComment && item.reviewUserEmail) {
             productsToProcess.get(key).reviews.push({
               reviewName: item.reviewName,
@@ -365,17 +403,15 @@ exports.importProducts = async (req, res) => {
               reviewUserEmail: item.reviewUserEmail,
             });
           }
-        });
+        }
 
-        const refIds = [];
-        const names = [];
-        productsToProcess.forEach((value, key) => {
-          if (value.refId) {
-            refIds.push(value.refId);
-          } else {
-            names.push(value.name);
-          }
-        });
+        if (errors.length > 0) {
+          fs.unlinkSync(filePath);
+          return res.status(400).json({ message: 'CSV validation failed', errors });
+        }
+
+        const refIds = Array.from(productsToProcess.values()).map(p => p.refId).filter(Boolean);
+        const names = Array.from(productsToProcess.values()).map(p => p.name).filter(Boolean);
 
         const existingProductsByRefId = refIds.length > 0 ? await Product.find({ refId: { $in: refIds } }) : [];
         const existingProductsByName = names.length > 0 ? await Product.find({ name: { $in: names } }) : [];
@@ -394,17 +430,17 @@ exports.importProducts = async (req, res) => {
           const productData = {
             name: item.name,
             description: item.description,
-            price: item.price ? parseFloat(item.price) : undefined,
-            comparePrice: item.comparePrice ? parseFloat(item.comparePrice) : undefined,
+            price: item.price,
+            comparePrice: item.comparePrice,
             category: item.category,
             subcategory: item.subcategory,
             brand: item.brand,
             image: item.image,
             images: item.images ? item.images.split(',').map(img => img.trim()) : [],
-            countInStock: item.countInStock ? parseInt(item.countInStock) : undefined,
-            lowStockThreshold: item.lowStockThreshold ? parseInt(item.lowStockThreshold) : 10,
-            rating: item.rating ? parseFloat(item.rating) : 0,
-            numReviews: item.numReviews ? parseInt(item.numReviews) : 0,
+            countInStock: item.countInStock,
+            lowStockThreshold: item.lowStockThreshold !== undefined ? item.lowStockThreshold : 10,
+            rating: item.rating !== undefined ? item.rating : 0,
+            numReviews: item.numReviews !== undefined ? item.numReviews : 0,
             isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
             isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
             tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
@@ -417,7 +453,6 @@ exports.importProducts = async (req, res) => {
 
           Object.keys(productData).forEach(key => productData[key] === undefined && delete productData[key]);
 
-
           if (existingProduct) {
             Object.assign(existingProduct, productData);
             updatePromises.push(existingProduct.save());
@@ -427,19 +462,15 @@ exports.importProducts = async (req, res) => {
           }
         }
 
-        const updatedProducts = await Promise.all(updatePromises);
-        updatedProducts.forEach(p => {
-            const key = p.refId ? p.refId.toString() : p.name;
-            existingProductMap.set(key, p);
-        });
+        await Promise.all(updatePromises);
+        await Product.insertMany(newProductsData, { ordered: false });
 
-        if (newProductsData.length > 0) {
-          const insertedProducts = await Product.create(newProductsData);
-          insertedProducts.forEach(p => {
-            const key = p.refId ? p.refId.toString() : p.name;
-            existingProductMap.set(key, p)
-          });
-        }
+        // Refresh map after all operations
+        const allProducts = await Product.find({ $or: [{refId: {$in: refIds}}, {name: {$in: names}}]});
+        allProducts.forEach(p => {
+          const key = p.refId ? p.refId.toString() : p.name;
+          existingProductMap.set(key, p);
+        });
 
         const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
         const existingUsers = await User.find({ email: { $in: reviewEmails }});
@@ -471,7 +502,7 @@ exports.importProducts = async (req, res) => {
 
                         const reviewData = {
                             name: review.reviewName,
-                            rating: parseInt(review.reviewRating),
+                            rating: safeParseInt(review.reviewRating),
                             comment: review.reviewComment,
                             user: user._id,
                             refId: product._id,
@@ -491,15 +522,18 @@ exports.importProducts = async (req, res) => {
             }
         }
 
-        res.status(201).send({ message: `Products and reviews imported successfully.` });
+        res.status(201).json({ message: `Products and reviews imported successfully.` });
       } catch (error) {
+        fs.unlinkSync(filePath);
         if (error.name === 'ValidationError') {
           const messages = Object.values(error.errors).map(e => e.message);
-          return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
+          return res.status(400).json({ message: 'Validation failed. Please check your CSV file.', errors: messages });
         }
-        res.status(500).send({ message: 'An unexpected error occurred while importing products.', error: error.message });
+        res.status(500).json({ message: 'An unexpected error occurred while importing products.', error: error.message });
       } finally {
-        fs.unlinkSync(filePath);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
       }
     });
 };
