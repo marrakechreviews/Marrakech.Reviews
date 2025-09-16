@@ -370,7 +370,7 @@ exports.importProducts = async (req, res) => {
 
   const stream = fs.createReadStream(filePath)
     .pipe(iconv.decodeStream('windows-1252'))
-    .pipe(csv())
+    .pipe(csv({ relax_column_count: true }))
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       console.log(`CSV file processed. Found ${results.length} rows.`);
