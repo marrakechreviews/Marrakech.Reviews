@@ -3,7 +3,7 @@ import Papa from 'papaparse';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Upload } from 'lucide-react';
 
 const useCsvChunkedImport = ({ onImportFinished }) => {
@@ -83,6 +83,9 @@ const CsvChunkedImportForm = ({ apiImportFunction, entityName, onFinished, sampl
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Importing Records</DialogTitle>
+            <DialogDescription>
+              Please wait while your CSV file is being processed. This may take a few moments.
+            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 p-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
