@@ -32,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { activitiesAPI } from '../lib/api';
-import Papa from 'papaparse';
+import CsvChunkedImportForm from '../components/CsvChunkedImportForm';
 
 export default function ActivitiesManagementPage() {
   const [activities, setActivities] = useState([]);
@@ -43,10 +43,7 @@ export default function ActivitiesManagementPage() {
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [csvFile, setCsvFile] = useState(null);
   const [selectedActivityIds, setSelectedActivityIds] = useState([]);
-  const [importProgress, setImportProgress] = useState({ total: 0, imported: 0, errors: 0 });
-  const [isImporting, setIsImporting] = useState(false);
 
   const [categories, setCategories] = useState([
     "Desert Tours",
@@ -101,54 +98,6 @@ export default function ActivitiesManagementPage() {
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, filterCategory, filterStatus]);
-
-  const handleFileChange = (e) => {
-    setCsvFile(e.target.files[0]);
-  };
-
-  const handleBulkImport = () => {
-    if (!csvFile) {
-      toast.error('Please select a CSV file to import');
-      return;
-    }
-
-    setIsImporting(true);
-    setImportProgress({ total: 0, imported: 0, errors: 0 });
-
-    Papa.parse(csvFile, {
-      header: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        const activities = results.data;
-        setImportProgress(prev => ({ ...prev, total: activities.length }));
-
-        const chunkSize = 10;
-        for (let i = 0; i < activities.length; i += chunkSize) {
-          const chunk = activities.slice(i, i + chunkSize);
-          try {
-            await activitiesAPI.bulkImportActivitiesChunk({ activities: chunk });
-            setImportProgress(prev => ({ ...prev, imported: prev.imported + chunk.length }));
-          } catch (error) {
-            console.error("Failed to import chunk:", error);
-            setImportProgress(prev => ({ ...prev, errors: prev.errors + chunk.length }));
-          }
-        }
-
-        toast.success('Import process finished!', {
-          description: `${importProgress.imported} activities imported, ${importProgress.errors} failed.`,
-        });
-
-        fetchActivities();
-        setCsvFile(null);
-        setIsImporting(false);
-      },
-      error: (error) => {
-        toast.error('Failed to parse CSV file.');
-        console.error("CSV parsing error:", error);
-        setIsImporting(false);
-      }
-    });
-  };
 
   const handleExport = () => {
     activitiesAPI.exportActivities({ ids: selectedActivityIds })
@@ -478,23 +427,6 @@ export default function ActivitiesManagementPage() {
 
   return (
     <div className="space-y-6">
-      <Dialog open={isImporting}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Importing Activities</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4 p-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p>
-              {`Processing... ${importProgress.imported} / ${importProgress.total}`}
-            </p>
-            {importProgress.errors > 0 && (
-              <p className="text-red-500">{`${importProgress.errors} rows failed to import.`}</p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -634,26 +566,26 @@ export default function ActivitiesManagementPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Bulk Import</CardTitle>
+            <CardTitle>Bulk Management</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <Input type="file" accept=".csv" onChange={handleFileChange} />
-              <Button onClick={handleBulkImport} disabled={!csvFile}>
-                <Plus className="h-4 w-4 mr-2" />
-                Import
-              </Button>
-              <Button variant="outline" asChild>
-                <a href="/samples/activities.csv" download>
-                  Download Sample
-                </a>
-              </Button>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium">Import from CSV</Label>
+              <CsvChunkedImportForm
+                apiImportFunction={activitiesAPI.bulkImportActivitiesChunk}
+                entityName="activities"
+                onFinished={fetchActivities}
+                sampleCsvUrl="/samples/activities.csv"
+              />
             </div>
-            <div className="flex items-center space-x-4">
-              <Button onClick={handleExport}>
-                <Download className="h-4 w-4 mr-2" />
-                Export to CSV
-              </Button>
+            <div className="border-t pt-4">
+              <Label className="text-sm font-medium">Export to CSV</Label>
+              <div className="flex items-center space-x-4">
+                <Button onClick={handleExport} variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Selected ({selectedActivityIds.length})
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

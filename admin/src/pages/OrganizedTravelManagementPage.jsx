@@ -28,6 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { organizedTravelAPI, uploadAPI } from '../lib/api';
+import CsvChunkedImportForm from '../components/CsvChunkedImportForm';
 
 const ImageUploader = ({ value, onChange, onUpload, isUploading }) => {
   const triggerFileInput = () => {
@@ -115,7 +116,6 @@ export default function OrganizedTravelManagementPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPrograms, setSelectedPrograms] = useState([]);
   const [stats, setStats] = useState(null);
-  const [csvFile, setCsvFile] = useState(null);
 
   useEffect(() => {
     fetchPrograms();
@@ -151,29 +151,6 @@ export default function OrganizedTravelManagementPage() {
     }
   };
 
-  const handleFileChange = (e) => {
-    setCsvFile(e.target.files[0]);
-  };
-
-  const handleBulkImport = async () => {
-    if (!csvFile) {
-      toast.error('Please select a CSV file to import');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', csvFile);
-
-    try {
-      await organizedTravelAPI.bulkImportPrograms(formData);
-      toast.success('Travel programs imported successfully!');
-      fetchPrograms();
-      setCsvFile(null);
-    } catch (error) {
-      console.error("Failed to import travel programs:", error);
-      toast.error("Failed to import travel programs. Please try again.");
-    }
-  };
 
   const handleToggleStatus = async (programId, field) => {
     const program = programs.find(p => p._id === programId);
@@ -529,20 +506,17 @@ export default function OrganizedTravelManagementPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Bulk Import</CardTitle>
+            <CardTitle>Bulk Management</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <Input type="file" accept=".csv" onChange={handleFileChange} />
-              <Button onClick={handleBulkImport} disabled={!csvFile}>
-                <Plus className="h-4 w-4 mr-2" />
-                Import
-              </Button>
-              <Button variant="outline" asChild>
-                <a href="/samples/organized-travels.csv" download>
-                  Download Sample
-                </a>
-              </Button>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium">Import from CSV</Label>
+              <CsvChunkedImportForm
+                apiImportFunction={organizedTravelAPI.bulkImportProgramsChunk}
+                entityName="travels"
+                onFinished={fetchPrograms}
+                sampleCsvUrl="/samples/organized-travels.csv"
+              />
             </div>
           </CardContent>
         </Card>

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { articlesAPI } from '../lib/api';
+import CsvChunkedImportForm from '../components/CsvChunkedImportForm';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Checkbox } from '../components/ui/checkbox';
@@ -255,35 +256,6 @@ const ArticlesPage = () => {
     },
   });
 
-  const bulkImportMutation = useMutation({
-    mutationFn: (file) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      return articlesAPI.bulkImportArticles(formData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['articles']);
-      refetch();
-      setCsvFile(null);
-      toast.success('Articles imported successfully');
-    },
-    onError: (error) => {
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to import articles';
-      toast.error(errorMessage);
-    },
-  });
-
-  const handleFileChange = (e) => {
-    setCsvFile(e.target.files[0]);
-  };
-
-  const handleBulkImport = () => {
-    if (csvFile) {
-      bulkImportMutation.mutate(csvFile);
-    } else {
-      toast.error('Please select a CSV file to import');
-    }
-  };
 
   const handleSelectAll = (checked) => {
     if (checked) {
@@ -890,36 +862,24 @@ const ArticlesPage = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Bulk Import</CardTitle>
+            <CardTitle>Bulk Management</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <Input type="file" accept=".csv" onChange={handleFileChange} />
-              <Button onClick={handleBulkImport} disabled={!csvFile || bulkImportMutation.isLoading}>
-                {bulkImportMutation.isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Importing...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Import
-                  </>
-                )}
-              </Button>
-              <Button variant="outline" asChild>
-                <a href="/samples/articles.csv" download>
-                  <Download className="mr-2 h-4 w-4" />
-                  Sample
-                </a>
-              </Button>
+          <CardContent className="space-y-4">
+            <div>
+              <Label className="text-sm font-medium">Import from CSV</Label>
+              <CsvChunkedImportForm
+                apiImportFunction={articlesAPI.bulkImportArticlesChunk}
+                entityName="articles"
+                onFinished={refetch}
+                sampleCsvUrl="/samples/articles.csv"
+              />
             </div>
-            <div className="flex items-center space-x-4">
-              <Button onClick={handleExport}>
-                <Download className="mr-2 h-4 w-4" />
-                Export to CSV
-              </Button>
+            <div className="border-t pt-4">
+              <Label className="text-sm font-medium">Export to CSV</Label>
+                <Button onClick={handleExport} variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Selected ({selectedArticles.length})
+                </Button>
             </div>
           </CardContent>
         </Card>

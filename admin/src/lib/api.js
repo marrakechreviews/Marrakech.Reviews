@@ -80,6 +80,7 @@ export const productsAPI = {
   bulkImportProducts: (formData) => api.post('/bulk/products', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  bulkImportProductsChunk: (data) => api.post('/bulk/products/chunk', data),
   exportProducts: (data) => api.post('/products/export', data, { responseType: 'blob' }),
 };
 
@@ -147,6 +148,7 @@ export const articlesAPI = {
   bulkImportArticles: (formData) => api.post('/bulk/articles', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  bulkImportArticlesChunk: (data) => api.post('/bulk/articles/chunk', data),
   exportArticles: (data) => api.post('/articles/export', data, { responseType: 'blob' }),
 };
 
@@ -185,6 +187,7 @@ export const organizedTravelAPI = {
   bulkImportPrograms: (formData) => api.post('/bulk/organized-travels', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  bulkImportProgramsChunk: (data) => api.post('/bulk/organized-travels/chunk', data),
   exportOrganizedTravels: (data) => api.post('/organized-travel/export', data, { responseType: 'blob' }),
   exportTravelReservations: (data) => api.post('/organized-travel/reservations/export', data, { responseType: 'blob' }),
 };

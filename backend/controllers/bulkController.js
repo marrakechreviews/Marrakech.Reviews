@@ -121,7 +121,7 @@ exports.importArticles = async (req, res) => {
             if (item.reviews.length > 0) {
                 const key = item.refId || item.title;
                 const article = existingArticleMap.get(key);
-                if (article) {
+                if (article && article._id) {
                     for (const review of item.reviews) {
                         if (!review.reviewUserEmail) continue;
 
@@ -282,7 +282,7 @@ const importActivitiesChunk = async (req, res) => {
         if (item.reviews.length > 0) {
             const key = item.refId || item.name;
             const activity = existingActivityMap.get(key);
-            if (activity) {
+            if (activity && activity._id) {
                 for (const review of item.reviews) {
                     if (!review.reviewUserEmail) continue;
 
@@ -382,6 +382,11 @@ exports.importProducts = async (req, res) => {
 
           if (!item.name || item.name.trim() === '') {
             errors.push({ row: rowNum, message: 'Product name is required.' });
+            continue;
+          }
+
+          if (!item.image || item.image.trim() === '') {
+            errors.push({ row: rowNum, message: `Image URL is required for product '${item.name}'.` });
             continue;
           }
 
@@ -489,7 +494,7 @@ exports.importProducts = async (req, res) => {
             if (item.reviews.length > 0) {
                 const key = item.refId || item.name;
                 const product = existingProductMap.get(key);
-                if (product) {
+                if (product && product._id) {
                     for (const review of item.reviews) {
                         if (!review.reviewUserEmail) continue;
 
@@ -660,7 +665,7 @@ exports.importActivities = async (req, res) => {
             if (item.reviews.length > 0) {
                 const key = item.refId || item.name;
                 const activity = existingActivityMap.get(key);
-                if (activity) {
+                if (activity && activity._id) {
                     for (const review of item.reviews) {
                         if (!review.reviewUserEmail) continue;
 
@@ -824,7 +829,7 @@ exports.importOrganizedTravels = async (req, res) => {
             if (item.reviews.length > 0) {
                 const key = item.refId || item.title;
                 const travel = existingTravelMap.get(key);
-                if (travel) {
+                if (travel && travel._id) {
                     for (const review of item.reviews) {
                         if (!review.reviewUserEmail) continue;
 
@@ -877,6 +882,499 @@ exports.importOrganizedTravels = async (req, res) => {
         fs.unlinkSync(filePath);
       }
     });
+};
+
+exports.importProductsChunk = async (req, res) => {
+  const { products: results } = req.body;
+
+  if (!results || !Array.isArray(results)) {
+    return res.status(400).send('Invalid request body. Expecting an object with a "products" array.');
+  }
+
+  const errors = [];
+
+  const safeParseFloat = (value) => {
+    if (value === null || value === undefined || String(value).trim() === '') return undefined;
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? null : parsed;
+  };
+
+  const safeParseInt = (value) => {
+    if (value === null || value === undefined || String(value).trim() === '') return undefined;
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? null : parsed;
+  };
+
+  try {
+    const productsToProcess = new Map();
+
+    for (const [index, item] of results.entries()) {
+      const rowNum = index + 2;
+
+      if (!item.name || item.name.trim() === '') {
+        errors.push({ row: rowNum, message: 'Product name is required.' });
+        continue;
+      }
+      if (!item.image || item.image.trim() === '') {
+        errors.push({ row: rowNum, message: `Image URL is required for product '${item.name}'.` });
+        continue;
+      }
+
+      const price = safeParseFloat(item.price);
+      if (price === null) {
+        errors.push({ row: rowNum, message: `Invalid price format for product '${item.name}'.` });
+      }
+
+      const countInStock = safeParseInt(item.countInStock);
+      if (countInStock === null) {
+        errors.push({ row: rowNum, message: `Invalid stock count format for product '${item.name}'.` });
+      }
+
+      const comparePrice = safeParseFloat(item.comparePrice);
+      const lowStockThreshold = safeParseInt(item.lowStockThreshold);
+      const rating = safeParseFloat(item.rating);
+      const numReviews = safeParseInt(item.numReviews);
+
+      const key = item.refId || item.name;
+      if (!productsToProcess.has(key)) {
+        productsToProcess.set(key, { ...item, reviews: [], price, countInStock, comparePrice, lowStockThreshold, rating, numReviews, rowNum });
+      }
+
+      if (item.reviewComment && item.reviewUserEmail) {
+        productsToProcess.get(key).reviews.push({
+          reviewName: item.reviewName,
+          reviewRating: item.reviewRating,
+          reviewComment: item.reviewComment,
+          reviewUserEmail: item.reviewUserEmail,
+        });
+      }
+    }
+
+    if (errors.length > 0) {
+      return res.status(400).json({ message: 'CSV validation failed', errors });
+    }
+
+    const refIds = Array.from(productsToProcess.values()).map(p => p.refId).filter(Boolean);
+    const names = Array.from(productsToProcess.values()).map(p => p.name).filter(Boolean);
+
+    const existingProductsByRefId = refIds.length > 0 ? await Product.find({ refId: { $in: refIds } }) : [];
+    const existingProductsByName = names.length > 0 ? await Product.find({ name: { $in: names } }) : [];
+
+    const existingProductMap = new Map();
+    existingProductsByRefId.forEach(p => existingProductMap.set(p.refId.toString(), p));
+    existingProductsByName.forEach(p => existingProductMap.set(p.name, p));
+
+    const newProductsData = [];
+    const updatePromises = [];
+
+    for (const item of productsToProcess.values()) {
+      const key = item.refId || item.name;
+      const existingProduct = existingProductMap.get(key);
+
+      const productData = {
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        comparePrice: item.comparePrice,
+        category: item.category,
+        subcategory: item.subcategory,
+        brand: item.brand,
+        image: item.image,
+        images: item.images ? item.images.split(',').map(img => img.trim()) : [],
+        countInStock: item.countInStock,
+        lowStockThreshold: item.lowStockThreshold !== undefined ? item.lowStockThreshold : 10,
+        rating: item.rating !== undefined ? item.rating : 0,
+        numReviews: item.numReviews !== undefined ? item.numReviews : 0,
+        isFeatured: item.isFeatured ? item.isFeatured.toLowerCase() === 'true' : false,
+        isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
+        tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+        sku: item.sku,
+        seoTitle: item.seoTitle,
+        seoDescription: item.seoDescription,
+        seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
+        refId: item.refId,
+      };
+
+      Object.keys(productData).forEach(key => productData[key] === undefined && delete productData[key]);
+
+      if (existingProduct) {
+        Object.assign(existingProduct, productData);
+        updatePromises.push(existingProduct.save());
+      } else {
+        productData.slug = slugify(productData.name);
+        newProductsData.push(productData);
+      }
+    }
+
+    await Promise.all(updatePromises);
+    if (newProductsData.length > 0) {
+      await Product.insertMany(newProductsData, { ordered: false });
+    }
+
+    // Refresh map after all operations
+    const allProducts = await Product.find({ $or: [{refId: {$in: refIds}}, {name: {$in: names}}]});
+    allProducts.forEach(p => {
+      const key = p.refId ? p.refId.toString() : p.name;
+      existingProductMap.set(key, p);
+    });
+
+    const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
+    const existingUsers = await User.find({ email: { $in: reviewEmails }});
+    const userMap = new Map(existingUsers.map(u => [u.email, u]));
+
+    for (const item of productsToProcess.values()) {
+        if (item.reviews.length > 0) {
+            const key = item.refId || item.name;
+            const product = existingProductMap.get(key);
+            if (product && product._id) {
+                for (const review of item.reviews) {
+                    if (!review.reviewUserEmail) continue;
+
+                    let user = userMap.get(review.reviewUserEmail);
+                    if (!user) {
+                        const newUser = new User({
+                            name: review.reviewName || 'Anonymous',
+                            email: review.reviewUserEmail,
+                            password: crypto.randomBytes(16).toString('hex'),
+                        });
+                        try {
+                            user = await newUser.save();
+                            userMap.set(user.email, user);
+                        } catch (error) {
+                            console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
+                            continue;
+                        }
+                    }
+
+                    const reviewData = {
+                        name: review.reviewName,
+                        rating: safeParseInt(review.reviewRating),
+                        comment: review.reviewComment,
+                        user: user._id,
+                        refId: product._id,
+                        refModel: 'Product',
+                    };
+                    const query = { user: user._id, refId: product._id, refModel: 'Product' };
+                    const update = { $set: reviewData };
+                    const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+                    try {
+                        await Review.findOneAndUpdate(query, update, options);
+                    } catch (error) {
+                        console.error(`Failed to upsert review for product ${product.name}:`, error.message);
+                    }
+                }
+            }
+        }
+    }
+
+    res.status(201).json({ message: `Chunk of ${results.length} products processed successfully.` });
+  } catch (error) {
+    console.error('Error during database operation:', error);
+    res.status(500).json({ message: 'An unexpected error occurred while importing products.', error: error.message });
+  }
+};
+
+exports.importArticlesChunk = async (req, res) => {
+  const { articles: results } = req.body;
+
+  if (!results || !Array.isArray(results)) {
+    return res.status(400).send('Invalid request body. Expecting an object with an "articles" array.');
+  }
+
+  try {
+    const articlesToProcess = new Map();
+    results.forEach(item => {
+      if (!item.title) return;
+      const key = item.refId || item.title;
+      articlesToProcess.set(key, { ...item, reviews: [] });
+      if (item.reviewComment && item.reviewUserEmail) {
+        articlesToProcess.get(key).reviews.push({
+          reviewName: item.reviewName,
+          reviewRating: item.reviewRating,
+          reviewComment: item.reviewComment,
+          reviewUserEmail: item.reviewUserEmail,
+        });
+      }
+    });
+
+    const refIds = [];
+    const titles = [];
+    articlesToProcess.forEach((value, key) => {
+      if (value.refId) {
+        refIds.push(value.refId);
+      } else {
+        titles.push(value.title);
+      }
+    });
+
+    const existingArticlesByRefId = refIds.length > 0 ? await Article.find({ refId: { $in: refIds } }) : [];
+    const existingArticlesByTitle = titles.length > 0 ? await Article.find({ title: { $in: titles } }) : [];
+
+    const existingArticleMap = new Map();
+    existingArticlesByRefId.forEach(a => existingArticleMap.set(a.refId.toString(), a));
+    existingArticlesByTitle.forEach(a => existingArticleMap.set(a.title, a));
+
+    const newArticlesData = [];
+    const updatePromises = [];
+
+    for (const item of articlesToProcess.values()) {
+      const key = item.refId || item.title;
+      const existingArticle = existingArticleMap.get(key);
+
+      const articleData = {
+        title: item.title,
+        content: item.content,
+        author: req.user._id,
+        category: item.category,
+        tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+        image: item.image,
+        metaTitle: item.metaTitle,
+        metaDescription: item.metaDescription,
+        keywords: item.keywords ? item.keywords.split(',').map(kw => kw.trim()) : [],
+        isPublished: item.isPublished ? item.isPublished.toLowerCase() === 'true' : false,
+        refId: item.refId,
+      };
+
+      Object.keys(articleData).forEach(key => articleData[key] === undefined && delete articleData[key]);
+
+      if (existingArticle) {
+        Object.assign(existingArticle, articleData);
+        updatePromises.push(existingArticle.save());
+      } else {
+        articleData.slug = slugify(articleData.title);
+        if (!articleData.author) articleData.author = req.user._id;
+        newArticlesData.push(articleData);
+      }
+    }
+
+    const updatedArticles = await Promise.all(updatePromises);
+    updatedArticles.forEach(a => {
+        const key = a.refId ? a.refId.toString() : a.title;
+        existingArticleMap.set(key, a);
+    });
+
+    if (newArticlesData.length > 0) {
+      const insertedArticles = await Article.create(newArticlesData);
+      insertedArticles.forEach(a => {
+        const key = a.refId ? a.refId.toString() : a.title;
+        existingArticleMap.set(key, a);
+      });
+    }
+
+    const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
+    const existingUsers = await User.find({ email: { $in: reviewEmails }});
+    const userMap = new Map(existingUsers.map(u => [u.email, u]));
+
+    for (const item of articlesToProcess.values()) {
+        if (item.reviews.length > 0) {
+            const key = item.refId || item.title;
+            const article = existingArticleMap.get(key);
+            if (article && article._id) {
+                for (const review of item.reviews) {
+                    if (!review.reviewUserEmail) continue;
+
+                    let user = userMap.get(review.reviewUserEmail);
+                    if (!user) {
+                        const newUser = new User({
+                            name: review.reviewName || 'Anonymous',
+                            email: review.reviewUserEmail,
+                            password: crypto.randomBytes(16).toString('hex'),
+                        });
+                        try {
+                            user = await newUser.save();
+                            userMap.set(user.email, user);
+                        } catch (error) {
+                            console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
+                            continue;
+                        }
+                    }
+
+                    const reviewData = {
+                        name: review.reviewName,
+                        rating: parseInt(review.reviewRating),
+                        comment: review.reviewComment,
+                        user: user._id,
+                        refId: article._id,
+                        refModel: 'Article',
+                    };
+                    const query = { user: user._id, refId: article._id, refModel: 'Article' };
+                    const update = { $set: reviewData };
+                    const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+                    try {
+                        await Review.findOneAndUpdate(query, update, options);
+                    } catch (error) {
+                        console.error(`Failed to upsert review for article ${article.title}:`, error.message);
+                    }
+                }
+            }
+        }
+    }
+
+    res.status(201).send({ message: `Chunk of ${results.length} articles processed successfully.` });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
+    }
+    res.status(500).send({ message: 'An unexpected error occurred while importing articles.', error: error.message });
+  }
+};
+
+exports.importOrganizedTravelsChunk = async (req, res) => {
+  const { travels: results } = req.body;
+
+  if (!results || !Array.isArray(results)) {
+    return res.status(400).send('Invalid request body. Expecting an object with a "travels" array.');
+  }
+
+  try {
+    const travelsToProcess = new Map();
+    results.forEach(item => {
+      if (!item.title) return;
+      const key = item.refId || item.title;
+      travelsToProcess.set(key, { ...item, reviews: [] });
+      if (item.reviewComment && item.reviewUserEmail) {
+        travelsToProcess.get(key).reviews.push({
+          reviewName: item.reviewName,
+          reviewRating: item.reviewRating,
+          reviewComment: item.reviewComment,
+          reviewUserEmail: item.reviewUserEmail,
+        });
+      }
+    });
+
+    const refIds = [];
+    const titles = [];
+    travelsToProcess.forEach((value, key) => {
+      if (value.refId) {
+        refIds.push(value.refId);
+      } else {
+        titles.push(value.title);
+      }
+    });
+
+    const existingTravelsByRefId = refIds.length > 0 ? await OrganizedTravel.find({ refId: { $in: refIds } }) : [];
+    const existingTravelsByTitle = titles.length > 0 ? await OrganizedTravel.find({ title: { $in: titles } }) : [];
+
+    const existingTravelMap = new Map();
+    existingTravelsByRefId.forEach(t => existingTravelMap.set(t.refId.toString(), t));
+    existingTravelsByTitle.forEach(t => existingTravelMap.set(t.title, t));
+
+    const newTravelsData = [];
+    const updatePromises = [];
+
+    for (const item of travelsToProcess.values()) {
+      const key = item.refId || item.title;
+      const existingTravel = existingTravelMap.get(key);
+
+      const travelData = {
+        title: item.title,
+        destination: item.destination,
+        description: item.description,
+        price: item.price ? parseFloat(item.price) : undefined,
+        duration: item.duration,
+        maxGroupSize: item.maxGroupSize ? parseInt(item.maxGroupSize) : undefined,
+        included: item.included ? item.included.split(',').map(inc => inc.trim()) : [],
+        excluded: item.excluded ? item.excluded.split(',').map(exc => exc.trim()) : [],
+        heroImage: item.heroImage,
+        gallery: item.gallery ? item.gallery.split(',').map(img => img.trim()) : [],
+        difficulty: item.difficulty,
+        category: item.category,
+        highlights: item.highlights ? item.highlights.split(',').map(hl => hl.trim()) : [],
+        isActive: item.isActive ? item.isActive.toLowerCase() === 'true' : true,
+        featured: item.featured ? item.featured.toLowerCase() === 'true' : false,
+        tags: item.tags ? item.tags.split(',').map(tag => tag.trim()) : [],
+        seoTitle: item.seoTitle,
+        seoDescription: item.seoDescription,
+        seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
+        refId: item.refId,
+      };
+
+      Object.keys(travelData).forEach(key => travelData[key] === undefined && delete travelData[key]);
+
+      if (existingTravel) {
+        Object.assign(existingTravel, travelData);
+        updatePromises.push(existingTravel.save());
+      } else {
+        travelData.slug = slugify(travelData.title);
+        newTravelsData.push(travelData);
+      }
+    }
+
+    const updatedTravels = await Promise.all(updatePromises);
+    updatedTravels.forEach(t => {
+        const key = t.refId ? t.refId.toString() : t.title;
+        existingTravelMap.set(key, t);
+    });
+
+    if (newTravelsData.length > 0) {
+      const insertedTravels = await OrganizedTravel.create(newTravelsData);
+      insertedTravels.forEach(t => {
+        const key = t.refId ? t.refId.toString() : t.title;
+        existingTravelMap.set(key, t);
+      });
+    }
+
+    const reviewEmails = [...new Set(results.filter(item => item.reviewComment && item.reviewUserEmail).map(item => item.reviewUserEmail))];
+    const existingUsers = await User.find({ email: { $in: reviewEmails }});
+    const userMap = new Map(existingUsers.map(u => [u.email, u]));
+
+    for (const item of travelsToProcess.values()) {
+        if (item.reviews.length > 0) {
+            const key = item.refId || item.title;
+            const travel = existingTravelMap.get(key);
+            if (travel && travel._id) {
+                for (const review of item.reviews) {
+                    if (!review.reviewUserEmail) continue;
+
+                    let user = userMap.get(review.reviewUserEmail);
+                    if (!user) {
+                        const newUser = new User({
+                            name: review.reviewName || 'Anonymous',
+                            email: review.reviewUserEmail,
+                            password: crypto.randomBytes(16).toString('hex'),
+                        });
+                        try {
+                            user = await newUser.save();
+                            userMap.set(user.email, user);
+                        } catch (error) {
+                            console.error(`Failed to create new user for email ${review.reviewUserEmail}:`, error.message);
+                            continue;
+                        }
+                    }
+
+                    const reviewData = {
+                        name: review.reviewName,
+                        rating: parseInt(review.reviewRating),
+                        comment: review.reviewComment,
+                        user: user._id,
+                        refId: travel._id,
+                        refModel: 'OrganizedTravel',
+                    };
+                    const query = { user: user._id, refId: travel._id, refModel: 'OrganizedTravel' };
+                    const update = { $set: reviewData };
+                    const options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+                    try {
+                        await Review.findOneAndUpdate(query, update, options);
+                    } catch (error) {
+                        console.error(`Failed to upsert review for travel ${travel.title}:`, error.message);
+                    }
+                }
+            }
+        }
+    }
+
+    res.status(201).send({ message: `Chunk of ${results.length} organized travels processed successfully.` });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).send({ message: 'Validation failed. Please check your CSV file.', errors: messages });
+    }
+    res.status(500).send({ message: 'An unexpected error occurred while importing organized travels.', error: error.message });
+  }
 };
 
 exports.importReviews = async (req, res) => {
