@@ -339,8 +339,17 @@ const importActivitiesChunk = async (req, res) => {
 exports.importActivitiesChunk = importActivitiesChunk;
 
 exports.importProducts = async (req, res) => {
+  console.log('--- Bulk Product Import Request Received ---');
+  console.log('Request file object:', req.file);
+
   if (!req.file) {
+    console.error('Error: No file was uploaded.');
     return res.status(400).json({ message: 'No file uploaded.' });
+  }
+
+  if (!req.file.path) {
+    console.error('Error: Uploaded file has no path.');
+    return res.status(400).json({ message: 'File upload error: no path specified.' });
   }
 
   const results = [];
@@ -348,22 +357,23 @@ exports.importProducts = async (req, res) => {
   const filePath = req.file.path;
 
   const safeParseFloat = (value) => {
-    if (value === null || value === undefined || value.trim() === '') return undefined;
+    if (value === null || value === undefined || String(value).trim() === '') return undefined;
     const parsed = parseFloat(value);
     return isNaN(parsed) ? null : parsed;
   };
 
   const safeParseInt = (value) => {
-    if (value === null || value === undefined || value.trim() === '') return undefined;
+    if (value === null || value === undefined || String(value).trim() === '') return undefined;
     const parsed = parseInt(value, 10);
     return isNaN(parsed) ? null : parsed;
   };
 
-  fs.createReadStream(filePath)
+  const stream = fs.createReadStream(filePath)
     .pipe(iconv.decodeStream('windows-1252'))
     .pipe(csv())
     .on('data', (data) => results.push(data))
     .on('end', async () => {
+      console.log(`CSV file processed. Found ${results.length} rows.`);
       try {
         const productsToProcess = new Map();
 
@@ -406,7 +416,6 @@ exports.importProducts = async (req, res) => {
         }
 
         if (errors.length > 0) {
-          fs.unlinkSync(filePath);
           return res.status(400).json({ message: 'CSV validation failed', errors });
         }
 
@@ -524,17 +533,20 @@ exports.importProducts = async (req, res) => {
 
         res.status(201).json({ message: `Products and reviews imported successfully.` });
       } catch (error) {
-        fs.unlinkSync(filePath);
-        if (error.name === 'ValidationError') {
-          const messages = Object.values(error.errors).map(e => e.message);
-          return res.status(400).json({ message: 'Validation failed. Please check your CSV file.', errors: messages });
-        }
+        console.error('Error during database operation:', error);
         res.status(500).json({ message: 'An unexpected error occurred while importing products.', error: error.message });
       } finally {
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }
       }
+    })
+    .on('error', (err) => {
+        console.error('Error during CSV stream processing:', err);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+        res.status(400).json({ message: 'Failed to parse CSV file.', error: err.message });
     });
 };
 
