@@ -48,12 +48,12 @@ const ImageLightbox = ({ images, selectedIndex = 0, isOpen, onOpenChange }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl w-full p-0 bg-transparent border-0">
-        <div className="relative">
+      <DialogContent className="p-4 bg-transparent border-0 overflow-auto">
+        <div className="relative flex items-center justify-center">
           <img
             src={images[currentIndex]}
             alt={`Lightbox view ${currentIndex + 1} of ${images.length}`}
-            className="w-full h-auto max-h-[90vh] object-contain"
+            className="max-w-none max-h-none"
           />
 
           {images.length > 1 && (
