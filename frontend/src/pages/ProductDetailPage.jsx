@@ -28,6 +28,7 @@ import { useCart } from '../contexts/CartContext';
 import { toast } from 'sonner';
 import { optimizeImage } from '../lib/image';
 import { Helmet } from 'react-helmet-async';
+import ImageLightbox from '../components/ImageLightbox';
 
 export default function ProductDetailPage() {
   // Get the slug parameter from URL (changed from _id to slug)
@@ -36,6 +37,12 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const { addToCart, isInCart } = useCart();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const handleImageClick = (index) => {
+    setSelectedImage(index);
+    setLightboxOpen(true);
+  };
 
   const { data: productData, isLoading, error } = useQuery({
     queryKey: ['product', slug],
@@ -254,7 +261,8 @@ export default function ProductDetailPage() {
                 <img
                   src={optimizeImage(productImages[selectedImage], 800)}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-pointer"
+                  onClick={() => handleImageClick(selectedImage)}
                   onError={(e) => {
                     e.target.src = '/placeholder-product.jpg';
                   }}
@@ -263,7 +271,7 @@ export default function ProductDetailPage() {
                   variant="outline"
                   size="icon"
                   className="absolute top-4 right-4 bg-white/80 backdrop-blur-sm"
-                  onClick={() => {/* Implement zoom functionality */}}
+                  onClick={() => handleImageClick(selectedImage)}
                 >
                   <ZoomIn className="h-4 w-4" />
                 </Button>
@@ -295,7 +303,7 @@ export default function ProductDetailPage() {
                   {productImages.map((image, index) => (
                     <button
                       key={index}
-                      onClick={() => setSelectedImage(index)}
+                      onClick={() => handleImageClick(index)}
                       className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
                         selectedImage === index ? 'border-primary' : 'border-gray-200'
                       }`}
@@ -312,6 +320,12 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
               )}
+              <ImageLightbox
+                images={productImages}
+                selectedIndex={selectedImage}
+                isOpen={lightboxOpen}
+                onOpenChange={setLightboxOpen}
+              />
             </div>
 
             {/* Product Info */}

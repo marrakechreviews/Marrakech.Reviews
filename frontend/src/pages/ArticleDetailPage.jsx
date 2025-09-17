@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { articlesAPI, reviewsAPI } from '../lib/api';
@@ -14,10 +14,12 @@ import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
 import Share2 from 'lucide-react/dist/esm/icons/share-2';
 import BookOpen from 'lucide-react/dist/esm/icons/book-open';
 import { Helmet } from 'react-helmet-async';
+import ImageLightbox from '../components/ImageLightbox';
 
 const ArticleDetailPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const { data: article, isLoading, error } = useQuery({
     queryKey: ['article', slug],
@@ -229,9 +231,19 @@ const ArticleDetailPage = () => {
           <img
             src={article.image}
             alt={article.title}
-            className="w-full h-auto rounded-lg shadow-lg"
+            className="w-full h-auto rounded-lg shadow-lg cursor-pointer"
+            onClick={() => setLightboxOpen(true)}
           />
         </div>
+      )}
+
+      {article.image && (
+        <ImageLightbox
+          images={[article.image]}
+          selectedIndex={0}
+          isOpen={lightboxOpen}
+          onOpenChange={setLightboxOpen}
+        />
       )}
 
       {/* Article Content */}
