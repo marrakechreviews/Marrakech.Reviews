@@ -998,6 +998,9 @@ exports.importProductsChunk = async (req, res) => {
       Object.keys(productData).forEach(key => productData[key] === undefined && delete productData[key]);
 
       if (existingProduct) {
+        if (!productData.refId && existingProduct.refId) {
+          delete productData.refId;
+        }
         Object.assign(existingProduct, productData);
         updatePromises.push(existingProduct.save());
       } else {

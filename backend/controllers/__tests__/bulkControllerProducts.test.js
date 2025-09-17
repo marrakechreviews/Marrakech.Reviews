@@ -138,4 +138,55 @@ describe('Bulk Controller - Products', () => {
     expect(productB.refId).not.toBe('');
     expect(productA.refId).not.toEqual(productB.refId);
   });
+
+  it('should not overwrite an existing refId with an empty one', async () => {
+    // Create a product with a valid refId
+    await Product.create({
+      name: 'Product with RefId',
+      refId: 'real-ref-id',
+      description: 'Initial Description',
+      price: 30,
+      category: 'Test Category',
+      brand: 'Test Brand',
+      image: 'test.jpg',
+      countInStock: 30,
+      slug: 'product-with-refid',
+    });
+
+    // Create a product with an empty refId to act as a potential duplicate
+    await Product.create({
+      name: 'Product with empty RefId',
+      refId: '',
+      description: 'Another one',
+      price: 40,
+      category: 'Test Category',
+      brand: 'Test Brand',
+      image: 'test2.jpg',
+      countInStock: 40,
+      slug: 'product-with-empty-refid',
+    });
+
+    const products = [
+      {
+        name: 'Product with RefId',
+        refId: '', // Attempt to overwrite with empty refId
+        description: 'Updated Description for real product',
+        price: 35,
+        image: 'test.jpg',
+        countInStock: 25,
+        category: 'Test Category',
+        brand: 'Test Brand',
+      },
+    ];
+
+    const response = await request(app)
+      .post('/api/bulk/products/chunk')
+      .send({ products });
+
+    expect(response.status).toBe(201);
+    const updatedProduct = await Product.findOne({ name: 'Product with RefId' });
+    expect(updatedProduct).not.toBeNull();
+    expect(updatedProduct.description).toBe('Updated Description for real product');
+    expect(updatedProduct.refId).toBe('real-ref-id'); // Assert that the refId was NOT changed
+  });
 });

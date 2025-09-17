@@ -155,7 +155,7 @@ productSchema.virtual("discountPercentage").get(function () {
 // Pre-save middleware to generate slug and refId
 productSchema.pre("save", function (next) {
   // Generate refId for new documents
-  if (this.isNew && !this.refId) {
+  if (this.isNew && this.refId == null) {
     this.refId = crypto.randomBytes(8).toString('hex');
   }
 
