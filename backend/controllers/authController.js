@@ -155,6 +155,13 @@ const login = async (req, res) => {
       });
     }
 
+    if (user.authProvider === 'google') {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with a different sign-in method.'
+      });
+    }
+
     // Check if account is active
     if (!user.isActive) {
       return res.status(401).json({
