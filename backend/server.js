@@ -34,7 +34,16 @@ const { errorHandler, notFound } = require("./middleware/errorMiddleware");
 const app = express();
 
 // Security middleware
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "img-src": ["'self'", "data:", "*"],
+      },
+    },
+  })
+);
 
 // Rate limiting disabled for development
 
