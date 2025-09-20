@@ -910,26 +910,36 @@ exports.importProductsChunk = async (req, res) => {
 
     for (const [index, item] of results.entries()) {
       const rowNum = index + 2;
+      const rowErrors = [];
 
-      if (!item.name || item.name.trim() === '') {
-        errors.push({ row: rowNum, message: 'Product name is required.' });
+      // --- Stage 1: Comprehensive Validation ---
+      if (!item.name || item.name.trim() === '') rowErrors.push('Product name is required.');
+      if (!item.image || item.image.trim() === '') rowErrors.push('Image URL is required.');
+      if (!item.description || item.description.trim() === '') rowErrors.push('Description is required.');
+      if (!item.category || item.category.trim() === '') rowErrors.push('Category is required.');
+      if (!item.brand || item.brand.trim() === '') rowErrors.push('Brand is required.');
+
+      if (item.price === undefined || String(item.price).trim() === '') {
+        rowErrors.push('Price is required.');
+      } else if (safeParseFloat(item.price) === null) {
+        rowErrors.push('Invalid price format.');
+      }
+
+      if (item.countInStock === undefined || String(item.countInStock).trim() === '') {
+        rowErrors.push('Stock count is required.');
+      } else if (safeParseInt(item.countInStock) === null) {
+        rowErrors.push('Invalid stock count format.');
+      }
+
+      // --- Stage 2: Error Reporting ---
+      if (rowErrors.length > 0) {
+        errors.push({ row: rowNum, product: (item.name || `Unnamed Product at Row ${rowNum}`), messages: rowErrors });
         continue;
       }
-      if (!item.image || item.image.trim() === '') {
-        errors.push({ row: rowNum, message: `Image URL is required for product '${item.name}'.` });
-        continue;
-      }
 
+      // --- Stage 3: Data Processing ---
       const price = safeParseFloat(item.price);
-      if (price === null) {
-        errors.push({ row: rowNum, message: `Invalid price format for product '${item.name}'.` });
-      }
-
       const countInStock = safeParseInt(item.countInStock);
-      if (countInStock === null) {
-        errors.push({ row: rowNum, message: `Invalid stock count format for product '${item.name}'.` });
-      }
-
       const comparePrice = safeParseFloat(item.comparePrice);
       const lowStockThreshold = safeParseInt(item.lowStockThreshold);
       const rating = safeParseFloat(item.rating);
