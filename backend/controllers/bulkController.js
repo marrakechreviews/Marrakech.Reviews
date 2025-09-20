@@ -992,12 +992,15 @@ exports.importProductsChunk = async (req, res) => {
         seoTitle: item.seoTitle,
         seoDescription: item.seoDescription,
         seoKeywords: item.seoKeywords ? item.seoKeywords.split(',').map(kw => kw.trim()) : [],
-        refId: item.refId,
+        refId: item.refId ? item.refId.trim() : item.refId,
       };
 
       Object.keys(productData).forEach(key => productData[key] === undefined && delete productData[key]);
 
       if (existingProduct) {
+        if (productData.name && existingProduct.name !== productData.name) {
+          existingProduct.slug = slugify(productData.name);
+        }
         if (!productData.refId && existingProduct.refId) {
           delete productData.refId;
         }
