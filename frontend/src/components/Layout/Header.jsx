@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCart } from '../../contexts/CartContext';
-import LanguageSwitcher from '../LanguageSwitcher';
+import GoogleTranslate from '../LanguageSwitcher';
 import { optimizeImage } from '../../lib/image';
 
 export default function Header() {
@@ -94,7 +94,7 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <LanguageSwitcher />
+            <GoogleTranslate />
             {/* Cart */}
             <Button
               variant="ghost"
