@@ -1,9 +1,26 @@
 import React, { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Globe } from 'lucide-react';
 
 const GoogleTranslate = () => {
   useEffect(() => {
     // Check if the script already exists
     if (document.querySelector('script[src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"]')) {
+      if (window.google && window.google.translate) {
+        // If script exists, ensure the widget is rendered.
+        window.google.translate.TranslateElement(
+          {
+            pageLanguage: 'en',
+            layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
+          },
+          'google_translate_element'
+        );
+      }
       return;
     }
     
@@ -23,16 +40,23 @@ const GoogleTranslate = () => {
     };
 
     return () => {
-      // It's tricky to clean up Google's scripts and widgets perfectly.
-      // A simple cleanup might involve removing the script, but the widget can leave behind artifacts.
-      // For this implementation, we will leave the script and widget in the DOM.
+      // Cleanup is complex, so we leave the script in the DOM.
     };
   }, []);
 
   return (
-    <div id="google_translate_element_container" className="flex items-center">
-      <div id="google_translate_element"></div>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" aria-label="Switch language">
+          <Globe className="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <div id="google_translate_element_container" className="p-2">
+            <div id="google_translate_element"></div>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
