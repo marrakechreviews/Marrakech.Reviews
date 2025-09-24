@@ -32,6 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Helmet } from 'react-helmet-async';
 import { settingsAPI } from '../lib/api';
+import GoogleTranslate from './LanguageSwitcher';
 
 export default function Layout({ children }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -201,6 +202,7 @@ export default function Layout({ children }) {
                   </Button>
                 </div>
               )}
+              <GoogleTranslate />
 
               <Button variant="ghost" size="sm" asChild className="relative">
                 <Link to="/cart">
