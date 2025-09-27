@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import { ModalProvider } from './contexts/ModalContext';
 import './index.css';
 import App from './App.jsx';
 
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')).render(
     <GoogleOAuthProvider clientId={googleClientId}>
       <AuthProvider>
         <CartProvider>
-          <App />
+          <ModalProvider>
+            <App />
+          </ModalProvider>
         </CartProvider>
       </AuthProvider>
     </GoogleOAuthProvider>

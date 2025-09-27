@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useModal } from './contexts/ModalContext';
+import LoginModal from './components/LoginModal';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
 import HomePage from './pages/HomePage';
@@ -46,6 +48,8 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const { isModalOpen, closeModal, onSuccess } = useModal();
+
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
@@ -88,6 +92,15 @@ function App() {
               </Routes>
             </Layout>
             <Toaster position="top-right" />
+            <LoginModal
+              isOpen={isModalOpen}
+              onClose={closeModal}
+              onLoginSuccess={() => {
+                if (onSuccess) {
+                  onSuccess();
+                }
+              }}
+            />
           </div>
         </Router>
       </QueryClientProvider>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
+import { useModal } from '../contexts/ModalContext';
 import ImageLightbox from '../components/ImageLightbox';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '../components/ui/button';
@@ -39,6 +40,7 @@ const OrganizedTravelDetailsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { openModal, formData: modalFormData, clearFormData } = useModal();
   const [submitting, setSubmitting] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -47,12 +49,6 @@ const OrganizedTravelDetailsPage = () => {
     setSelectedImageIndex(index);
     setLightboxOpen(true);
   };
-  
-  useEffect(() => {
-    if (!isAuthLoading && !isAuthenticated) {
-      navigate('/login', { state: { from: location }, replace: true });
-    }
-  }, [isAuthenticated, isAuthLoading, navigate, location]);
 
   const { data: travelProgram, isLoading: loading, error } = useQuery({
     queryKey: ['organizedTravel', destination],
@@ -67,6 +63,13 @@ const OrganizedTravelDetailsPage = () => {
     select: (response) => response.data.data,
     enabled: !!travelProgram,
   });
+
+  useEffect(() => {
+    if (modalFormData) {
+      setFormData(modalFormData);
+      clearFormData();
+    }
+  }, [modalFormData, clearFormData]);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -93,38 +96,44 @@ const OrganizedTravelDetailsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      toast.error('You must be logged in to make a reservation.');
-      navigate('/login', { state: { from: location }, replace: true });
-      return;
-    }
-    setSubmitting(true);
 
-    try {
-      const reservationData = {
-        ...formData,
-        destination,
-        programId: travelProgram?._id,
-        totalPrice: travelProgram?.price * formData.numberOfTravelers
-      };
+    const processReservation = async () => {
+      setSubmitting(true);
+      try {
+        const reservationData = {
+          ...formData,
+          destination,
+          programId: travelProgram?._id,
+          totalPrice: travelProgram?.price * formData.numberOfTravelers,
+        };
 
-      const reservationResponse = await organizedTravelAPI.createReservation(reservationData);
-      const travelReservationId = reservationResponse.data.reservation._id;
+        const reservationResponse =
+          await organizedTravelAPI.createReservation(reservationData);
+        const travelReservationId = reservationResponse.data.reservation._id;
 
-      const isPartial = paymentType === 'partial';
-      const orderResponse = await api.post('/orders/from-travel-reservation', {
-        travelReservationId,
-        isPartial,
-      });
+        const isPartial = paymentType === 'partial';
+        const orderResponse = await api.post(
+          '/orders/from-travel-reservation',
+          {
+            travelReservationId,
+            isPartial,
+          }
+        );
 
-      setCreatedOrderId(orderResponse.data.data._id);
-      toast.success('Reservation created. Proceed to payment.');
+        setCreatedOrderId(orderResponse.data.data._id);
+        toast.success('Reservation created. Proceed to payment.');
+      } catch (err) {
+        console.error('Error submitting reservation:', err);
+        toast.error('Failed to create reservation. Please try again.');
+      } finally {
+        setSubmitting(false);
+      }
+    };
 
-    } catch (err) {
-      console.error('Error submitting reservation:', err);
-      toast.error('Failed to create reservation. Please try again.');
-    } finally {
-      setSubmitting(false);
+    if (isAuthenticated) {
+      await processReservation();
+    } else {
+      openModal(formData, processReservation);
     }
   };
 

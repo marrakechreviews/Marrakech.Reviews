@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import ImageLightbox from '../components/ImageLightbox';
 import { useAuth } from '../contexts/AuthContext';
+import { useModal } from '../contexts/ModalContext';
 import { Helmet } from 'react-helmet-async';
 import { 
   MapPin, 
@@ -45,12 +46,29 @@ export default function ActivityDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  
+  const { openModal, formData: modalFormData, clearFormData } = useModal();
+
   useEffect(() => {
-    if (!isAuthLoading && !isAuthenticated) {
-      navigate('/login', { state: { from: location }, replace: true });
+    if (modalFormData) {
+      setFormData({
+        name: modalFormData.name || '',
+        email: modalFormData.email || '',
+        phone: modalFormData.phone || '',
+        whatsapp: modalFormData.whatsapp || '',
+        notes: modalFormData.notes || '',
+      });
+      if (modalFormData.selectedDate) {
+        setSelectedDate(new Date(modalFormData.selectedDate));
+      }
+      if (modalFormData.numberOfPersons) {
+        setNumberOfPersons(modalFormData.numberOfPersons);
+      }
+      if (modalFormData.paymentType) {
+        setPaymentType(modalFormData.paymentType);
+      }
+      clearFormData();
     }
-  }, [isAuthenticated, isAuthLoading, navigate, location]);
+  }, [modalFormData, clearFormData]);
 
   const { data: activity, isLoading: loading, error } = useQuery({
     queryKey: ['activity', slug],
@@ -132,46 +150,54 @@ export default function ActivityDetailPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
-    if (!isAuthenticated) {
-      toast.error('You must be logged in to make a reservation.');
-      navigate('/login', { state: { from: location }, replace: true });
-      return;
-    }
 
-    setSubmitting(true);
-    
-    try {
-      const reservationData = {
-        customerInfo: formData,
-        reservationDate: selectedDate.toISOString(),
+    const processReservation = async () => {
+      setSubmitting(true);
+      try {
+        const reservationData = {
+          customerInfo: formData,
+          reservationDate: selectedDate.toISOString(),
+          numberOfPersons,
+          totalPrice: activity.price * numberOfPersons,
+          notes: formData.notes,
+        };
+        const reservationResponse = await activitiesAPI.createReservation(
+          activity._id,
+          reservationData
+        );
+        const reservationId = reservationResponse.data._id;
+        const isPartial = paymentType === 'partial';
+        const orderResponse = await api.post('/orders/from-reservation', {
+          reservationId,
+          isPartial,
+        });
+        setCreatedOrderId(orderResponse.data.data._id);
+        toast.success('Reservation created. Proceed to payment.');
+      } catch (error) {
+        console.error('Reservation error:', error);
+        const errorMessage =
+          error.response?.data?.message ||
+          'There was an error submitting your reservation. Please try again.';
+        toast.error(errorMessage);
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      await processReservation();
+    } else {
+      const allFormData = {
+        ...formData,
+        selectedDate: selectedDate?.toISOString(),
         numberOfPersons,
-        totalPrice: activity.price * numberOfPersons,
-        notes: formData.notes
+        paymentType,
       };
-      
-      const reservationResponse = await activitiesAPI.createReservation(activity._id, reservationData);
-      const reservationId = reservationResponse.data._id;
-
-      const isPartial = paymentType === 'partial';
-      const orderResponse = await api.post('/orders/from-reservation', {
-        reservationId,
-        isPartial,
-      });
-
-      setCreatedOrderId(orderResponse.data.data._id);
-      toast.success('Reservation created. Proceed to payment.');
-      
-    } catch (error) {
-      console.error('Reservation error:', error);
-      const errorMessage = error.response?.data?.message || 'There was an error submitting your reservation. Please try again.';
-      toast.error(errorMessage);
-    } finally {
-      setSubmitting(false);
+      openModal(allFormData, processReservation);
     }
   };
 
