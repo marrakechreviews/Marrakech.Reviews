@@ -67,6 +67,7 @@ export default function Layout({ children }) {
     { name: 'Travels', href: '/travels' },
     { name: 'Articles', href: '/articles' },
     { name: 'Activities', href: '/Activities' },
+    { name: 'Soccer', href: '/soccer' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];

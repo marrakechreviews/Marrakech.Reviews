@@ -34,6 +34,7 @@ import ShippingInfoPage from './pages/ShippingInfoPage';
 import ReturnsPage from './pages/ReturnsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import OrderDetailPage from './pages/OrderDetailPage';
+import SoccerPage from './pages/SoccerPage';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import './App.css';
@@ -89,6 +90,7 @@ function App() {
                 <Route path="/privacy" element={<PrivacyPolicyPage />} />
                 <Route path="/category/:category" element={<ProductsPage />} />
                 <Route path="/search" element={<ProductsPage />} />
+                <Route path="/soccer" element={<SoccerPage />} />
               </Routes>
             </Layout>
             <Toaster position="top-right" />

@@ -1,169 +1,64 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const path = require("path");
-require("dotenv").config();
-
-// Import routes
-const authRoutes = require("./routes/auth");
-const userRoutes = require("./routes/users");
-const productRoutes = require("./routes/products");
-const orderRoutes = require("./routes/orders");
-const reviewRoutes = require("./routes/reviews");
-const uploadRoutes = require("./routes/upload");
-const articleRoutes = require("./routes/articles");
-const settingsRoutes = require("./routes/settings");
-const activityRoutes = require("./routes/activities");
-const homepageSectionsRoutes = require("./routes/homepageSections");
-const analyticsRoutes = require("./routes/analytics");
-const enhancedReviewsRoutes = require("./routes/enhancedReviews");
-const instagramRoutes = require("./routes/instagram");
-const organizedTravelRoutes = require("./routes/organizedTravel");
-const contactRoutes = require("./routes/contact");
-const articleGeneratorRoutes = require("./routes/articleGenerator");
-const productGeneratorRoutes = require("./routes/productGenerator");
-const bulkRoutes = require("./routes/bulk");
-const sitemapRoutes = require("./routes/sitemap");
-const reservationRoutes = require("./routes/reservations");
-
-// Import middleware
-const { errorHandler, notFound } = require("./middleware/errorMiddleware");
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const cors = require('cors');
 
 const app = express();
+const port = 3001;
 
-// Security middleware
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        "img-src": ["'self'", "data:", "*"],
+app.use(cors());
+
+const mockSoccerData = {
+  response: [
+    {
+      fixture: { id: 1, status: { long: "First Half", elapsed: 45 } },
+      league: { id: 2, name: "Champions League", logo: "https://media.api-sports.io/football/leagues/2.png" },
+      teams: {
+        home: { id: 1, name: "Real Madrid", logo: "https://media.api-sports.io/football/teams/541.png" },
+        away: { id: 2, name: "Bayern Munich", logo: "https://media.api-sports.io/football/teams/157.png" },
       },
+      goals: { home: 1, away: 0 },
     },
-  })
-);
-
-// Rate limiting disabled for development
-
-// CORS configuration
-const allowedOrigins = [
-    "https://www.marrakech.reviews",
-    "http://localhost:5000",
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "https://marrakech-reviews-sigma.vercel.app",
-    "https://marrakech-reviews-backend.vercel.app",
-    "https://backend-marrakech-reviews.vercel.app",
-    "https://admin-marrakech-reviews.vercel.app",
-    "https://frontend-marrakech-reviews.vercel.app",
-    "https://admin.marrakech.reviews"
-];
-
-if (process.env.CORS_ORIGIN) {
-    const customOrigins = process.env.CORS_ORIGIN.split(',').map(origin => origin.trim());
-    allowedOrigins.push(...customOrigins);
-}
-
-app.use(cors({
-    origin: (origin, callback) => {
-        // allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
-        }
-        return callback(null, true);
+    {
+      fixture: { id: 2, status: { long: "Second Half", elapsed: 75 } },
+      league: { id: 3, name: "Europa League", logo: "https://media.api-sports.io/football/leagues/3.png" },
+      teams: {
+        home: { id: 3, name: "Liverpool", logo: "https://media.api-sports.io/football/teams/40.png" },
+        away: { id: 4, name: "Atalanta", logo: "https://media.api-sports.io/football/teams/499.png" },
+      },
+      goals: { home: 2, away: 2 },
     },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    preflightContinue: false,
-    optionsSuccessStatus: 200
-}));
+  ],
+};
 
-// Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Logging middleware
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-}
-
-// Static files
-app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
-
-// API routes
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.options("/api/products", cors());
-app.use("/api/products", productRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/upload", uploadRoutes);
-app.options("/api/articles", cors());
-app.use("/api/articles", articleRoutes);
-app.use("/api/settings", settingsRoutes);
-app.use("/api/activities", activityRoutes);
-app.use("/api/reservations", reservationRoutes); // Corrected route
-app.use("/api/homepage-sections", homepageSectionsRoutes);
-app.use("/api/analytics", analyticsRoutes);
-app.use("/api/enhanced-reviews", enhancedReviewsRoutes);
-app.use("/api/instagram", instagramRoutes);
-app.use("/api/organized-travel", organizedTravelRoutes);
-app.use("/api/contact", contactRoutes);
-app.use("/api", articleGeneratorRoutes);
-app.use("/api", productGeneratorRoutes);
-app.use("/api/bulk", bulkRoutes);
-app.use("/", sitemapRoutes);
-
-// Health check endpoint
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is running",
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Serve frontend assets and handle client-side routing
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../frontend/dist', 'index.html'));
-});
-
-// Error handling middleware
-app.use(notFound);
-app.use(errorHandler);
-
-// Database connection
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error("Database connection failed:", error.message);
-    process.exit(1);
+app.get('/api/soccer', async (req, res) => {
+  if (process.env.RAPIDAPI_KEY === 'YOUR_RAPIDAPI_KEY') {
+    console.log('Using mock data because RAPIDAPI_KEY is a placeholder.');
+    return res.json(mockSoccerData);
   }
-};
 
-// Start server
-const PORT = process.env.PORT || 5000;
+  try {
+    const options = {
+      method: 'GET',
+      url: 'https://api-football-v1.p.rapidapi.com/v3/fixtures',
+      params: {
+        league: '2', // UEFA Champions League
+        season: new Date().getFullYear().toString()
+      },
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+        'X-RapidAPI-Host': 'api-football-v1.p.rapidapi.com'
+      }
+    };
 
-const startServer = async () => {
-  await connectDB();
-  
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-  });
-};
+    const response = await axios.request(options);
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error fetching from RapidAPI:', error.message);
+    res.status(500).json({ error: 'Failed to fetch data from RapidAPI' });
+  }
+});
 
-startServer();
-
-// Handle favicon.png requests to prevent 404 errors
-app.get("/favicon.png", (req, res) => res.status(204).send());
-
-module.exports = app;
+app.listen(port, () => {
+  console.log(`Server listening at http://localhost:${port}`);
+});

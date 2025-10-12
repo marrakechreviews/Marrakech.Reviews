@@ -1,49 +1,15 @@
 {
-  "name": "enhanced-ecommerce-backend",
+  "name": "soccer-api-backend",
   "version": "1.0.0",
+  "description": "A backend to proxy requests to the RapidAPI soccer API.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "server": "nodemon --verbose server.js",
-    "start:direct": "node server.js",
-    "test": "jest",
-    "migrate:add-refids": "node scripts/addRefIds.js"
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@paypal/paypal-server-sdk": "^1.1.0",
-    "@sparticuz/chromium": "^111.0.0",
     "axios": "^1.11.0",
-    "bcryptjs": "^3.0.2",
-    "cheerio": "^1.1.2",
     "cors": "^2.8.5",
-    "csv-parser": "^3.2.0",
-    "dotenv": "^17.2.1",
-    "express": "^4.19.2",
-    "express-async-handler": "^1.2.0",
-    "express-rate-limit": "^8.0.1",
-    "express-validator": "^7.2.1",
-    "google-auth-library": "^10.3.0",
-    "helmet": "^8.1.0",
-    "iconv-lite": "^0.7.0",
-    "jsonwebtoken": "^9.0.2",
-    "json2csv": "^5.0.7",
-    "morgan": "^1.10.1",
-    "multer": "^2.0.2",
-    "nodemailer": "^7.0.5",
-    "pdfkit": "^0.17.2",
-    "selenium-webdriver": "^4.22.0",
-    "uuid": "^11.1.0",
-    "mongoose": "^8.18.0"
-  },
-  "devDependencies": {
-    "@shelf/jest-mongodb": "^5.2.2",
-    "jest": "^30.0.5",
-    "mongodb-memory-server": "^10.2.0",
-    "nodemon": "^3.1.10",
-    "supertest": "^7.1.4"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
   }
 }
