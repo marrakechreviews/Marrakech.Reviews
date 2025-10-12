@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "installCommand": "pnpm install",
   "builds": [
     {
       "src": "backend/server.js",
@@ -9,7 +10,6 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "installCommand": "pnpm install",
         "distDir": "frontend/dist"
       }
     },
