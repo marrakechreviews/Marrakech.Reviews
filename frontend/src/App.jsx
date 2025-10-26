@@ -38,6 +38,7 @@ import SoccerPage from './pages/SoccerPage';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import './App.css';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const queryClient = new QueryClient({
   defaultOptions: {
