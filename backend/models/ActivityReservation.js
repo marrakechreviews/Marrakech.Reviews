@@ -52,8 +52,17 @@ const activityReservationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+    enum: ['pending', 'confirmed', 'cancelled', 'completed', 'pending manual confirmation'],
     default: 'pending'
+  },
+  reservationType: {
+    type: String,
+    enum: ['paid', 'free'],
+    required: [true, 'Reservation type is required']
+  },
+  variation: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Activity.variations'
   },
   notes: {
     type: String,

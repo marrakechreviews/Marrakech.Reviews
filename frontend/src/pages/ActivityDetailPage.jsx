@@ -77,6 +77,12 @@ export default function ActivityDetailPage() {
     enabled: !!slug,
   });
 
+  useEffect(() => {
+    if (activity && activity.variations.length > 0) {
+      setSelectedVariation(activity.variations[0]);
+    }
+  }, [activity]);
+
   const { data: reviews, isLoading: reviewsLoading } = useQuery({
     queryKey: ['reviews', 'activity', activity?._id],
     queryFn: () => reviewsAPI.getReviews({ refId: activity._id, refModel: 'Activity' }),
@@ -86,6 +92,8 @@ export default function ActivityDetailPage() {
 
   const [selectedDate, setSelectedDate] = useState(null);
   const [numberOfPersons, setNumberOfPersons] = useState(2);
+  const [selectedVariation, setSelectedVariation] = useState(null);
+  const [reservationType, setReservationType] = useState('paid');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -162,8 +170,9 @@ export default function ActivityDetailPage() {
           customerInfo: formData,
           reservationDate: selectedDate.toISOString(),
           numberOfPersons,
-          totalPrice: activity.price * numberOfPersons,
           notes: formData.notes,
+          reservationType,
+          variationId: selectedVariation._id,
         };
         const reservationResponse = await activitiesAPI.createReservation(
           activity._id,
@@ -212,8 +221,8 @@ export default function ActivityDetailPage() {
     ));
   };
 
-  const totalPrice = activity ? activity.price * numberOfPersons : 0;
-  const savings = activity ? (activity.marketPrice - activity.price) * numberOfPersons : 0;
+  const totalPrice = selectedVariation ? selectedVariation.price * numberOfPersons : 0;
+  const savings = selectedVariation ? (selectedVariation.marketPrice - selectedVariation.price) * numberOfPersons : 0;
 
   if (loading) {
     return (
@@ -513,11 +522,11 @@ export default function ActivityDetailPage() {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-2">
                     <span className="text-3xl font-bold text-primary">
-                      ${activity.price}
+                      ${selectedVariation ? selectedVariation.price : activity.variations[0].price}
                     </span>
-                    {activity.marketPrice > activity.price && (
+                    {selectedVariation && selectedVariation.marketPrice > selectedVariation.price && (
                       <span className="text-lg text-gray-500 line-through">
-                        ${activity.marketPrice}
+                        ${selectedVariation.marketPrice}
                       </span>
                     )}
                   </div>
@@ -536,6 +545,29 @@ export default function ActivityDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Variation Selection */}
+                    <div>
+                      <Label>Select Variation *</Label>
+                      <Select
+                        value={selectedVariation ? selectedVariation.name : ''}
+                        onValueChange={(value) => {
+                          const variation = activity.variations.find(v => v.name === value);
+                          setSelectedVariation(variation);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {activity.variations.map(variation => (
+                            <SelectItem key={variation.name} value={variation.name}>
+                              {variation.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     {/* Date Selection */}
                     <div>
                       <Label>Select Date *</Label>
@@ -711,49 +743,62 @@ export default function ActivityDetailPage() {
                       </div>
                     </div>
 
-                    {/* Payment Options */}
-                    {!createdOrderId && (
-                      <div className="my-4">
-                        <Label className="text-base font-semibold">Payment Options</Label>
-                        <RadioGroup defaultValue="full" onValueChange={setPaymentType} className="mt-2 space-y-3">
-                          <div className="flex items-center space-x-3 p-3 border rounded-md">
-                            <RadioGroupItem value="full" id="r1" />
-                            <Label htmlFor="r1" className="text-sm">Full Payment (${totalPrice.toFixed(2)})</Label>
-                          </div>
-                          <div className="flex items-center space-x-3 p-3 border rounded-md">
-                            <RadioGroupItem value="partial" id="r2" />
-                            <Label htmlFor="r2" className="text-sm">Partial Payment ($10.00 to reserve)</Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-                    )}
+                    {/* Reservation Type */}
+                    <div>
+                      <Label>Reservation Type *</Label>
+                      <RadioGroup
+                        value={reservationType}
+                        onValueChange={setReservationType}
+                        className="flex gap-4 mt-2"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="paid" id="paid" />
+                          <Label htmlFor="paid">Paid</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="free" id="free" />
+                          <Label htmlFor="free">Free</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
 
-                    {!createdOrderId ? (
+                    {reservationType === 'paid' ? (
+                      !createdOrderId ? (
+                        <Button
+                          type="submit"
+                          size="lg"
+                          className="w-full"
+                          disabled={submitting}
+                        >
+                          {submitting ? 'Submitting...' : 'Reserve and Proceed to Payment'}
+                        </Button>
+                      ) : (
+                        <div className="mt-4">
+                          <PayPalButton
+                            orderId={createdOrderId}
+                            onPaymentSuccess={(data) => {
+                              toast.success('Payment successful!');
+                              navigate('/thank-you', {
+                                state: {
+                                  orderId: data.order._id,
+                                  orderNumber: data.order.orderNumber,
+                                  type: 'activity'
+                                }
+                              });
+                            }}
+                            onPaymentError={() => toast.error('Payment failed. Please try again.')}
+                          />
+                        </div>
+                      )
+                    ) : (
                       <Button
                         type="submit"
                         size="lg"
                         className="w-full"
                         disabled={submitting}
                       >
-                        {submitting ? 'Submitting...' : 'Reserve and Proceed to Payment'}
+                        {submitting ? 'Submitting...' : 'Submit Free Reservation'}
                       </Button>
-                    ) : (
-                      <div className="mt-4">
-                        <PayPalButton
-                          orderId={createdOrderId}
-                          onPaymentSuccess={(data) => {
-                            toast.success('Payment successful!');
-                            navigate('/thank-you', {
-                              state: {
-                                orderId: data.order._id,
-                                orderNumber: data.order.orderNumber,
-                                type: 'activity'
-                              }
-                            });
-                          }}
-                          onPaymentError={() => toast.error('Payment failed. Please try again.')}
-                        />
-                      </div>
                     )}
                   </form>
                 </CardContent>

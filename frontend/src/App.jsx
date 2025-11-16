@@ -35,10 +35,12 @@ import ReturnsPage from './pages/ReturnsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import SoccerPage from './pages/SoccerPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import FreeReservations from './components/FreeReservations';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import './App.css';
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -92,6 +94,9 @@ function App() {
                 <Route path="/category/:category" element={<ProductsPage />} />
                 <Route path="/search" element={<ProductsPage />} />
                 <Route path="/soccer" element={<SoccerPage />} />
+                <Route path="/admin" element={<AdminDashboardPage />}>
+                  <Route path="free-reservations" element={<FreeReservations />} />
+                </Route>
               </Routes>
             </Layout>
             <Toaster position="top-right" />
