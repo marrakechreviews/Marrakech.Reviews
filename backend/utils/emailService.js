@@ -839,6 +839,51 @@ const sendPaymentReminder = async (orderData, paymentLink) => {
   }
 };
 
+const sendFreeReservationStatusUpdate = async (reservationData) => {
+  try {
+    const transporter = createTransporter();
+
+    const emailData = {
+      reservationId: reservationData.reservationId,
+      activityName: reservationData.activity?.name || 'Activity',
+      reservationDate: new Date(reservationData.reservationDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      numberOfPersons: reservationData.numberOfPersons,
+      customerName: reservationData.customerInfo.name,
+      customerEmail: reservationData.customerInfo.email,
+      status: reservationData.status,
+      reservationType: reservationData.reservationType,
+      contactPhone: process.env.BUSINESS_PHONE || '+212 524-123456',
+      whatsappNumber: process.env.BUSINESS_WHATSAPP || '+212 6XX-XXXXXX',
+      supportEmail: process.env.SUPPORT_EMAIL || 'info@example.com',
+      websiteUrl: process.env.WEBSITE_URL || 'https://example.com'
+    };
+
+    const mailOptions = {
+      from: {
+        name: 'MARRAKECH REVIEWS',
+        address: process.env.SUPPORT_EMAIL
+      },
+      to: reservationData.customerInfo.email,
+      subject: `Free Reservation Status Update - ${reservationData.reservationId}`,
+      html: getEmailTemplate('freeReservationStatusUpdate', emailData),
+      attachments: []
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('Free reservation status update email sent successfully:', result.messageId);
+    return { success: true, messageId: result.messageId };
+
+  } catch (error) {
+    console.error('Error sending free reservation status update email:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendPaymentReminder,
   sendOrderStatusUpdate,
@@ -856,5 +901,6 @@ module.exports = {
   sendContactAdminNotification,
   sendContactConfirmation,
   sendTravelReservationConfirmation,
-  sendTravelAdminNotification
+  sendTravelAdminNotification,
+  sendFreeReservationStatusUpdate
 };

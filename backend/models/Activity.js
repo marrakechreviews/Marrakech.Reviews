@@ -26,16 +26,32 @@ const activitySchema = new mongoose.Schema({
     type: String,
     required: [true, 'Short description is required']
   },
-  price: {
-    type: Number,
-    required: [true, 'Activity price is required'],
-    min: [0, 'Price cannot be negative']
-  },
-  marketPrice: {
-    type: Number,
-    required: [true, 'Market price is required'],
-    min: [0, 'Market price cannot be negative']
-  },
+  variations: [{
+    name: {
+      type: String,
+      required: [true, 'Variation name is required'],
+      trim: true
+    },
+    price: {
+      type: Number,
+      required: [true, 'Variation price is required'],
+      min: [0, 'Price cannot be negative']
+    },
+    marketPrice: {
+      type: Number,
+      min: [0, 'Market price cannot be negative']
+    },
+    paidSpots: {
+      type: Number,
+      required: [true, 'Paid spots are required'],
+      min: [0, 'Paid spots cannot be negative']
+    },
+    freeSpots: {
+      type: Number,
+      required: [true, 'Free spots are required'],
+      min: [0, 'Free spots cannot be negative']
+    }
+  }],
   currency: {
     type: String,
     default: 'USD',
@@ -177,11 +193,27 @@ const activitySchema = new mongoose.Schema({
 activitySchema.index({ name: 'text', description: 'text', location: 'text' });
 activitySchema.index({ category: 1 });
 activitySchema.index({ location: 1 });
-activitySchema.index({ price: 1 });
+activitySchema.index({ 'variations.price': 1 });
 activitySchema.index({ rating: -1 });
 activitySchema.index({ createdAt: -1 });
 activitySchema.index({ isActive: 1 });
 activitySchema.index({ isFeatured: 1 });
+
+// Virtual for price
+activitySchema.virtual('price').get(function() {
+  if (this.variations && this.variations.length > 0) {
+    return this.variations[0].price;
+  }
+  return 0;
+});
+
+// Virtual for marketPrice
+activitySchema.virtual('marketPrice').get(function() {
+    if (this.variations && this.variations.length > 0) {
+        return this.variations[0].marketPrice;
+    }
+    return 0;
+});
 
 // Virtual for discount percentage
 activitySchema.virtual('discountPercentage').get(function() {
