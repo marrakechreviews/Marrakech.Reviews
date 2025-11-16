@@ -197,6 +197,7 @@ export default function ActivitiesManagementPage() {
             images: '',
             isActive: true,
             isFeatured: false,
+            isFreeReservationAvailable: false,
           }
     );
 
@@ -410,6 +411,14 @@ export default function ActivitiesManagementPage() {
               onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isFeatured: checked }))}
             />
             <Label htmlFor="isFeatured">Featured</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="isFreeReservationAvailable"
+              checked={formData.isFreeReservationAvailable}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isFreeReservationAvailable: checked }))}
+            />
+            <Label htmlFor="isFreeReservationAvailable">Free Reservation</Label>
           </div>
         </div>
         
@@ -710,6 +719,11 @@ export default function ActivitiesManagementPage() {
                           {activity.isFeatured && (
                             <Badge variant="secondary" className="text-xs">
                               Featured
+                            </Badge>
+                          )}
+                          {activity.isFreeReservationAvailable && (
+                            <Badge variant="info" className="text-xs">
+                              Free Reservation
                             </Badge>
                           )}
                         </div>

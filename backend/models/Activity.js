@@ -133,6 +133,10 @@ const activitySchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isFreeReservationAvailable: {
+    type: Boolean,
+    default: false
+  },
   availability: {
     type: String,
     enum: ['Daily', 'Weekdays', 'Weekends', 'Custom'],
