@@ -19,6 +19,7 @@ const {
   getActivityStats,
   importActivities,
   exportActivities,
+  confirmReservation,
 } = require('../controllers/activityController');
 const { protect, admin, optionalAuth } = require('../middleware/authMiddleware');
 
@@ -36,6 +37,7 @@ router.post('/reservations', protect, admin, createReservationAdmin);
 router.get('/reservations', protect, admin, getReservations);
 router.get('/reservations/:id', protect, admin, getReservation);
 router.put('/reservations/:id', protect, admin, updateReservation);
+router.put('/reservations/:id/confirm', protect, admin, confirmReservation);
 router.delete('/reservations/:id', protect, admin, deleteReservation);
 router.post('/:id/reserve', optionalAuth, createReservation);
 

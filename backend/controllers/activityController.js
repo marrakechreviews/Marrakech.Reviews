@@ -39,9 +39,14 @@ const getActivities = asyncHandler(async (req, res) => {
 
   // Price range filter
   if (req.query.minPrice || req.query.maxPrice) {
-    query.price = {};
-    if (req.query.minPrice) query.price.$gte = parseFloat(req.query.minPrice);
-    if (req.query.maxPrice) query.price.$lte = parseFloat(req.query.maxPrice);
+    query.variations = { $elemMatch: {} };
+    if (req.query.minPrice) query.variations.$elemMatch.price = { $gte: parseFloat(req.query.minPrice) };
+    if (req.query.maxPrice) {
+      if (!query.variations.$elemMatch.price) {
+        query.variations.$elemMatch.price = {};
+      }
+      query.variations.$elemMatch.price.$lte = parseFloat(req.query.maxPrice);
+    }
   }
 
   // Search filter
@@ -155,11 +160,16 @@ const checkAvailability = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const createActivity = asyncHandler(async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, variations } = req.body;
     if (!name) {
       res.status(400).json({ message: 'Activity name is required to generate a slug.' });
       return;
     }
+    if (!variations || !Array.isArray(variations) || variations.length === 0) {
+      res.status(400).json({ message: 'At least one variation is required.' });
+      return;
+    }
+
     const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9 -]/g, '') // Remove special characters
@@ -188,6 +198,12 @@ const updateActivity = asyncHandler(async (req, res) => {
   if (!activity) {
     res.status(404);
     throw new Error('Activity not found');
+  }
+
+  const { variations } = req.body;
+  if (variations && (!Array.isArray(variations) || variations.length === 0)) {
+    res.status(400).json({ message: 'At least one variation is required.' });
+    return;
   }
 
   Object.assign(activity, req.body);
@@ -222,7 +238,7 @@ const createReservation = asyncHandler(async (req, res) => {
       return;
     }
 
-    const { customerInfo, reservationDate, numberOfPersons, notes } = req.body;
+    const { customerInfo, reservationDate, numberOfPersons, notes, reservationType, variationId } = req.body;
 
     // Validate required fields
     if (!customerInfo || !customerInfo.name || !customerInfo.email || !customerInfo.whatsapp) {
@@ -230,9 +246,15 @@ const createReservation = asyncHandler(async (req, res) => {
       return;
     }
 
-    if (!reservationDate || !numberOfPersons) {
-      res.status(400).json({ message: 'Reservation date and number of persons are required' });
+    if (!reservationDate || !numberOfPersons || !reservationType || !variationId) {
+      res.status(400).json({ message: 'Reservation date, number of persons, reservation type, and variation are required' });
       return;
+    }
+
+    const variation = activity.variations.id(variationId);
+    if (!variation) {
+        res.status(400).json({ message: 'Invalid variation selected' });
+        return;
     }
 
     // Check if number of persons is within limits
@@ -248,8 +270,18 @@ const createReservation = asyncHandler(async (req, res) => {
       return;
     }
 
+    // Check spot availability
+    if (reservationType === 'paid' && variation.paidSpots < numberOfPersons) {
+        res.status(400).json({ message: 'Not enough paid spots available for this variation' });
+        return;
+    }
+    if (reservationType === 'free' && variation.freeSpots < numberOfPersons) {
+        res.status(400).json({ message: 'Not enough free spots available for this variation' });
+        return;
+    }
+
     // Calculate total price
-    const totalPrice = activity.price * numberOfPersons;
+    const totalPrice = reservationType === 'paid' ? variation.price * numberOfPersons : 0;
 
     // Generate reservation ID
     const timestamp = Date.now().toString(36);
@@ -272,6 +304,9 @@ const createReservation = asyncHandler(async (req, res) => {
       paymentMethod: 'PayPal',
       paymentToken,
       paymentTokenExpires,
+      reservationType,
+      variation: variationId,
+      status: reservationType === 'paid' ? 'confirmed' : 'pending manual confirmation',
     };
 
     if (req.user) {
@@ -281,6 +316,15 @@ const createReservation = asyncHandler(async (req, res) => {
     const reservation = new ActivityReservation(reservationData);
 
     const createdReservation = await reservation.save();
+
+    // Decrement spots
+    if (reservationType === 'paid') {
+        variation.paidSpots -= numberOfPersons;
+    } else {
+        variation.freeSpots -= numberOfPersons;
+    }
+    await activity.save();
+
     await createdReservation.populate('activity', 'name location duration');
 
     /**
@@ -301,6 +345,35 @@ const createReservation = asyncHandler(async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: error.message, errors: error.errors });
   }
+});
+
+// @desc    Confirm a free reservation
+// @route   PUT /api/activities/reservations/:id/confirm
+// @access  Private/Admin
+const confirmReservation = asyncHandler(async (req, res) => {
+  const reservation = await ActivityReservation.findById(req.params.id);
+
+  if (!reservation) {
+    res.status(404);
+    throw new Error('Reservation not found');
+  }
+
+  if (reservation.status !== 'pending manual confirmation') {
+    res.status(400);
+    throw new Error('Only reservations pending manual confirmation can be confirmed');
+  }
+
+  reservation.status = 'confirmed';
+  await reservation.save();
+
+  // Send confirmation email to customer
+  try {
+    await sendReservationConfirmation(reservation);
+  } catch (emailError) {
+    console.error('Email sending error:', emailError);
+  }
+
+  res.json(reservation);
 });
 
 // @desc    Get activity reservations
